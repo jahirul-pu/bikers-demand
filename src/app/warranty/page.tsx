@@ -21,7 +21,7 @@ export default function WarrantyPolicyPage() {
             Warranty Policy
           </h1>
           <p className="text-steel text-sm">
-            Explicit category-by-category warranty terms per PRD Section 4.6.
+            Explicit category-by-category warranty terms across all products.
           </p>
         </div>
 

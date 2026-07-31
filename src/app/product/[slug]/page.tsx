@@ -277,7 +277,7 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-steel text-[10px] uppercase block">Warranty Coverage (PRD 4.6):</span>
+                <span className="text-steel text-[10px] uppercase block">Warranty Coverage:</span>
                 <span className="text-off-white font-bold">{product.warranty}</span>
               </div>
             </div>
@@ -363,12 +363,12 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Policy Bullet Cards per PRD 4.4 & 4.5 */}
+            {/* Policy Bullet Cards */}
             <div className="space-y-2 pt-4 border-t border-asphalt-2 text-[11px]">
               <div className="bg-asphalt-2 p-3 border border-asphalt-2 flex items-start gap-2.5">
                 <RotateCcw className="w-4 h-4 text-plate-yellow shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-off-white block uppercase">Return Policy Rule (PRD 4.5):</strong>
+                  <strong className="text-off-white block uppercase">Return Policy Rule:</strong>
                   <span className="text-steel">
                     Parts & Mods items are non-returnable once opened. Unboxing photo/video evidence replacement for wrong or copy items.
                   </span>
@@ -378,7 +378,7 @@ export default function ProductDetailPage() {
               <div className="bg-asphalt-2 p-3 border border-asphalt-2 flex items-start gap-2.5">
                 <Truck className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-off-white block uppercase">Pathao Courier Shipping (PRD 4.4):</strong>
+                  <strong className="text-off-white block uppercase">Pathao Courier Shipping:</strong>
                   <span className="text-steel">
                     Tk 60 inside Dhaka metro / Tk 130 rest of Bangladesh. COD confirmation call triggered upon order.
                   </span>
