@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Search, User, Heart, ShoppingBag, Menu, X, Bike } from "lucide-react";
+import CartDrawer from "@/components/cart/CartDrawer";
 
 interface HeaderProps {
   onOpenBikeModal?: () => void;
@@ -19,6 +20,7 @@ export default function Header({
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   return (
     <header className="bg-asphalt border-b border-asphalt-2 sticky top-0 z-40">
@@ -102,10 +104,10 @@ export default function Header({
             )}
           </Link>
 
-          <Link
-            href="/cart"
-            className="relative bg-ignition-red text-asphalt px-3 py-1.5 flex items-center gap-2 font-semibold text-xs tracking-wider uppercase hover:bg-red-600 transition-colors transform -skew-x-6"
-            title="Cart"
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative bg-ignition-red text-asphalt px-3 py-1.5 flex items-center gap-2 font-semibold text-xs tracking-wider uppercase hover:bg-red-600 transition-colors transform -skew-x-6 cursor-pointer"
+            title="Open Cart"
           >
             <div className="transform skew-x-6 flex items-center gap-1.5">
               <ShoppingBag className="w-4 h-4" />
@@ -116,7 +118,7 @@ export default function Header({
                 </span>
               )}
             </div>
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -173,6 +175,9 @@ export default function Header({
           </div>
         </div>
       )}
+
+      {/* Slide-over Right Cart Popup */}
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 }
