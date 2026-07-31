@@ -40,6 +40,33 @@ export default function ProductCard({
 
   const handleAdd = () => {
     setAdded(true);
+    try {
+      const existing = localStorage.getItem("bikers_demand_cart");
+      let cartArr = [];
+      if (existing) {
+        cartArr = JSON.parse(existing);
+      }
+      const existingIndex = cartArr.findIndex((i: any) => i.productId === product.id || i.id === product.id);
+      if (existingIndex >= 0) {
+        cartArr[existingIndex].quantity += 1;
+      } else {
+        cartArr.push({
+          id: `cart-${Date.now()}`,
+          productId: product.id,
+          name: product.name,
+          brand: product.brand,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          quantity: 1,
+          size: null,
+          imageUrl: product.imageUrl,
+          categorySlug: product.category,
+        });
+      }
+      localStorage.setItem("bikers_demand_cart", JSON.stringify(cartArr));
+    } catch (e) {
+      console.error("Failed to save cart item to storage:", e);
+    }
     onAddToCart?.(product);
     setTimeout(() => setAdded(false), 1500);
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Search, User, Heart, ShoppingBag, Menu, X, Bike } from "lucide-react";
 
 interface HeaderProps {
@@ -79,17 +80,17 @@ export default function Header({
             </span>
           </button>
 
-          <a
-            href="#account"
+          <Link
+            href="/account/garage"
             className="flex items-center gap-1 text-steel hover:text-off-white transition-colors p-1"
             title="Account"
           >
             <User className="w-5 h-5" />
             <span className="hidden lg:inline text-xs font-medium">Account</span>
-          </a>
+          </Link>
 
-          <a
-            href="#favorites"
+          <Link
+            href="/account/wishlist"
             className="relative text-steel hover:text-off-white transition-colors p-1"
             title="Favorites"
           >
@@ -99,10 +100,10 @@ export default function Header({
                 {favCount}
               </span>
             )}
-          </a>
+          </Link>
 
-          <a
-            href="#cart"
+          <Link
+            href="/cart"
             className="relative bg-ignition-red text-asphalt px-3 py-1.5 flex items-center gap-2 font-semibold text-xs tracking-wider uppercase hover:bg-red-600 transition-colors transform -skew-x-6"
             title="Cart"
           >
@@ -115,7 +116,7 @@ export default function Header({
                 </span>
               )}
             </div>
-          </a>
+          </Link>
         </div>
       </div>
 
