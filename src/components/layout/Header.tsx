@@ -92,9 +92,9 @@ export default function Header({
           </button>
 
           <Link
-            href="/account/garage"
+            href="/login"
             className="flex items-center gap-1 text-steel hover:text-off-white transition-colors p-1"
-            title="Account"
+            title="Account Login / Garage"
           >
             <User className="w-5 h-5" />
             <span className="hidden lg:inline text-xs font-medium">Account</span>
