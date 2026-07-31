@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, User, Heart, ShoppingBag, Menu, X, Bike } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
 
@@ -18,9 +19,17 @@ export default function Header({
   cartCount = 2,
   favCount = 1,
 }: HeaderProps) {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <header className="bg-asphalt border-b border-asphalt-2 sticky top-0 z-40">
@@ -51,7 +60,7 @@ export default function Header({
         </div>
 
         {/* Search Bar */}
-        <div className="hidden md:flex flex-1 max-w-xl mx-4">
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-4">
           <div className="relative w-full">
             <input
               type="text"
@@ -61,13 +70,13 @@ export default function Header({
               className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-ignition-red rounded-none py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none transition-colors"
             />
             <button
-              type="button"
+              type="submit"
               className="absolute right-0 top-0 bottom-0 px-3 bg-asphalt-2 text-steel hover:text-ignition-red flex items-center justify-center transition-colors"
             >
               <Search className="w-4 h-4" />
             </button>
           </div>
-        </div>
+        </form>
 
         {/* Right Action Icons: Account, Favorites, Cart */}
         <div className="flex items-center gap-3 sm:gap-5">

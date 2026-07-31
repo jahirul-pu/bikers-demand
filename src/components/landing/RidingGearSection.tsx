@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import ProductCard, { Product } from "./ProductCard";
 import { Shield, ArrowRight } from "lucide-react";
 
@@ -85,13 +86,13 @@ export default function RidingGearSection({
             </p>
           </div>
 
-          <a
-            href="#all-gear"
+          <Link
+            href="/category/riding-gear"
             className="bg-asphalt-2 hover:bg-asphalt border border-steel/30 text-off-white text-xs font-bold uppercase tracking-wider px-4 py-2 flex items-center gap-1 transition-colors self-start md:self-auto"
           >
             <span>Browse All Riding Gear</span>
             <ArrowRight className="w-3.5 h-3.5 text-ignition-red" />
-          </a>
+          </Link>
         </div>
 
         {/* 4 Product Cards Grid */}

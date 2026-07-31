@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Shield, Wrench, Zap, Droplet, Shirt, ArrowUpRight } from "lucide-react";
 
 interface CategoryGridProps {
@@ -72,7 +73,6 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
   return (
     <section id="category-grid" className="py-16 bg-asphalt border-b border-asphalt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
           <div>
             <span className="text-xs font-mono text-plate-yellow uppercase tracking-widest block mb-1">
@@ -87,20 +87,13 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
           </p>
         </div>
 
-        {/* 4 Category Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((cat) => {
             const Icon = cat.icon;
             return (
-              <a
+              <Link
                 key={cat.id}
-                href={`#${cat.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onSelectCategory?.(cat.id);
-                  const el = document.getElementById(cat.id);
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }}
+                href={`/category/${cat.id}`}
                 className={`group relative bg-gradient-to-b ${cat.bgGradient} border border-asphalt-2 ${cat.borderColor} p-6 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg`}
               >
                 {/* Top Badge & Icon */}
@@ -145,7 +138,7 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
                     </span>
                   </div>
                 </div>
-              </a>
+              </Link>
             );
           })}
         </div>

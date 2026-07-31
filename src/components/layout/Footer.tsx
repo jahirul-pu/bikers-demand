@@ -33,29 +33,29 @@ export default function Footer() {
             </h4>
             <ul className="space-y-1.5 font-light">
               <li>
-                <a href="#riding-gear" className="hover:text-off-white transition-colors">
+                <Link href="/category/riding-gear" className="hover:text-off-white transition-colors">
                   Riding Gear & Helmets
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#parts-mods" className="hover:text-off-white transition-colors">
+                <Link href="/category/parts-mods" className="hover:text-off-white transition-colors">
                   Parts & Mods
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#electronics" className="hover:text-off-white transition-colors">
+                <Link href="/category/electronics" className="hover:text-off-white transition-colors">
                   Electronics & Lighting
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#additives" className="hover:text-off-white transition-colors">
+                <Link href="/category/additives" className="hover:text-off-white transition-colors">
                   Additives & Engine Oils
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#merchandise" className="hover:text-off-white transition-colors">
+                <Link href="/category/merchandise" className="hover:text-off-white transition-colors">
                   Merchandise & Apparel
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -67,29 +67,39 @@ export default function Footer() {
             </h4>
             <ul className="space-y-1.5 font-light">
               <li>
-                <a href="#returns" className="hover:text-off-white transition-colors">
+                <Link href="/returns" className="hover:text-off-white transition-colors">
                   Return & Replacement Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#warranty" className="hover:text-off-white transition-colors">
+                <Link href="/warranty" className="hover:text-off-white transition-colors">
                   Warranty Information
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#shipping" className="hover:text-off-white transition-colors">
+                <Link href="/shipping" className="hover:text-off-white transition-colors">
                   Shipping & Delivery Charges
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#faq" className="hover:text-off-white transition-colors">
+                <Link href="/faq" className="hover:text-off-white transition-colors">
                   Frequently Asked Questions
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#privacy" className="hover:text-off-white transition-colors">
+                <Link href="/privacy" className="hover:text-off-white transition-colors">
                   Privacy Policy (PDPA 2026)
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-off-white transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="hover:text-off-white transition-colors">
+                  About Bikers Demand
+                </Link>
               </li>
             </ul>
           </div>

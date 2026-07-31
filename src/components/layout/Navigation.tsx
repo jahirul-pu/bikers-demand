@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import Link from "next/link";
 import { Shield, Wrench, Zap, Droplet, Shirt, Award, HelpCircle } from "lucide-react";
 
 interface NavigationProps {
@@ -11,13 +14,13 @@ export default function Navigation({
   onSelectCategory,
 }: NavigationProps) {
   const navItems = [
-    { name: "Riding Gear", icon: Shield, id: "riding-gear" },
-    { name: "Parts & Mods", icon: Wrench, id: "parts-mods" },
-    { name: "Electronics", icon: Zap, id: "electronics" },
-    { name: "Additives & Oils", icon: Droplet, id: "additives" },
-    { name: "Merchandise", icon: Shirt, id: "merchandise" },
-    { name: "Brands", icon: Award, id: "brands" },
-    { name: "Help", icon: HelpCircle, id: "help" },
+    { name: "Riding Gear", icon: Shield, id: "riding-gear", href: "/category/riding-gear" },
+    { name: "Parts & Mods", icon: Wrench, id: "parts-mods", href: "/category/parts-mods" },
+    { name: "Electronics", icon: Zap, id: "electronics", href: "/category/electronics" },
+    { name: "Additives & Oils", icon: Droplet, id: "additives", href: "/category/additives" },
+    { name: "Merchandise", icon: Shirt, id: "merchandise", href: "/category/merchandise" },
+    { name: "Brands", icon: Award, id: "brands", href: "/search?brand=all" },
+    { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
   ];
 
   return (
@@ -28,15 +31,9 @@ export default function Navigation({
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
             return (
-              <a
+              <Link
                 key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onSelectCategory?.(item.id);
-                  const el = document.getElementById(item.id);
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }}
+                href={item.href}
                 className={`display-font uppercase text-base tracking-wider py-3 px-3 border-b-2 flex items-center gap-2 transition-all ${
                   isActive
                     ? "border-ignition-red text-ignition-red font-bold bg-asphalt/50"
@@ -45,7 +42,7 @@ export default function Navigation({
               >
                 <Icon className={`w-4 h-4 ${isActive ? "text-ignition-red" : "text-steel"}`} />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             );
           })}
         </div>
