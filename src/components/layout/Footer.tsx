@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Bike, Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -9,14 +10,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand & About */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-ignition-red flex items-center justify-center rounded transform -skew-x-12">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-7 h-7 bg-ignition-red flex items-center justify-center rounded transform -skew-x-12 group-hover:bg-red-600 transition-colors">
                 <Bike className="w-5 h-5 text-asphalt transform skew-x-12 stroke-[2.5]" />
               </div>
-              <span className="display-font text-xl font-extrabold tracking-wider text-off-white">
-                BIKERS<span className="text-ignition-red">DEMAND</span>
+              <span className="display-font text-xl font-extrabold tracking-wider text-off-white group-hover:text-ignition-red transition-colors">
+                BIKERS<span className="text-ignition-red group-hover:text-off-white transition-colors">DEMAND</span>
               </span>
-            </div>
+            </Link>
             <p className="text-xs text-steel font-light leading-relaxed">
               Bangladesh's dedicated online-only motorcycle accessories store. Owned inventory, confirmed bike compatibility, and nationwide fast delivery.
             </p>

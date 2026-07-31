@@ -35,7 +35,7 @@ export default function Header({
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          <a href="#" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <div className="w-9 h-9 bg-ignition-red flex items-center justify-center rounded transform -skew-x-12 group-hover:bg-red-600 transition-colors">
               <Bike className="w-6 h-6 text-asphalt transform skew-x-12 stroke-[2.5]" />
             </div>
@@ -47,7 +47,7 @@ export default function Header({
                 Motorcycle Parts & Gear
               </span>
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Search Bar */}
