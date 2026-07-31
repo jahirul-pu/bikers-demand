@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Heart, ShoppingBag, CheckCircle, ShieldAlert, Check } from "lucide-react";
+import AuthPromptModal from "@/components/auth/AuthPromptModal";
 
 export interface Product {
   id: string;
@@ -39,6 +40,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [added, setAdded] = useState(false);
   const [fav, setFav] = useState(isFav);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const productSlug = product.slug || product.id;
 
@@ -94,10 +96,8 @@ export default function ProductCard({
     try {
       const user = localStorage.getItem("bikers_demand_user");
       if (!user) {
-        // Prompt login if not authenticated
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
+        // Open Auth Prompt Modal per user directive
+        setShowAuthModal(true);
         return;
       }
 
@@ -274,6 +274,13 @@ export default function ProductCard({
           </button>
         </div>
       </div>
+
+      <AuthPromptModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Rider Authentication Required"
+        subtitle="Please sign in or create a rider account to save items to your favorites wishlist."
+      />
     </div>
   );
 }
