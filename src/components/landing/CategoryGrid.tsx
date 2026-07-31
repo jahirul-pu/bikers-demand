@@ -1,5 +1,5 @@
 import React from "react";
-import { Shield, Wrench, Zap, Shirt, ArrowUpRight } from "lucide-react";
+import { Shield, Wrench, Zap, Droplet, Shirt, ArrowUpRight } from "lucide-react";
 
 interface CategoryGridProps {
   onSelectCategory?: (category: string) => void;
@@ -42,6 +42,18 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
       borderColor: "group-hover:border-blue-500",
       iconColor: "text-blue-400",
       subcategories: ["LED Fog Lights", "Phone Mounts", "GPS Trackers", "Horns"],
+    },
+    {
+      id: "additives",
+      name: "Additives & Oils",
+      tagline: "Synthetic Engine Oils, Coolants & Chain Lube",
+      icon: Droplet,
+      count: "60+ Products",
+      badge: "100% Genuine Fluids",
+      bgGradient: "from-purple-950/40 via-asphalt-2 to-asphalt-2",
+      borderColor: "group-hover:border-purple-500",
+      iconColor: "text-purple-400",
+      subcategories: ["Full Synthetic Oil", "Chain Lube", "Coolant", "Fuel Additives"],
     },
     {
       id: "merchandise",

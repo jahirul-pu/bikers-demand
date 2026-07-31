@@ -71,7 +71,17 @@ async function main() {
     create: {
       name: "Electronics",
       slug: "electronics",
-      description: "LED lighting, phone mounts, horns, GPS trackers, and chargers.",
+      description: "LED fog lights, phone mounts, GPS trackers, and horns.",
+    },
+  });
+
+  const additivesCat = await prisma.category.upsert({
+    where: { slug: "additives" },
+    update: {},
+    create: {
+      name: "Additives & Oils",
+      slug: "additives",
+      description: "Synthetic engine oils, coolants, chain lubes, and engine additives.",
     },
   });
 
@@ -81,7 +91,7 @@ async function main() {
     create: {
       name: "Merchandise",
       slug: "merchandise",
-      description: "Riding backpacks, tank bags, apparel, and branded keychains.",
+      description: "Apparel, riding backpacks, keychains, and accessories.",
     },
   });
 

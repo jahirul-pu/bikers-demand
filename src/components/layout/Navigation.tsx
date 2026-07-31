@@ -1,5 +1,5 @@
 import React from "react";
-import { Shield, Wrench, Zap, Shirt, Award, HelpCircle } from "lucide-react";
+import { Shield, Wrench, Zap, Droplet, Shirt, Award, HelpCircle } from "lucide-react";
 
 interface NavigationProps {
   activeCategory?: string;
@@ -14,6 +14,7 @@ export default function Navigation({
     { name: "Riding Gear", icon: Shield, id: "riding-gear" },
     { name: "Parts & Mods", icon: Wrench, id: "parts-mods" },
     { name: "Electronics", icon: Zap, id: "electronics" },
+    { name: "Additives & Oils", icon: Droplet, id: "additives" },
     { name: "Merchandise", icon: Shirt, id: "merchandise" },
     { name: "Brands", icon: Award, id: "brands" },
     { name: "Help", icon: HelpCircle, id: "help" },

@@ -47,6 +47,11 @@ export default function Footer() {
                 </a>
               </li>
               <li>
+                <a href="#additives" className="hover:text-off-white transition-colors">
+                  Additives & Engine Oils
+                </a>
+              </li>
+              <li>
                 <a href="#merchandise" className="hover:text-off-white transition-colors">
                   Merchandise & Apparel
                 </a>
