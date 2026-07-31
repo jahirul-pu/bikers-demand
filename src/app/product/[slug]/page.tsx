@@ -1,342 +1,483 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
+import TrustSection from "@/components/landing/TrustSection";
 import ProductCard, { Product } from "@/components/landing/ProductCard";
-import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
 import {
-  CheckCircle,
   ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
   RotateCcw,
   Truck,
+  Plus,
+  Minus,
   ShoppingBag,
   Heart,
-  ChevronRight,
-  ShieldAlert,
+  Share2,
   Check,
+  Bike,
+  Award,
+  ArrowRight,
+  Shield,
+  Clock,
 } from "lucide-react";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = (params.slug as string) || "performance-slip-on-racing-exhaust-black";
+  const slug = (params?.slug as string) || "performance-slip-on-racing-exhaust-black";
 
-  const [productData, setProductData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedSize, setSelectedSize] = useState<string>("M");
-  const [quantity, setQuantity] = useState<number>(1);
-  const [added, setAdded] = useState(false);
-  const [cartCount, setCartCount] = useState(2);
-  const [selectedBike, setSelectedBike] = useState<BikeOption | null>({
-    brand: "Yamaha",
-    model: "FZS-Fi",
-    variant: "v3",
+  // Product state with comprehensive mockup data matching PRD
+  const [product, setProduct] = useState({
+    id: "prod-1",
+    sku: "PARTS-EXH-001",
+    name: "Performance Slip-On Racing Exhaust (Black Coated Stainless Steel)",
+    slug: "performance-slip-on-racing-exhaust-black",
+    brand: "Akrapovič Replica",
+    category: "Parts & Mods",
+    categorySlug: "parts-mods",
+    price: 6500,
+    originalPrice: 7200,
+    stockQty: 14,
+    stockStatus: "in-stock",
+    certification: "NONE", // DOT / ECE for helmets
+    warranty: "No Warranty", // PRD 4.6 explicit term
+    returnNote: "Parts & Mods items are non-returnable once opened or unsealed.",
+    description:
+      "High-flow stainless steel racing exhaust muffler engineered for 150-160cc motorcycle engines. Delivers deep bass exhaust notes, lightweight weight reduction (-2.4 kg vs OEM exhaust), and improved high-RPM exhaust gas clearance.",
+    specs: [
+      { key: "Material", value: "304 Stainless Steel with Heat-Resistant Matte Black Coating" },
+      { key: "Inlet Diameter", value: "51mm Universal Slip-On Joint" },
+      { key: "Weight", value: "1.8 kg" },
+      { key: "DB Killer Included", value: "Yes (Removable Baffle Insert)" },
+      { key: "Mounting Bracket", value: "Included with Mounting Springs" },
+    ],
+    compatibleBikes: [
+      "Yamaha FZS-Fi v2 / v3 (149cc)",
+      "Yamaha R15 v3 / v4 (155cc)",
+      "Yamaha MT-15 v1 / v2 (155cc)",
+      "Honda CB Hornet 160R (162cc)",
+      "Honda XBlade 160 (162cc)",
+      "Suzuki Gixxer 155 FI ABS",
+      "Bajaj Pulsar N160 / NS160",
+      "TVS Apache RTR 160 4V",
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
+    ],
+    sizes: [] as string[],
   });
-  const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
 
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [addedToCart, setAddedToCart] = useState(false);
+  const [isFav, setIsFav] = useState(false);
+  const [activeTab, setActiveTab] = useState<"specs" | "compatibility" | "policy">("compatibility");
+
+  // Fetch product from API if slug changes
   useEffect(() => {
-    fetchProductDetail();
+    async function fetchProduct() {
+      try {
+        const res = await fetch(`/api/products/${slug}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          setProduct({
+            id: d.id,
+            sku: d.sku,
+            name: d.name,
+            slug: d.slug,
+            brand: d.brand,
+            category: d.category?.name || "Parts & Mods",
+            categorySlug: d.category?.slug || "parts-mods",
+            price: d.price,
+            originalPrice: d.comparePrice,
+            stockQty: d.stockQty,
+            stockStatus: d.stockStatus === "OUT_OF_STOCK" ? "out-of-stock" : "in-stock",
+            certification: d.certification || "NONE",
+            warranty: d.warrantyDuration || (d.warrantyFlag ? "6 Months Warranty" : "No Warranty"),
+            returnNote: d.category?.slug === "parts-mods" ? "Parts & Mods non-returnable once opened" : "7-day return policy",
+            description: d.description,
+            specs: [
+              { key: "SKU Code", value: d.sku },
+              { key: "Brand", value: d.brand },
+              { key: "Category", value: d.category?.name || "General" },
+            ],
+            compatibleBikes: [
+              "Yamaha FZS-Fi v3",
+              "Yamaha R15 v4",
+              "Honda CB Hornet 160R",
+              "Suzuki Gixxer 155",
+              "Bajaj Pulsar N160",
+            ],
+            images: d.images?.length > 0 ? d.images : [
+              "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80"
+            ],
+            sizes: d.category?.slug === "riding-gear" ? ["S", "M", "L", "XL", "XXL"] : [],
+          });
+        }
+      } catch (e) {
+        console.warn("Using product detail mockup fallback:", e);
+      }
+    }
+    fetchProduct();
   }, [slug]);
 
-  const fetchProductDetail = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/products/${slug}`);
-      const json = await res.json();
-      if (json.success && json.data) {
-        setProductData(json.data);
-      }
-    } catch (err) {
-      console.error("Error fetching product detail:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddToCart = () => {
-    setAdded(true);
-    setCartCount((prev) => prev + quantity);
-    setTimeout(() => setAdded(false), 2000);
+    setAddedToCart(true);
+    try {
+      const existing = localStorage.getItem("bikers_demand_cart");
+      let cartArr = [];
+      if (existing) {
+        cartArr = JSON.parse(existing);
+      }
+      const existingIndex = cartArr.findIndex((i: any) => i.productId === product.id || i.id === product.id);
+      if (existingIndex >= 0) {
+        cartArr[existingIndex].quantity += quantity;
+      } else {
+        cartArr.push({
+          id: `cart-${Date.now()}`,
+          productId: product.id,
+          name: product.name,
+          brand: product.brand,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          quantity: quantity,
+          size: selectedSize,
+          imageUrl: product.images[0],
+          categorySlug: product.categorySlug,
+        });
+      }
+      localStorage.setItem("bikers_demand_cart", JSON.stringify(cartArr));
+    } catch (e) {
+      console.error("Error saving cart to storage:", e);
+    }
+    setTimeout(() => setAddedToCart(false), 2000);
   };
 
   const handleBuyNow = () => {
     handleAddToCart();
-    router.push("/cart");
+    router.push("/checkout");
   };
-
-  const bikeDisplayName = selectedBike
-    ? `${selectedBike.brand} ${selectedBike.model} ${selectedBike.variant || ""}`
-    : null;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-asphalt text-off-white flex flex-col">
-        <Header />
-        <div className="flex-grow flex items-center justify-center font-mono text-steel">
-          Loading product specifications...
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  const p = productData?.product || {
-    name: "Performance Slip-On Racing Exhaust (Black Coated)",
-    brand: "Akrapovič Replica",
-    price: 6500,
-    comparePrice: 7200,
-    stockQty: 14,
-    description:
-      "High-flow stainless steel racing exhaust muffler designed for 150-160cc street bikes. Enhances exhaust note, reduces weight, and decreases backpressure.",
-    category: { slug: "parts-mods", name: "Parts & Mods" },
-    certification: "NONE",
-    warrantyFlag: false,
-    warrantyDuration: "No Warranty",
-    returnPolicyNote:
-      "Parts & Mods items are non-returnable once packaging is opened/torn.",
-    images: ["https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80"],
-    compatibilities: [
-      { bikeModel: { brand: "Yamaha", model: "FZS-Fi", variant: "v3" } },
-      { bikeModel: { brand: "Yamaha", model: "FZS-Fi", variant: "v2" } },
-      { bikeModel: { brand: "Honda", model: "CB Hornet", variant: "160R ABS" } },
-      { bikeModel: { brand: "TVS", model: "Apache RTR 160 4V", variant: "Special Edition" } },
-    ],
-  };
-
-  const isPartsMods = p.category?.slug === "parts-mods";
 
   return (
-    <div className="min-h-screen flex flex-col bg-asphalt text-off-white">
-      <Header
-        onOpenBikeModal={() => setIsBikeModalOpen(true)}
-        selectedBike={bikeDisplayName}
-        cartCount={cartCount}
-      />
-      <Navigation activeCategory={p.category?.slug} />
+    <div className="min-h-screen flex flex-col bg-asphalt text-off-white font-mono text-xs">
+      <Header />
+      <Navigation />
 
-      {/* Breadcrumb Navigation */}
-      <div className="bg-asphalt-2 border-b border-asphalt-2 py-3 px-4 text-xs font-mono text-steel">
-        <div className="max-w-7xl mx-auto flex items-center gap-2">
-          <a href="/" className="hover:text-off-white">Home</a>
-          <ChevronRight className="w-3 h-3 text-steel" />
-          <a href={`/category/${p.category?.slug}`} className="hover:text-off-white capitalize">
-            {p.category?.name || "Category"}
-          </a>
-          <ChevronRight className="w-3 h-3 text-steel" />
-          <span className="text-plate-yellow truncate max-w-md">{p.name}</span>
+      {/* Breadcrumb Bar */}
+      <div className="bg-asphalt-2 border-b border-asphalt-2 py-3 px-4 text-steel">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs">
+          <Link href="/" className="hover:text-off-white">Home</Link>
+          <span>/</span>
+          <Link href={`/category/${product.categorySlug}`} className="hover:text-off-white capitalize">
+            {product.category}
+          </Link>
+          <span>/</span>
+          <span className="text-plate-yellow truncate max-w-xs">{product.name}</span>
         </div>
       </div>
 
-      {/* Product Detail Main */}
+      {/* Main Product Layout */}
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-6 space-y-4">
-            <div className="bg-asphalt-2 border border-steel/20 aspect-square flex items-center justify-center p-6 relative overflow-hidden">
+            {/* Main Featured Image */}
+            <div className="relative aspect-square bg-asphalt-2 border border-steel/30 p-6 flex items-center justify-center overflow-hidden group">
               <img
-                src={p.images[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80"}
-                alt={p.name}
-                className="w-full h-full object-contain"
+                src={product.images[selectedImage]}
+                alt={product.name}
+                className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
               />
 
-              {/* Helmet Certification Badge per PRD 3.4 */}
-              {p.certification && p.certification !== "NONE" && (
-                <div className="absolute top-4 left-4 bg-ignition-red text-asphalt text-xs font-mono font-extrabold px-3 py-1 uppercase tracking-wider shadow-lg">
-                  CERTIFIED: {p.certification.replace("_", " ")}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column: Specification & Purchase Actions */}
-          <div className="lg:col-span-6 space-y-6">
-            {/* Brand & Stock Pill */}
-            <div className="flex justify-between items-center text-xs font-mono">
-              <span className="text-plate-yellow uppercase font-bold tracking-widest text-sm">
-                {p.brand}
-              </span>
-              <span className="text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1">
-                ✓ Owned Inventory: In Stock ({p.stockQty || 14} available)
-              </span>
-            </div>
-
-            {/* Product Title */}
-            <h1 className="display-font text-3xl sm:text-4xl font-extrabold uppercase text-off-white tracking-wide leading-tight">
-              {p.name}
-            </h1>
-
-            {/* Pricing Box */}
-            <div className="bg-asphalt-2 p-4 border border-asphalt-2 flex items-baseline gap-4">
-              <div>
-                <span className="text-xs font-mono text-steel">Display Price (VAT Inclusive): </span>
-                <span className="display-font text-3xl font-extrabold text-off-white ml-2">
-                  Tk {p.price.toLocaleString("en-BD")}
+              {/* Badges */}
+              <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                <span className="bg-plate-yellow text-asphalt text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider flex items-center gap-1 shadow">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Model Specific Part</span>
                 </span>
-              </div>
-              {p.comparePrice && (
-                <span className="text-sm text-steel line-through font-mono">
-                  Tk {p.comparePrice.toLocaleString("en-BD")}
-                </span>
-              )}
-            </div>
 
-            {/* Specific Compatibility Accordion (PRD Section 3.3) */}
-            <div className="bg-asphalt-2 p-4 border border-plate-yellow/40 space-y-2">
-              <div className="flex items-center gap-2 font-mono text-xs font-bold text-plate-yellow uppercase">
-                <CheckCircle className="w-4 h-4 text-plate-yellow" />
-                <span>Confirmed Bike Compatibility List:</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {p.compatibilities && p.compatibilities.length > 0 ? (
-                  p.compatibilities.map((c: any, idx: number) => (
-                    <span
-                      key={idx}
-                      className="bg-asphalt border border-steel/30 text-off-white text-xs font-mono px-2.5 py-1"
-                    >
-                      Fits {c.bikeModel.brand} {c.bikeModel.model} {c.bikeModel.variant || ""}
-                    </span>
-                  ))
-                ) : (
-                  <span className="bg-asphalt border border-steel/30 text-steel-light text-xs font-mono px-2.5 py-1">
-                    Universal Fit for All Motorcycle Models
+                {product.certification !== "NONE" && (
+                  <span className="bg-ignition-red text-asphalt text-[11px] font-extrabold px-2.5 py-1 uppercase tracking-wider">
+                    {product.certification} Certified
                   </span>
                 )}
               </div>
             </div>
 
+            {/* Thumbnail Selectors */}
+            {product.images.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`w-20 h-20 bg-asphalt-2 p-1 border transition-all cursor-pointer ${
+                      selectedImage === idx
+                        ? "border-plate-yellow scale-105"
+                        : "border-asphalt-2 opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} alt="Thumbnail" className="w-full h-full object-contain" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Product Info & Purchase Actions */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-plate-yellow font-bold uppercase tracking-widest text-sm">
+                  {product.brand}
+                </span>
+                <span className="text-steel">SKU: {product.sku}</span>
+              </div>
+
+              <h1 className="display-font text-3xl sm:text-4xl font-extrabold uppercase text-off-white tracking-wide leading-tight">
+                {product.name}
+              </h1>
+
+              <div className="flex items-center gap-3 pt-1">
+                <span className="display-font text-3xl font-extrabold text-plate-yellow">
+                  Tk {product.price.toLocaleString("en-BD")}
+                </span>
+                {product.originalPrice && (
+                  <span className="text-steel line-through text-base">
+                    Tk {product.originalPrice.toLocaleString("en-BD")}
+                  </span>
+                )}
+                {product.originalPrice && (
+                  <span className="bg-ignition-red text-asphalt font-extrabold text-[10px] px-2 py-0.5 uppercase">
+                    SAVE TK {(product.originalPrice - product.price).toLocaleString("en-BD")}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Stock & Warranty Badges */}
+            <div className="grid grid-cols-2 gap-3 p-3 bg-asphalt-2 border border-asphalt-2">
+              <div className="space-y-0.5">
+                <span className="text-steel text-[10px] uppercase block">Owned Stock Status:</span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  In Stock ({product.stockQty} Units in Dhaka Hub)
+                </span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-steel text-[10px] uppercase block">Warranty Coverage (PRD 4.6):</span>
+                <span className="text-off-white font-bold">{product.warranty}</span>
+              </div>
+            </div>
+
             {/* Size Selector for Riding Gear */}
-            {p.category?.slug === "riding-gear" && (
+            {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-2">
-                <label className="text-xs font-mono text-plate-yellow uppercase tracking-wider block">
-                  Select Size (Riding Gear):
-                </label>
+                <label className="text-plate-yellow font-bold uppercase block">Select Size:</label>
                 <div className="flex gap-2">
-                  {["S", "M", "L", "XL", "2XL"].map((sz) => (
+                  {product.sizes.map((s) => (
                     <button
-                      key={sz}
-                      onClick={() => setSelectedSize(sz)}
-                      className={`w-11 h-11 text-xs font-mono font-bold border transition-all ${
-                        selectedSize === sz
-                          ? "bg-ignition-red text-asphalt border-ignition-red font-extrabold"
-                          : "bg-asphalt border-steel/30 text-steel hover:text-off-white"
+                      key={s}
+                      onClick={() => setSelectedSize(s)}
+                      className={`px-4 py-2 border font-bold ${
+                        selectedSize === s
+                          ? "bg-plate-yellow text-asphalt border-plate-yellow"
+                          : "bg-asphalt text-steel hover:text-off-white border-steel/30"
                       }`}
                     >
-                      {sz}
+                      {s}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Quantity Selector */}
-            <div className="space-y-2">
-              <label className="text-xs font-mono text-steel uppercase tracking-wider block">
-                Quantity:
-              </label>
-              <div className="flex items-center gap-3">
-                <div className="flex border border-steel/30 bg-asphalt">
+            {/* Quantity Stepper & Cart Buttons */}
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center border border-steel/30 bg-asphalt-2">
                   <button
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="px-3 py-2 text-steel hover:text-off-white font-mono"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-3 py-2 text-steel hover:text-off-white"
                   >
-                    -
+                    <Minus className="w-4 h-4" />
                   </button>
-                  <span className="px-4 py-2 text-xs font-mono font-bold text-off-white flex items-center">
-                    {quantity}
-                  </span>
+                  <span className="px-4 py-2 font-bold text-off-white text-sm">{quantity}</span>
                   <button
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="px-3 py-2 text-steel hover:text-off-white font-mono"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="px-3 py-2 text-steel hover:text-off-white"
                   >
-                    +
+                    <Plus className="w-4 h-4" />
                   </button>
                 </div>
+
+                <button
+                  onClick={() => setIsFav(!isFav)}
+                  className={`p-3 border transition-colors ${
+                    isFav
+                      ? "bg-ignition-red text-asphalt border-ignition-red"
+                      : "bg-asphalt-2 border-steel/30 text-steel hover:text-off-white"
+                  }`}
+                  title="Add to Wishlist"
+                >
+                  <Heart className={`w-5 h-5 ${isFav ? "fill-asphalt" : ""}`} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  className={`py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transform -skew-x-6 transition-all shadow-lg ${
+                    addedToCart
+                      ? "bg-emerald-500 text-asphalt"
+                      : "bg-asphalt-2 hover:bg-asphalt border border-plate-yellow text-plate-yellow"
+                  }`}
+                >
+                  <div className="transform skew-x-6 flex items-center gap-2">
+                    {addedToCart ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+                    <span>{addedToCart ? "ADDED TO CART" : "ADD TO CART"}</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleBuyNow}
+                  className="bg-ignition-red hover:bg-red-600 text-asphalt py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transform -skew-x-6 transition-colors shadow-xl"
+                >
+                  <div className="transform skew-x-6 flex items-center gap-2">
+                    <span>BUY NOW</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </button>
               </div>
             </div>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <button
-                onClick={handleAddToCart}
-                className={`flex-1 py-4 uppercase font-extrabold text-sm tracking-wider flex items-center justify-center gap-2 transition-all transform -skew-x-6 ${
-                  added
-                    ? "bg-emerald-500 text-asphalt"
-                    : "bg-ignition-red hover:bg-red-600 text-asphalt"
-                }`}
-              >
-                <div className="transform skew-x-6 flex items-center gap-2">
-                  {added ? <Check className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
-                  <span>{added ? "Added to Cart" : "Add to Cart"}</span>
-                </div>
-              </button>
-
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase text-sm py-4 tracking-wider transition-all transform -skew-x-6"
-              >
-                <span className="transform skew-x-6 block">Buy Now (COD)</span>
-              </button>
-            </div>
-
-            {/* Mandatory Policy Notices (PRD Sections 4.5 & 4.6) */}
-            <div className="space-y-3 pt-4 border-t border-asphalt-2 text-xs font-mono">
-              {/* Return Policy Notice Box */}
-              <div className="bg-asphalt p-3 border-l-2 border-plate-yellow flex items-start gap-2.5">
+            {/* Policy Bullet Cards per PRD 4.4 & 4.5 */}
+            <div className="space-y-2 pt-4 border-t border-asphalt-2 text-[11px]">
+              <div className="bg-asphalt-2 p-3 border border-asphalt-2 flex items-start gap-2.5">
                 <RotateCcw className="w-4 h-4 text-plate-yellow shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-off-white block mb-0.5 uppercase">
-                    Return Policy Notice:
-                  </strong>
+                  <strong className="text-off-white block uppercase">Return Policy Rule (PRD 4.5):</strong>
                   <span className="text-steel">
-                    {isPartsMods
-                      ? "Parts & Mods items are not eligible for return once the packaging/seal is opened or torn. Wrong/counterfeit items are eligible for photographic evidence replacement."
-                      : "Standard 7-day return policy for unopened items in original packaging."}
+                    Parts & Mods items are non-returnable once opened. Unboxing photo/video evidence replacement for wrong or copy items.
                   </span>
                 </div>
               </div>
 
-              {/* Warranty Notice */}
-              <div className="bg-asphalt p-3 border-l-2 border-steel flex items-start gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-steel-light shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-off-white block mb-0.5 uppercase">Warranty Coverage:</strong>
-                  <span className="text-steel font-semibold">
-                    {p.warrantyDuration || "No Warranty"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Delivery rates */}
-              <div className="bg-asphalt p-3 border-l-2 border-blue-500 flex items-start gap-2.5">
+              <div className="bg-asphalt-2 p-3 border border-asphalt-2 flex items-start gap-2.5">
                 <Truck className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                <span className="text-steel">
-                  Nationwide Delivery: <strong className="text-off-white">Tk 60 Inside Dhaka</strong> | <strong className="text-off-white">Tk 130 Outside Dhaka</strong> (Pathao Logistics)
-                </span>
+                <div>
+                  <strong className="text-off-white block uppercase">Pathao Courier Shipping (PRD 4.4):</strong>
+                  <span className="text-steel">
+                    Tk 60 inside Dhaka metro / Tk 130 rest of Bangladesh. COD confirmation call triggered upon order.
+                  </span>
+                </div>
               </div>
-            </div>
-
-            {/* Product Description */}
-            <div className="pt-4 border-t border-asphalt-2 space-y-2">
-              <h3 className="display-font text-xl font-bold uppercase text-off-white">
-                Technical Description & Overview
-              </h3>
-              <p className="text-steel text-sm leading-relaxed font-light">{p.description}</p>
             </div>
           </div>
         </div>
+
+        {/* Detailed Tabs: Specs, Compatibility Matrix, Policy */}
+        <div className="bg-asphalt-2 p-6 sm:p-8 border border-asphalt-2 space-y-6">
+          <div className="flex border-b border-asphalt space-x-6 text-sm font-bold uppercase">
+            <button
+              onClick={() => setActiveTab("compatibility")}
+              className={`pb-3 border-b-2 transition-colors flex items-center gap-2 ${
+                activeTab === "compatibility"
+                  ? "border-plate-yellow text-plate-yellow"
+                  : "border-transparent text-steel hover:text-off-white"
+              }`}
+            >
+              <Bike className="w-4 h-4" />
+              <span>Confirmed Bike Compatibility</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("specs")}
+              className={`pb-3 border-b-2 transition-colors flex items-center gap-2 ${
+                activeTab === "specs"
+                  ? "border-plate-yellow text-plate-yellow"
+                  : "border-transparent text-steel hover:text-off-white"
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>Technical Specifications</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("policy")}
+              className={`pb-3 border-b-2 transition-colors flex items-center gap-2 ${
+                activeTab === "policy"
+                  ? "border-plate-yellow text-plate-yellow"
+                  : "border-transparent text-steel hover:text-off-white"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Warranty & Policy Details</span>
+            </button>
+          </div>
+
+          {/* Tab 1: Compatibility */}
+          {activeTab === "compatibility" && (
+            <div className="space-y-4">
+              <p className="text-steel text-xs">
+                This item has been verified by Bikers Demand technical team to fit the following motorcycle models:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {product.compatibleBikes.map((bike, idx) => (
+                  <div key={idx} className="bg-asphalt p-3 border border-plate-yellow/30 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-plate-yellow shrink-0" />
+                    <span className="text-off-white font-bold text-xs">{bike}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Specs */}
+          {activeTab === "specs" && (
+            <div className="space-y-3">
+              <p className="text-steel text-xs leading-relaxed">{product.description}</p>
+              <div className="bg-asphalt p-4 border border-asphalt-2 space-y-2">
+                {product.specs.map((s, idx) => (
+                  <div key={idx} className="flex justify-between border-b border-asphalt-2 pb-1.5 text-xs">
+                    <span className="text-steel">{s.key}:</span>
+                    <span className="text-off-white font-bold">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Policy */}
+          {activeTab === "policy" && (
+            <div className="space-y-3 text-xs leading-relaxed text-steel">
+              <p>
+                <strong className="text-off-white">Parts Return Policy:</strong> Per Section 4.5 of our store terms, Parts & Mods items are non-returnable once opened. If the wrong item or counterfeit item is delivered, replacement is processed upon unboxing video submission.
+              </p>
+              <p>
+                <strong className="text-off-white">Warranty Term:</strong> {product.warranty}.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <TrustSection />
       </main>
 
       <Footer />
-
-      <BikeSelectorModal
-        isOpen={isBikeModalOpen}
-        onClose={() => setIsBikeModalOpen(false)}
-        onSelectBike={(b) => setSelectedBike(b)}
-        currentBike={selectedBike}
-      />
     </div>
   );
 }
