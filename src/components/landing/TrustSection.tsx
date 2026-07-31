@@ -1,6 +1,5 @@
 import React from "react";
 import { ShieldCheck, CheckCircle2, Truck, CreditCard, RotateCcw } from "lucide-react";
-import PaymentLogos from "@/components/ui/PaymentLogos";
 
 export default function TrustSection() {
   const trustItems = [
@@ -73,11 +72,6 @@ export default function TrustSection() {
                   <p className="text-xs text-steel leading-relaxed font-light">
                     {item.description}
                   </p>
-                  {idx === 3 && (
-                    <div className="pt-1">
-                      <PaymentLogos />
-                    </div>
-                  )}
                 </div>
                 <div className="pt-2 text-[10px] font-mono text-steel uppercase">
                   ✓ Verified Policy

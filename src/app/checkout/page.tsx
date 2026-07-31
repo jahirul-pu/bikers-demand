@@ -5,7 +5,6 @@ import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
-import PaymentLogos from "@/components/ui/PaymentLogos";
 import { CheckCircle2, Truck, ShieldCheck, ArrowRight, Smartphone, AlertCircle } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -293,11 +292,24 @@ export default function CheckoutPage() {
                 </label>
 
                 {/* Mobile Banking Badges */}
-                <div className="p-4 border border-steel/20 bg-asphalt/50 space-y-2">
+                <div className="p-4 border border-steel/20 bg-asphalt/50 opacity-80 space-y-2">
                   <span className="text-steel text-[11px] block font-bold">
-                    Accepted Mobile & Digital Gateways:
+                    Mobile Banking Support (Merchant Integration):
                   </span>
-                  <PaymentLogos />
+                  <div className="flex flex-wrap gap-2 text-[10px]">
+                    <span className="bg-asphalt border border-steel/30 px-2.5 py-1 text-pink-400 font-bold">
+                      bKash
+                    </span>
+                    <span className="bg-asphalt border border-steel/30 px-2.5 py-1 text-orange-400 font-bold">
+                      Nagad
+                    </span>
+                    <span className="bg-asphalt border border-steel/30 px-2.5 py-1 text-purple-400 font-bold">
+                      Rocket
+                    </span>
+                    <span className="bg-asphalt border border-steel/30 px-2.5 py-1 text-emerald-400 font-bold">
+                      BanglaQR
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
