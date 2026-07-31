@@ -3,51 +3,28 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import ProductCard, { Product } from "@/components/landing/ProductCard";
-import { Heart, Trash2, ShoppingBag, ArrowRight, Check } from "lucide-react";
+import { Heart, Trash2, ArrowRight, User, Lock, Bike, Check } from "lucide-react";
 
 export default function WishlistPage() {
-  const [favProducts, setFavProducts] = useState<Product[]>([
-    {
-      id: "gear-1",
-      name: "MT Thunder 4 SV Full Face Helmet (Matt Black)",
-      brand: "MT Helmets",
-      category: "riding-gear",
-      price: 9800,
-      originalPrice: 10500,
-      imageUrl: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
-      isUniversal: true,
-      stockStatus: "in-stock",
-      stockQty: 9,
-      certification: "ECE 22.06 / DOT",
-      warranty: "1 Year Warranty",
-    },
-    {
-      id: "prod-1",
-      name: "Performance Slip-On Racing Exhaust (Black Coated)",
-      brand: "Akrapovič Replica",
-      category: "parts-mods",
-      price: 6500,
-      originalPrice: 7200,
-      imageUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80",
-      fitBadge: "Fits Yamaha FZS-Fi v3",
-      stockStatus: "in-stock",
-      stockQty: 14,
-      warranty: "No Warranty",
-    },
-  ]);
+  // Check auth state (Simulated login state; default false to prompt login unless authenticated)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [favProducts, setFavProducts] = useState<Product[]>([]);
 
-  // Load favorites from localStorage
   useEffect(() => {
     try {
+      const user = localStorage.getItem("bikers_demand_user");
+      if (user) {
+        setIsLoggedIn(true);
+      }
       const saved = localStorage.getItem("bikers_demand_favs");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           setFavProducts(parsed);
         }
       }
     } catch (e) {
-      console.error("Error loading favorites from localStorage:", e);
+      console.error(e);
     }
   }, []);
 
@@ -57,7 +34,7 @@ export default function WishlistPage() {
     try {
       localStorage.setItem("bikers_demand_favs", JSON.stringify(updated));
     } catch (e) {
-      console.error("Error saving favorites to localStorage:", e);
+      console.error("Error updating favorites:", e);
     }
   };
 
@@ -70,10 +47,53 @@ export default function WishlistPage() {
     }
   };
 
+  // If not logged in, display Authentication Prompt Banner per user directive
+  if (!isLoggedIn) {
+    return (
+      <div className="bg-asphalt-2 p-8 sm:p-12 border border-steel/30 space-y-6 max-w-xl mx-auto text-center font-mono text-xs shadow-2xl my-8">
+        <div className="w-14 h-14 bg-plate-yellow/20 border border-plate-yellow text-plate-yellow rounded-full flex items-center justify-center mx-auto">
+          <Lock className="w-7 h-7 text-plate-yellow" />
+        </div>
+
+        <div className="space-y-2">
+          <span className="text-plate-yellow font-bold uppercase tracking-widest text-[10px] block">
+            RIDER AUTHENTICATION REQUIRED
+          </span>
+          <h1 className="display-font text-3xl font-extrabold uppercase text-off-white">
+            Sign In to View Wishlist
+          </h1>
+          <p className="text-steel text-xs font-light leading-relaxed max-w-md mx-auto">
+            Saving favorite accessories and managing your motorcycle garage requires an active rider account.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 font-bold uppercase">
+          <Link
+            href="/login"
+            className="bg-ignition-red hover:bg-red-600 text-asphalt py-3.5 tracking-wider flex items-center justify-center gap-2 transform -skew-x-6 transition-all shadow-lg"
+          >
+            <span className="transform skew-x-6 flex items-center gap-2">
+              <User className="w-4 h-4" />
+              <span>Sign In</span>
+            </span>
+          </Link>
+
+          <Link
+            href="/register"
+            className="bg-asphalt hover:bg-asphalt-2 border border-steel/30 text-off-white py-3.5 tracking-wider flex items-center justify-center gap-2 transition-colors"
+          >
+            <Bike className="w-4 h-4 text-plate-yellow" />
+            <span>Create Rider Account</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-mono text-xs">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-asphalt pb-4 font-mono text-xs">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-asphalt pb-4">
         <div>
           <span className="text-plate-yellow uppercase tracking-wider block font-bold">
             SAVED ITEMS ({favProducts.length})
@@ -97,7 +117,7 @@ export default function WishlistPage() {
         )}
       </div>
 
-      {/* Grid or Empty View */}
+      {/* Wishlist Items Grid or Empty View */}
       {favProducts.length === 0 ? (
         <div className="bg-asphalt p-12 text-center space-y-4 border border-asphalt-2 my-8 font-mono text-xs">
           <div className="w-14 h-14 bg-asphalt-2 rounded-full border border-steel/30 flex items-center justify-center mx-auto text-steel">
@@ -127,7 +147,6 @@ export default function WishlistPage() {
             <div key={product.id} className="relative group">
               <ProductCard product={product} isFav={true} />
               
-              {/* Quick Remove Overlay button */}
               <button
                 onClick={() => handleRemoveFav(product.id)}
                 className="absolute bottom-3 right-3 bg-asphalt-2 hover:bg-ignition-red text-steel hover:text-asphalt p-2 border border-steel/30 transition-colors z-20"

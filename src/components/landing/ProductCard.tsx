@@ -91,9 +91,18 @@ export default function ProductCard({
   };
 
   const handleFav = () => {
-    const nextFav = !fav;
-    setFav(nextFav);
     try {
+      const user = localStorage.getItem("bikers_demand_user");
+      if (!user) {
+        // Prompt login if not authenticated
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+        return;
+      }
+
+      const nextFav = !fav;
+      setFav(nextFav);
       const existing = localStorage.getItem("bikers_demand_favs");
       let favArr: Product[] = [];
       if (existing) {
@@ -107,10 +116,10 @@ export default function ProductCard({
         favArr = favArr.filter((p) => p.id !== product.id);
       }
       localStorage.setItem("bikers_demand_favs", JSON.stringify(favArr));
+      onToggleFav?.(product);
     } catch (e) {
       console.error("Failed to update favorites in localStorage:", e);
     }
-    onToggleFav?.(product);
   };
 
   // Determine fit display
