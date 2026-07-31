@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Heart, ShoppingBag, CheckCircle, ShieldAlert, Check } from "lucide-react";
 
 export interface Product {
   id: string;
   name: string;
   brand: string;
-  category: "riding-gear" | "parts-mods" | "electronics" | "merchandise";
+  slug?: string;
+  category: "riding-gear" | "parts-mods" | "electronics" | "merchandise" | "additives";
   price: number;
   originalPrice?: number;
   imageUrl: string;
@@ -37,6 +39,8 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [added, setAdded] = useState(false);
   const [fav, setFav] = useState(isFav);
+
+  const productSlug = product.slug || product.id;
 
   const handleAdd = () => {
     setAdded(true);
@@ -83,7 +87,7 @@ export default function ProductCard({
   return (
     <div className="group relative bg-asphalt-2 border border-asphalt-2 hover:border-steel/40 transition-all duration-200 flex flex-col justify-between overflow-hidden">
       {/* Top Media & Badges Overlay */}
-      <div className="relative aspect-square bg-asphalt p-4 flex items-center justify-center overflow-hidden">
+      <Link href={`/product/${productSlug}`} className="relative aspect-square bg-asphalt p-4 flex items-center justify-center overflow-hidden block">
         {/* Placeholder / Image */}
         <img
           src={product.imageUrl}
@@ -115,7 +119,10 @@ export default function ProductCard({
 
         {/* Wishlist Heart Icon */}
         <button
-          onClick={handleFav}
+          onClick={(e) => {
+            e.preventDefault();
+            handleFav();
+          }}
           className={`absolute top-2 right-2 p-2 rounded-full transition-colors z-10 ${
             fav
               ? "bg-ignition-red text-asphalt"
@@ -134,7 +141,7 @@ export default function ProductCard({
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Product Information Body */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
@@ -145,10 +152,12 @@ export default function ProductCard({
             <span className="text-[10px] capitalize text-steel">{product.category.replace("-", " ")}</span>
           </div>
 
-          {/* Title */}
-          <h4 className="text-sm font-semibold text-off-white group-hover:text-ignition-red transition-colors line-clamp-2 leading-snug">
-            {product.name}
-          </h4>
+          {/* Title Link */}
+          <Link href={`/product/${productSlug}`}>
+            <h4 className="text-sm font-semibold text-off-white group-hover:text-ignition-red transition-colors line-clamp-2 leading-snug">
+              {product.name}
+            </h4>
+          </Link>
         </div>
 
         {/* Metadata: Stock Indicator & Warranty */}
