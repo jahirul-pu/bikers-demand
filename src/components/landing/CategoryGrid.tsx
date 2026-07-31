@@ -87,14 +87,14 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {categories.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
                 key={cat.id}
                 href={`/category/${cat.id}`}
-                className={`group relative bg-gradient-to-b ${cat.bgGradient} border border-asphalt-2 ${cat.borderColor} p-6 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg`}
+                className={`group relative bg-gradient-to-b ${cat.bgGradient} border border-asphalt-2 ${cat.borderColor} p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg min-w-0`}
               >
                 {/* Top Badge & Icon */}
                 <div className="space-y-4">
