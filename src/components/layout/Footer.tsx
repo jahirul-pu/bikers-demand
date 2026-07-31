@@ -1,5 +1,6 @@
 import React from "react";
 import { Bike, Phone, Mail, MapPin } from "lucide-react";
+import PaymentLogos from "@/components/ui/PaymentLogos";
 
 export default function Footer() {
   return (
@@ -113,23 +114,7 @@ export default function Footer() {
               <span className="text-[10px] font-mono text-steel block mb-1.5 uppercase">
                 Accepted Payment Methods:
               </span>
-              <div className="flex flex-wrap gap-1.5">
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-plate-yellow border border-asphalt-2">
-                  COD
-                </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-pink-400 border border-asphalt-2">
-                  bKash
-                </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-orange-400 border border-asphalt-2">
-                  Nagad
-                </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-purple-400 border border-asphalt-2">
-                  Rocket
-                </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-emerald-400 border border-asphalt-2">
-                  BanglaQR
-                </span>
-              </div>
+              <PaymentLogos />
             </div>
           </div>
         </div>
