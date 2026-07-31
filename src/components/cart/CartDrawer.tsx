@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   X,
   ShoppingBag,
@@ -10,10 +9,6 @@ import {
   Plus,
   Minus,
   ArrowRight,
-  ShieldCheck,
-  Truck,
-  Tag,
-  AlertCircle,
 } from "lucide-react";
 
 export interface CartItem {
@@ -35,8 +30,6 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const router = useRouter();
-
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
       id: "cart-1",
@@ -63,15 +56,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     },
   ]);
 
-  const [isInsideDhaka, setIsInsideDhaka] = useState<boolean>(true);
-  const [couponInput, setCouponInput] = useState<string>("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    code: string;
-    discountAmount: number;
-  } | null>(null);
-  const [couponError, setCouponError] = useState<string | null>(null);
-
-  // Sync with localStorage on client load and drawer open
+  // Sync with localStorage on drawer open
   useEffect(() => {
     if (isOpen) {
       try {
@@ -113,32 +98,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     saveCartToStorage(updated);
   };
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCouponError(null);
-    const code = couponInput.trim().toUpperCase();
-
-    if (!code) return;
-
-    if (code === "BIKERS500") {
-      setAppliedCoupon({ code: "BIKERS500", discountAmount: 500 });
-      setCouponInput("");
-    } else if (code === "RIDER10") {
-      const discount = Math.round(subtotal * 0.1);
-      setAppliedCoupon({ code: "RIDER10", discountAmount: discount });
-      setCouponInput("");
-    } else {
-      setCouponError("Invalid coupon. Try 'BIKERS500'");
-    }
-  };
-
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
-  const deliveryCharge = isInsideDhaka ? 60 : 130;
-  const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
-  const grandTotal = Math.max(0, subtotal + deliveryCharge - discountAmount);
   const totalItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   if (!isOpen) return null;
@@ -243,108 +206,20 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 ))}
               </div>
             )}
-
-            {/* Delivery Zone Toggle */}
-            {cartItems.length > 0 && (
-              <div className="pt-3 border-t border-asphalt space-y-2">
-                <span className="text-steel uppercase text-[10px] block font-bold">
-                  Delivery Zone (Bangladesh):
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setIsInsideDhaka(true)}
-                    className={`p-2 border text-left ${
-                      isInsideDhaka
-                        ? "bg-asphalt border-plate-yellow text-plate-yellow font-bold"
-                        : "bg-asphalt/40 border-asphalt-2 text-steel"
-                    }`}
-                  >
-                    <div>Dhaka (Tk 60)</div>
-                  </button>
-                  <button
-                    onClick={() => setIsInsideDhaka(false)}
-                    className={`p-2 border text-left ${
-                      !isInsideDhaka
-                        ? "bg-asphalt border-plate-yellow text-plate-yellow font-bold"
-                        : "bg-asphalt/40 border-asphalt-2 text-steel"
-                    }`}
-                  >
-                    <div>Outside (Tk 130)</div>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Coupon Code Input */}
-            {cartItems.length > 0 && (
-              <div className="pt-2 border-t border-asphalt space-y-2">
-                <span className="text-steel uppercase text-[10px] block font-bold">
-                  Promo Coupon:
-                </span>
-                {appliedCoupon ? (
-                  <div className="bg-emerald-950/60 border border-emerald-500/40 p-2 flex justify-between text-emerald-400 text-xs">
-                    <span>{appliedCoupon.code} (-Tk {appliedCoupon.discountAmount})</span>
-                    <button
-                      onClick={() => setAppliedCoupon(null)}
-                      className="text-steel hover:text-ignition-red underline text-[10px]"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="BIKERS500"
-                      value={couponInput}
-                      onChange={(e) => setCouponInput(e.target.value)}
-                      className="bg-asphalt border border-steel/30 px-2.5 py-1.5 text-off-white text-xs flex-1 uppercase"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-asphalt hover:bg-asphalt/80 border border-steel/30 text-off-white px-3 py-1.5 font-bold uppercase text-xs"
-                    >
-                      Apply
-                    </button>
-                  </form>
-                )}
-                {couponError && (
-                  <span className="text-ignition-red text-[10px] block">{couponError}</span>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Drawer Footer & Checkout CTA */}
+          {/* Drawer Footer & Proceed to Checkout CTA */}
           {cartItems.length > 0 && (
             <div className="p-5 bg-asphalt border-t border-asphalt-2 space-y-4">
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between text-steel">
-                  <span>Subtotal:</span>
-                  <span className="text-off-white font-bold">
-                    Tk {subtotal.toLocaleString("en-BD")}
-                  </span>
-                </div>
-                <div className="flex justify-between text-steel">
-                  <span>Delivery ({isInsideDhaka ? "Dhaka" : "Outside"}):</span>
-                  <span className="text-off-white font-bold">Tk {deliveryCharge}</span>
-                </div>
-                {appliedCoupon && (
-                  <div className="flex justify-between text-emerald-400">
-                    <span>Discount:</span>
-                    <span className="font-bold">- Tk {appliedCoupon.discountAmount}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm font-extrabold text-off-white pt-2 border-t border-asphalt-2 items-baseline">
-                  <span>Total Amount:</span>
-                  <span className="text-plate-yellow display-font text-2xl font-extrabold">
-                    Tk {grandTotal.toLocaleString("en-BD")}
-                  </span>
-                </div>
+              <div className="flex justify-between text-sm font-extrabold text-off-white items-baseline">
+                <span>Subtotal:</span>
+                <span className="text-plate-yellow display-font text-2xl font-extrabold">
+                  Tk {subtotal.toLocaleString("en-BD")}
+                </span>
               </div>
 
               <Link
-                href={`/checkout?dhaka=${isInsideDhaka ? "true" : "false"}`}
+                href="/checkout"
                 onClick={onClose}
                 className="w-full bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs py-3.5 text-center tracking-wider block transition-all transform -skew-x-6 shadow-lg"
               >
