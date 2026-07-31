@@ -27,6 +27,21 @@ export default function RegisterPage() {
 
     setTimeout(() => {
       setIsLoading(false);
+      try {
+        localStorage.setItem(
+          "bikers_demand_user",
+          JSON.stringify({
+            name: name,
+            phone: phone,
+            email: email,
+            bikeBrand: bikeBrand,
+            bikeModel: bikeModel,
+            registeredAt: new Date().toISOString(),
+          })
+        );
+      } catch (e) {
+        console.error(e);
+      }
       // Simulate successful registration & garage bike save
       router.push("/account/garage");
     }, 1200);

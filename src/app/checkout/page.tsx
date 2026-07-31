@@ -22,31 +22,7 @@ function CheckoutContent() {
     dhakaParam === "false" ? false : true
   );
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: "cart-1",
-      productId: "prod-1",
-      name: "Performance Slip-On Racing Exhaust (Black Coated)",
-      brand: "Akrapovič Replica",
-      price: 6500,
-      originalPrice: 7200,
-      quantity: 1,
-      size: null,
-      imageUrl:
-        "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "cart-2",
-      productId: "prod-4",
-      name: "Dual Lens High Power LED Fog Lights with Bracket & Relay Wire",
-      brand: "Future Eye",
-      price: 2950,
-      quantity: 1,
-      size: null,
-      imageUrl:
-        "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=80",
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   // Form Fields
   const [customerName, setCustomerName] = useState("");

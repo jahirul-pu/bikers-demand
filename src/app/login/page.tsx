@@ -23,7 +23,19 @@ export default function LoginPage() {
 
     setTimeout(() => {
       setIsLoading(false);
-      // Simulate successful rider login
+      try {
+        localStorage.setItem(
+          "bikers_demand_user",
+          JSON.stringify({
+            name: "Rider User",
+            phoneOrEmail: phoneOrEmail,
+            loggedInAt: new Date().toISOString(),
+          })
+        );
+      } catch (e) {
+        console.error(e);
+      }
+      // Redirect to garage account area
       router.push("/account/garage");
     }, 1000);
   };
@@ -112,13 +124,6 @@ export default function LoginPage() {
               </span>
             </button>
           </form>
-
-          {/* Quick Demo Credentials Notice */}
-          <div className="bg-asphalt p-3 border border-plate-yellow/30 space-y-1 text-[11px]">
-            <strong className="text-plate-yellow block font-bold">Demo Login Credentials:</strong>
-            <div className="text-steel">Customer: <code className="text-off-white">01800000000</code> / <code className="text-off-white">rider123</code></div>
-            <div className="text-steel">Admin: <code className="text-off-white">admin@bikersdemand.com</code> / <code className="text-off-white">admin123</code></div>
-          </div>
 
           {/* Footer Register Link */}
           <div className="text-center pt-2 border-t border-asphalt text-xs text-steel">

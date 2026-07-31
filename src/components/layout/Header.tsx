@@ -16,13 +16,44 @@ interface HeaderProps {
 export default function Header({
   onOpenBikeModal,
   selectedBike,
-  cartCount = 2,
-  favCount = 1,
+  cartCount,
+  favCount,
 }: HeaderProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const [liveCartCount, setLiveCartCount] = useState<number>(cartCount ?? 0);
+  const [liveFavCount, setLiveFavCount] = useState<number>(favCount ?? 0);
+
+  // Sync badge counts from localStorage
+  React.useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem("bikers_demand_cart");
+      if (savedCart) {
+        const arr = JSON.parse(savedCart);
+        if (Array.isArray(arr)) {
+          const totalQty = arr.reduce((acc: number, item: any) => acc + (item.quantity || 1), 0);
+          setLiveCartCount(totalQty);
+        }
+      } else if (cartCount !== undefined) {
+        setLiveCartCount(cartCount);
+      }
+
+      const savedFavs = localStorage.getItem("bikers_demand_favs");
+      if (savedFavs) {
+        const arr = JSON.parse(savedFavs);
+        if (Array.isArray(arr)) {
+          setLiveFavCount(arr.length);
+        }
+      } else if (favCount !== undefined) {
+        setLiveFavCount(favCount);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [cartCount, favCount, isCartOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,9 +137,9 @@ export default function Header({
             title="Favorites"
           >
             <Heart className="w-5 h-5" />
-            {favCount > 0 && (
+            {liveFavCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-asphalt-2 border border-asphalt text-steel-light text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                {favCount}
+                {liveFavCount}
               </span>
             )}
           </Link>
@@ -121,9 +152,9 @@ export default function Header({
             <div className="transform skew-x-6 flex items-center gap-1.5">
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Cart</span>
-              {cartCount > 0 && (
+              {liveCartCount > 0 && (
                 <span className="bg-asphalt text-off-white px-1.5 py-0.5 text-[10px] font-mono">
-                  {cartCount}
+                  {liveCartCount}
                 </span>
               )}
             </div>
