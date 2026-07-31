@@ -1,0 +1,268 @@
+// Prisma Schema for Bikers Demand Motorcycle Accessories E-Commerce Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  PACKED
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+enum PaymentMethod {
+  COD
+  BKASH
+  NAGAD
+  ROCKET
+  BANGLAQR
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+enum StockStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+}
+
+enum HelmetCertification {
+  DOT
+  ECE_2206
+  ECE_2205
+  DOT_AND_ECE
+  NONE
+}
+
+enum ClaimType {
+  WRONG_ITEM
+  COUNTERFEIT
+}
+
+enum ClaimStatus {
+  PENDING
+  REVIEWING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String?     @unique
+  phone         String      @unique
+  passwordHash  String
+  role          Role        @default(CUSTOMER)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  addresses     Address[]
+  garageBikes   UserBike[]
+  orders        Order[]
+  wishlists     Wishlist[]
+  cart          Cart?
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String   @default("Home") // Home, Office, Garage
+  line1        String
+  line2        String?
+  city         String   @default("Dhaka")
+  district     String   @default("Dhaka")
+  isInsideDhaka Boolean  @default(true) // Dynamic delivery charge: true = 60 Tk, false = 130 Tk
+  phone        String
+  createdAt    DateTime @default(now())
+
+  orders       Order[]
+}
+
+model BikeModel {
+  id         String   @id @default(cuid())
+  brand      String   // Yamaha, Honda, Suzuki, Bajaj, TVS
+  model      String   // FZS-Fi, R15, Pulsar N160
+  variant    String?  // v3, v4, Dual Channel ABS
+  cc         Int      // e.g. 149, 155, 160
+  yearFrom   Int?     // e.g. 2019
+  yearTo     Int?     // e.g. 2024 (null if current)
+  createdAt  DateTime @default(now())
+
+  userBikes       UserBike[]
+  compatibilities ProductCompatibility[]
+
+  @@unique([brand, model, variant])
+}
+
+model UserBike {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bikeModelId String
+  bikeModel   BikeModel @relation(fields: [bikeModelId], references: [id], onDelete: Cascade)
+  nickname    String?   // e.g. "My Red FZ"
+  isPrimary   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, bikeModelId])
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String     // Riding Gear, Parts & Mods, Electronics, Merchandise
+  slug        String     @unique
+  description String?
+  parentId    String?
+  parent      Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children    Category[] @relation("SubCategories")
+
+  products    Product[]
+}
+
+model Product {
+  id               String               @id @default(cuid())
+  name             String
+  slug             String               @unique
+  description      String
+  brand            String
+  sku              String               @unique
+  price            Float                // Display price (VAT inclusive)
+  comparePrice     Float?
+  stockQty         Int                  @default(0) // Owned inventory
+  stockStatus      StockStatus          @default(IN_STOCK)
+  categoryId       String
+  category         Category             @relation(fields: [categoryId], references: [id])
+  images           String[]
+  isUniversal      Boolean              @default(false)
+  
+  // Helmet certification mandatory validation per PRD 3.4
+  certification    HelmetCertification  @default(NONE)
+  
+  // Warranty fields per PRD 4.6
+  warrantyFlag     Boolean              @default(false)
+  warrantyDuration String?              // e.g. "6 Months", "1 Year"
+
+  // Return policy per PRD 4.5
+  returnPolicyNote String?              // "Parts & Mods items non-returnable once opened"
+
+  isActive         Boolean              @default(true)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  compatibilities  ProductCompatibility[]
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+  wishlists        Wishlist[]
+}
+
+model ProductCompatibility {
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  bikeModelId String
+  bikeModel   BikeModel @relation(fields: [bikeModelId], references: [id], onDelete: Cascade)
+
+  @@id([productId, bikeModelId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?    @unique
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String?    @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  size      String?  // e.g. M, L, XL (for gear)
+  createdAt DateTime @default(now())
+
+  @@unique([cartId, productId, size])
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  orderNumber    String        @unique // e.g. BD-2026-1008
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id])
+  addressId      String
+  address        Address       @relation(fields: [addressId], references: [id])
+  status         OrderStatus   @default(PLACED)
+  paymentMethod  PaymentMethod @default(COD)
+  paymentStatus  PaymentStatus @default(UNPAID)
+  subtotal       Float
+  deliveryCharge Float         // 60 Tk inside Dhaka, 130 Tk outside Dhaka
+  total          Float
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  items          OrderItem[]
+  claims         Claim[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  size      String?
+
+  claims    Claim[]
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Claim {
+  id           String      @id @default(cuid())
+  orderId      String
+  order        Order       @relation(fields: [orderId], references: [id])
+  orderItemId  String
+  orderItem    OrderItem   @relation(fields: [orderItemId], references: [id])
+  claimType    ClaimType
+  evidenceUrls String[]    // Photo & video upload URLs
+  status       ClaimStatus @default(PENDING)
+  adminNotes   String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}

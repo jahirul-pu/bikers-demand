@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@config "../../tailwind.config.ts";
+
+:root {
+  --background: #15171A;
+  --foreground: #F2F1EC;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #15171A;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E2125;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8A8D91;
+}
+
+/* Custom Utilities */
+.plate-font {
+  font-family: var(--font-space-mono), monospace;
+  letter-spacing: 0.1em;
+}
+
+.display-font {
+  font-family: var(--font-barlow-condensed), sans-serif;
+}
