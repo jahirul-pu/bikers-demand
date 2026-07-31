@@ -42,6 +42,21 @@ export default function ProductCard({
 
   const productSlug = product.slug || product.id;
 
+  // Check if favorited in localStorage
+  React.useEffect(() => {
+    try {
+      const existing = localStorage.getItem("bikers_demand_favs");
+      if (existing) {
+        const favArr: Product[] = JSON.parse(existing);
+        if (favArr.some((p) => p.id === product.id)) {
+          setFav(true);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [product.id]);
+
   const handleAdd = () => {
     setAdded(true);
     try {
@@ -76,7 +91,25 @@ export default function ProductCard({
   };
 
   const handleFav = () => {
-    setFav(!fav);
+    const nextFav = !fav;
+    setFav(nextFav);
+    try {
+      const existing = localStorage.getItem("bikers_demand_favs");
+      let favArr: Product[] = [];
+      if (existing) {
+        favArr = JSON.parse(existing);
+      }
+      if (nextFav) {
+        if (!favArr.some((p) => p.id === product.id)) {
+          favArr.push(product);
+        }
+      } else {
+        favArr = favArr.filter((p) => p.id !== product.id);
+      }
+      localStorage.setItem("bikers_demand_favs", JSON.stringify(favArr));
+    } catch (e) {
+      console.error("Failed to update favorites in localStorage:", e);
+    }
     onToggleFav?.(product);
   };
 
