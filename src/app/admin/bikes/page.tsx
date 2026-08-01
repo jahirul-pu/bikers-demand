@@ -43,8 +43,8 @@ export default function AdminBikesPage() {
     <div className="space-y-6 font-mono text-xs">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-asphalt pb-4">
         <div>
-          <span className="text-plate-yellow uppercase tracking-wider block">
-            MOTORCYCLE REGISTRY (PRD 3.3)
+          <span className="text-plate-yellow uppercase tracking-wider block font-bold">
+            MOTORCYCLE REGISTRY
           </span>
           <h1 className="display-font text-3xl font-extrabold uppercase text-off-white">
             Bike Registry & Compatibility Matrix

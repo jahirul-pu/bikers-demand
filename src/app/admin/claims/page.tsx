@@ -28,8 +28,8 @@ export default function AdminClaimsPage() {
   return (
     <div className="space-y-6 font-mono text-xs">
       <div className="border-b border-asphalt pb-4">
-        <span className="text-ignition-red uppercase tracking-wider block">
-          REPLACEMENT CLAIMS (PRD 4.5)
+        <span className="text-plate-yellow uppercase tracking-wider block font-bold">
+          REPLACEMENT CLAIMS
         </span>
         <h1 className="display-font text-3xl font-extrabold uppercase text-off-white">
           Evidence Claims Queue

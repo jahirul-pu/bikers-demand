@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { User, Lock, Phone, Mail, Bike, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,10 +16,32 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [registeredBikes, setRegisteredBikes] = useState<DBBike[]>([]);
   const [bikeBrand, setBikeBrand] = useState("Yamaha");
   const [bikeModel, setBikeModel] = useState("FZS-Fi v3");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    LocalStorageDB.init();
+    const bikes = LocalStorageDB.getBikes();
+    setRegisteredBikes(bikes);
+    if (bikes.length > 0) {
+      setBikeBrand(bikes[0].brand);
+      setBikeModel(bikes[0].model);
+    }
+  }, []);
+
+  const availableBrands = Array.from(new Set(registeredBikes.map((b) => b.brand)));
+  const availableModels = registeredBikes.filter((b) => b.brand === bikeBrand);
+
+  const handleBrandChange = (brand: string) => {
+    setBikeBrand(brand);
+    const modelsForBrand = registeredBikes.filter((b) => b.brand === brand);
+    if (modelsForBrand.length > 0) {
+      setBikeModel(modelsForBrand[0].model);
+    }
+  };
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +62,17 @@ export default function RegisterPage() {
             registeredAt: new Date().toISOString(),
           })
         );
+
+        // Also add selected registered bike to user's garage
+        const selected = registeredBikes.find((b) => b.brand === bikeBrand && b.model === bikeModel);
+        if (selected) {
+          LocalStorageDB.saveUserGarage([selected]);
+        }
       } catch (e) {
         console.error(e);
       }
-      // Simulate successful registration & garage bike save
       router.push("/account/garage");
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -160,30 +188,33 @@ export default function RegisterPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-steel block text-[10px]">Brand / Make</label>
+                  <label className="text-steel block text-[10px] font-bold">Registered Brand</label>
                   <select
                     value={bikeBrand}
-                    onChange={(e) => setBikeBrand(e.target.value)}
-                    className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white"
+                    onChange={(e) => handleBrandChange(e.target.value)}
+                    className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
                   >
-                    <option value="Yamaha">Yamaha</option>
-                    <option value="Honda">Honda</option>
-                    <option value="Suzuki">Suzuki</option>
-                    <option value="Bajaj">Bajaj</option>
-                    <option value="TVS">TVS</option>
+                    {availableBrands.map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-steel block text-[10px]">Model & Variant</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. FZS-Fi v3"
+                  <label className="text-steel block text-[10px] font-bold">Registered Model</label>
+                  <select
                     value={bikeModel}
                     onChange={(e) => setBikeModel(e.target.value)}
-                    className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white"
-                  />
+                    className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                  >
+                    {availableModels.map((b) => (
+                      <option key={b.id} value={b.model}>
+                        {b.model} ({b.displacementCc} cc)
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

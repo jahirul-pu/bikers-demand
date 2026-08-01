@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Bike, Check, Search, ChevronRight } from "lucide-react";
+import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
 
 export interface BikeOption {
   brand: string;
@@ -17,47 +18,35 @@ interface BikeSelectorModalProps {
   currentBike?: BikeOption | null;
 }
 
-const BIKE_DATABASE: Record<string, { model: string; variants: string[]; cc: string }[]> = {
-  Yamaha: [
-    { model: "FZS-Fi", variants: ["v3", "v2", "v4 Deluxe"], cc: "149cc" },
-    { model: "R15", variants: ["v4", "v3", "M Edition"], cc: "155cc" },
-    { model: "MT-15", variants: ["v2 BS6", "v1"], cc: "155cc" },
-    { model: "FZ-X", variants: ["Standard"], cc: "149cc" },
-  ],
-  Honda: [
-    { model: "CB Hornet", variants: ["160R ABS", "160R CBS"], cc: "162cc" },
-    { model: "CBR", variants: ["150R Tricolor", "150R Repsol"], cc: "149cc" },
-    { model: "XBlade", variants: ["160 Dual Disc", "160 Single Disc"], cc: "162cc" },
-  ],
-  Suzuki: [
-    { model: "Gixxer", variants: ["155 FI ABS", "155 Carburetor"], cc: "155cc" },
-    { model: "Gixxer SF", variants: ["155 FI ABS", "155 Special Edition"], cc: "155cc" },
-    { model: "GSX-R150", variants: ["Keyless ABS", "Standard"], cc: "147cc" },
-  ],
-  Bajaj: [
-    { model: "Pulsar N160", variants: ["Dual Channel ABS"], cc: "164cc" },
-    { model: "Pulsar NS160", variants: ["FI ABS", "Twin Disc"], cc: "160cc" },
-    { model: "Pulsar 150", variants: ["Twin Disc", "Single Disc"], cc: "149cc" },
-  ],
-  TVS: [
-    { model: "Apache RTR 160 4V", variants: ["Special Edition ABS", "FI ABS"], cc: "159cc" },
-    { model: "Apache RTR 160 2V", variants: ["ABS", "Single Disc"], cc: "159cc" },
-    { model: "Raider 125", variants: ["Disc"], cc: "124cc" },
-  ],
-};
-
 export default function BikeSelectorModal({
   isOpen,
   onClose,
   onSelectBike,
   currentBike,
 }: BikeSelectorModalProps) {
+  const [bikesList, setBikesList] = useState<DBBike[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string>("Yamaha");
-  const [selectedModelObj, setSelectedModelObj] = useState<{ model: string; variants: string[]; cc: string } | null>(
-    BIKE_DATABASE.Yamaha[0]
-  );
-  const [selectedVariant, setSelectedVariant] = useState<string>("v3");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    LocalStorageDB.init();
+    const bikes = LocalStorageDB.getBikes();
+    setBikesList(bikes);
+    if (bikes.length > 0) {
+      setSelectedBrand(bikes[0].brand);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const availableBrands = Array.from(new Set(bikesList.map((b) => b.brand)));
+  const filteredBikes = bikesList.filter((b) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return b.brand.toLowerCase().includes(q) || b.model.toLowerCase().includes(q);
+    }
+    return b.brand === selectedBrand;
+  });
 
   if (!isOpen) return null;
 
@@ -113,13 +102,13 @@ export default function BikeSelectorModal({
           {/* Step 1: Select Brand */}
           <div className="space-y-2">
             <label className="text-xs font-mono text-plate-yellow uppercase tracking-wider block">
-              1. Choose Brand / Make
+              1. Choose Registered Make / Brand
             </label>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {Object.keys(BIKE_DATABASE).map((brand) => (
+              {availableBrands.map((brand) => (
                 <button
                   key={brand}
-                  onClick={() => handleBrandChange(brand)}
+                  onClick={() => setSelectedBrand(brand)}
                   className={`py-2.5 px-3 text-xs font-bold font-mono uppercase transition-all border ${
                     selectedBrand === brand
                       ? "bg-plate-yellow text-asphalt border-plate-yellow font-extrabold"
@@ -135,68 +124,30 @@ export default function BikeSelectorModal({
           {/* Step 2: Select Model */}
           <div className="space-y-2">
             <label className="text-xs font-mono text-plate-yellow uppercase tracking-wider block">
-              2. Choose Model ({selectedBrand})
+              2. Choose Registered Model ({selectedBrand})
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {BIKE_DATABASE[selectedBrand]?.map((item) => {
-                const isSelected = selectedModelObj?.model === item.model;
-                return (
-                  <button
-                    key={item.model}
-                    onClick={() => {
-                      setSelectedModelObj(item);
-                      setSelectedVariant(item.variants[0] || "");
-                    }}
-                    className={`p-3 text-left border flex items-center justify-between transition-all ${
-                      isSelected
-                        ? "bg-asphalt border-ignition-red text-off-white"
-                        : "bg-asphalt/60 border-asphalt-2 text-steel hover:border-steel/30 hover:text-off-white"
-                    }`}
-                  >
-                    <div>
-                      <div className="font-bold text-sm text-off-white">{item.model}</div>
-                      <div className="text-[11px] font-mono text-steel">{item.cc} Engine</div>
-                    </div>
-                    {isSelected && <Check className="w-4 h-4 text-ignition-red" />}
-                  </button>
-                );
-              })}
+              {filteredBikes.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onSelectBike({
+                      brand: item.brand,
+                      model: item.model,
+                      cc: `${item.displacementCc}cc`,
+                    });
+                    onClose();
+                  }}
+                  className="p-3 text-left border border-asphalt-2 bg-asphalt/60 hover:bg-asphalt hover:border-plate-yellow text-steel hover:text-off-white flex items-center justify-between transition-all"
+                >
+                  <div>
+                    <div className="font-bold text-sm text-off-white">{item.model}</div>
+                    <div className="text-[11px] font-mono text-steel">{item.displacementCc} cc Engine</div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-plate-yellow" />
+                </button>
+              ))}
             </div>
-          </div>
-
-          {/* Step 3: Select Variant / Generation */}
-          {selectedModelObj && selectedModelObj.variants.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-xs font-mono text-plate-yellow uppercase tracking-wider block">
-                3. Choose Variant / Generation
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {selectedModelObj.variants.map((variant) => (
-                  <button
-                    key={variant}
-                    onClick={() => setSelectedVariant(variant)}
-                    className={`py-1.5 px-4 text-xs font-mono transition-all border ${
-                      selectedVariant === variant
-                        ? "bg-ignition-red text-asphalt font-bold border-ignition-red"
-                        : "bg-asphalt border-asphalt-2 text-steel hover:border-steel/40 hover:text-off-white"
-                    }`}
-                  >
-                    {variant}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Selected Summary Card */}
-          <div className="bg-asphalt p-4 border border-plate-yellow/40 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-mono text-steel uppercase">SELECTED BIKE:</span>
-              <div className="font-mono text-sm font-extrabold text-plate-yellow">
-                {selectedBrand} {selectedModelObj?.model} {selectedVariant} ({selectedModelObj?.cc})
-              </div>
-            </div>
-            <span className="text-xs text-emerald-400 font-mono">✓ Ready to Filter</span>
           </div>
         </div>
 
@@ -206,13 +157,7 @@ export default function BikeSelectorModal({
             onClick={onClose}
             className="text-xs text-steel hover:text-off-white font-mono uppercase"
           >
-            Cancel
-          </button>
-          <button
-            onClick={handleConfirm}
-            className="bg-ignition-red hover:bg-red-600 text-asphalt font-bold uppercase text-xs px-6 py-2.5 tracking-wider transition-colors transform -skew-x-6"
-          >
-            <span className="transform skew-x-6 block">Apply Compatibility Filter</span>
+            Close
           </button>
         </div>
       </div>

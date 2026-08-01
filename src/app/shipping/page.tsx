@@ -49,7 +49,7 @@ export default function ShippingPolicyPage() {
             Order Confirmation Call & COD Fraud Prevention
           </h2>
           <p className="text-steel leading-relaxed font-light">
-            Consistent with Bangladesh e-commerce practices (PRD 4.3), placed orders trigger an automated SMS and order confirmation phone call from our Dhaka fulfillment center before parcels are handed over to courier logistics.
+            Consistent with Bangladesh e-commerce practices, placed orders trigger an automated SMS and order confirmation phone call from our Dhaka fulfillment center before parcels are handed over to courier logistics.
           </p>
         </div>
       </main>

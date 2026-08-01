@@ -143,7 +143,7 @@ export default function OrderDetailPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-plate-yellow font-bold">
             <ShieldAlert className="w-5 h-5 text-plate-yellow" />
-            <span>Wrong Item / Counterfeit Replacement Claim (PRD 4.5)</span>
+            <span>Wrong Item / Counterfeit Replacement Claim</span>
           </div>
 
           <button

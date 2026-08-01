@@ -214,7 +214,7 @@ export default function AdminProductsPage() {
               {newCategory === "riding-gear" && (
                 <div className="p-3 bg-asphalt border border-ignition-red/40 space-y-1">
                   <label className="text-ignition-red font-bold block">
-                    Helmet Certification (Mandatory Catalog Field per PRD 3.4)
+                    Helmet Certification (Mandatory Catalog Field)
                   </label>
                   <select
                     value={newCertification}

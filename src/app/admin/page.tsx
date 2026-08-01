@@ -76,10 +76,10 @@ export default function AdminDashboardPage() {
         {/* Evidence Claim Review Queue per PRD Section 4.5 */}
         <div className="bg-asphalt p-5 border border-ignition-red/40 space-y-3">
           <div className="flex justify-between items-center text-ignition-red font-bold">
-            <span className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-ignition-red" />
-              Evidence Claim Queue (PRD 4.5)
-            </span>
+            <h2 className="display-font text-lg font-extrabold uppercase text-off-white flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-ignition-red" />
+              <span>Evidence Claim Queue</span>
+            </h2>
             <span className="text-[10px] bg-red-950 px-2 py-0.5 border border-ignition-red/40">1 PENDING</span>
           </div>
 

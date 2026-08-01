@@ -7,26 +7,56 @@ import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
 
 export default function GaragePage() {
   const [garageBikes, setGarageBikes] = useState<DBBike[]>([]);
+  const [registeredBikes, setRegisteredBikes] = useState<DBBike[]>([]);
 
   useEffect(() => {
     LocalStorageDB.init();
     setGarageBikes(LocalStorageDB.getUserGarage());
+    const registry = LocalStorageDB.getBikes();
+    setRegisteredBikes(registry);
+    if (registry.length > 0) {
+      setNewBrand(registry[0].brand);
+      setNewModel(registry[0].model);
+      setDisplacementCc(registry[0].displacementCc);
+    }
   }, []);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newBrand, setNewBrand] = useState("Yamaha");
-  const [newModel, setNewModel] = useState("R15 v4");
-  const [displacementCc, setDisplacementCc] = useState(155);
+  const [newModel, setNewModel] = useState("FZS-Fi v3");
+  const [displacementCc, setDisplacementCc] = useState(149);
+
+  // Filter available brands & models from registered bikes matrix
+  const availableBrands = Array.from(new Set(registeredBikes.map((b) => b.brand)));
+  const availableModels = registeredBikes.filter((b) => b.brand === newBrand);
+
+  const handleBrandChange = (brand: string) => {
+    setNewBrand(brand);
+    const modelsForBrand = registeredBikes.filter((b) => b.brand === brand);
+    if (modelsForBrand.length > 0) {
+      setNewModel(modelsForBrand[0].model);
+      setDisplacementCc(modelsForBrand[0].displacementCc);
+    }
+  };
+
+  const handleModelChange = (modelName: string) => {
+    setNewModel(modelName);
+    const selected = registeredBikes.find((b) => b.brand === newBrand && b.model === modelName);
+    if (selected) {
+      setDisplacementCc(selected.displacementCc);
+    }
+  };
 
   const handleAddBike = (e: React.FormEvent) => {
     e.preventDefault();
+    const selected = registeredBikes.find((b) => b.brand === newBrand && b.model === newModel);
     const newBike: DBBike = {
       id: `gb-${Date.now()}`,
       brand: newBrand,
       model: newModel,
-      displacementCc: Number(displacementCc),
-      yearStart: 2021,
-      yearEnd: 2026,
+      displacementCc: selected ? selected.displacementCc : Number(displacementCc),
+      yearStart: selected ? selected.yearStart : 2020,
+      yearEnd: selected ? selected.yearEnd : 2026,
       slug: `${newBrand}-${newModel}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     };
     const updated = [newBike, ...garageBikes];
@@ -53,17 +83,17 @@ export default function GaragePage() {
             Saved Motorcycles
           </h1>
           <p className="text-steel text-xs font-mono mt-1">
-            Save your bikes once. Instant 1-click compatibility filtering across the platform.
+            Save your motorcycle models from our verified Bike Registry to auto-filter compatible parts.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-5 py-2.5 tracking-wider flex items-center gap-2 transition-colors transform -skew-x-6 self-start sm:self-auto"
+          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-5 py-2.5 flex items-center gap-2 transition-colors transform -skew-x-6 self-start sm:self-auto cursor-pointer"
         >
           <div className="transform skew-x-6 flex items-center gap-1.5">
             <Plus className="w-4 h-4" />
-            <span>{showAddForm ? "Cancel" : "Add Bike to Garage"}</span>
+            <span>Add Bike to Garage</span>
           </div>
         </button>
       </div>
@@ -72,53 +102,63 @@ export default function GaragePage() {
       {showAddForm && (
         <form
           onSubmit={handleAddBike}
-          className="bg-asphalt p-5 border border-plate-yellow/40 space-y-4 font-mono text-xs"
+          className="bg-asphalt p-6 border border-plate-yellow/40 space-y-4 font-mono text-xs animate-fade-in"
         >
-          <h3 className="font-bold text-plate-yellow uppercase">Add New Motorcycle</h3>
+          <div className="flex justify-between items-center border-b border-asphalt-2 pb-2">
+            <h3 className="font-bold uppercase text-plate-yellow flex items-center gap-2">
+              <Bike className="w-4 h-4" />
+              <span>Select Bike from Registered Matrix</span>
+            </h3>
+            <span className="text-[10px] text-steel">Only verified matrix models allowed</span>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="text-steel">Make / Brand</label>
+              <label className="text-steel block font-bold">Registered Brand / Make</label>
               <select
                 value={newBrand}
-                onChange={(e) => setNewBrand(e.target.value)}
-                className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                onChange={(e) => handleBrandChange(e.target.value)}
+                className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white focus:border-plate-yellow focus:outline-none"
               >
-                <option value="Yamaha">Yamaha</option>
-                <option value="Honda">Honda</option>
-                <option value="Suzuki">Suzuki</option>
-                <option value="Bajaj">Bajaj</option>
-                <option value="TVS">TVS</option>
+                {availableBrands.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="space-y-1">
-              <label className="text-steel">Model</label>
-              <input
-                type="text"
-                required
+              <label className="text-steel block font-bold">Registered Model</label>
+              <select
                 value={newModel}
-                onChange={(e) => setNewModel(e.target.value)}
-                className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
-              />
+                onChange={(e) => handleModelChange(e.target.value)}
+                className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white focus:border-plate-yellow focus:outline-none"
+              >
+                {availableModels.map((b) => (
+                  <option key={b.id} value={b.model}>
+                    {b.model} ({b.displacementCc} cc)
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-1">
-              <label className="text-steel">Engine CC</label>
+              <label className="text-steel block font-bold">Engine Displacement</label>
               <input
                 type="number"
-                required
+                disabled
                 value={displacementCc}
-                onChange={(e) => setDisplacementCc(Number(e.target.value))}
-                className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                className="w-full bg-asphalt-2/50 border border-steel/20 p-2.5 text-steel cursor-not-allowed font-bold"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase px-6 py-2 text-xs tracking-wider"
+            className="bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase px-6 py-2.5 text-xs tracking-wider cursor-pointer transform -skew-x-6"
           >
-            Save Bike to Garage
+            <span className="transform skew-x-6">Save Registered Bike to Garage</span>
           </button>
         </form>
       )}
