@@ -4,8 +4,27 @@ import React, { useState } from "react";
 import ProductCard, { Product } from "@/components/landing/ProductCard";
 import { Bike, CheckCircle2, Wrench, ArrowRight } from "lucide-react";
 
+import { LocalStorageDB } from "@/lib/localStorageDB";
+
 export default function CompatiblePartsPage() {
-  const primaryBike = "Yamaha FZS-Fi v3";
+  const [primaryBike, setPrimaryBike] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const garage = LocalStorageDB.getUserGarage();
+      if (garage.length > 0) {
+        setPrimaryBike(`${garage[0].brand} ${garage[0].model}`);
+      } else {
+        const saved = localStorage.getItem("bd_selected_bike");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setPrimaryBike(`${parsed.brand} ${parsed.model}`);
+        }
+      }
+    } catch {
+      // silent
+    }
+  }, []);
 
   const compatibleProducts: Product[] = [
     {
@@ -16,7 +35,7 @@ export default function CompatiblePartsPage() {
       price: 6500,
       originalPrice: 7200,
       imageUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80",
-      fitBadge: `Fits ${primaryBike}`,
+      fitBadge: primaryBike ? `Fits ${primaryBike}` : "Select Bike to Check Fit",
       stockStatus: "in-stock",
       stockQty: 14,
       warranty: "No Warranty",
@@ -28,7 +47,7 @@ export default function CompatiblePartsPage() {
       category: "parts-mods",
       price: 3450,
       imageUrl: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500&auto=format&fit=crop&q=80",
-      fitBadge: `Fits ${primaryBike}`,
+      fitBadge: primaryBike ? `Fits ${primaryBike}` : "Select Bike to Check Fit",
       stockStatus: "in-stock",
       stockQty: 8,
       warranty: "No Warranty",
@@ -41,7 +60,7 @@ export default function CompatiblePartsPage() {
       price: 2200,
       originalPrice: 2500,
       imageUrl: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=80",
-      fitBadge: `Fits ${primaryBike}`,
+      fitBadge: primaryBike ? `Fits ${primaryBike}` : "Select Bike to Check Fit",
       stockStatus: "low-stock",
       stockQty: 3,
       warranty: "No Warranty",

@@ -19,7 +19,9 @@ export default function CompatibleProducts({
   onAddToCart,
   onToggleFav,
 }: CompatibleProductsProps) {
-  const bikeName = selectedBike ? `${selectedBike.brand} ${selectedBike.model}` : "Yamaha FZS-Fi v3";
+  const bikeName = selectedBike
+    ? `${selectedBike.brand} ${selectedBike.model} ${selectedBike.variant || ""}`.trim()
+    : null;
 
   // Mock compatible products matching bike compatibility PRD specifications
   const products: Product[] = [
@@ -31,7 +33,7 @@ export default function CompatibleProducts({
       price: 6500,
       originalPrice: 7200,
       imageUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80",
-      fitBadge: `Fits ${bikeName}`,
+      fitBadge: bikeName ? `Fits ${bikeName}` : "Select Bike to Check Fit",
       stockStatus: "in-stock",
       stockQty: 14,
       warranty: "No Warranty",
@@ -44,7 +46,7 @@ export default function CompatibleProducts({
       category: "parts-mods",
       price: 3450,
       imageUrl: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500&auto=format&fit=crop&q=80",
-      fitBadge: `Fits ${bikeName}`,
+      fitBadge: bikeName ? `Fits ${bikeName}` : "Select Bike to Check Fit",
       stockStatus: "in-stock",
       stockQty: 8,
       warranty: "No Warranty",
@@ -58,7 +60,7 @@ export default function CompatibleProducts({
       price: 2200,
       originalPrice: 2500,
       imageUrl: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=80",
-      fitBadge: `Fits ${bikeName}`,
+      fitBadge: bikeName ? `Fits ${bikeName}` : "Select Bike to Check Fit",
       stockStatus: "low-stock",
       stockQty: 3,
       warranty: "No Warranty",
@@ -71,7 +73,7 @@ export default function CompatibleProducts({
       category: "electronics",
       price: 2950,
       imageUrl: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=80",
-      fitBadge: `Fits ${bikeName}`,
+      fitBadge: "Universal Fit",
       stockStatus: "in-stock",
       stockQty: 22,
       warranty: "6 Months Replacement",
@@ -94,17 +96,26 @@ export default function CompatibleProducts({
               Compatible Parts & Mods
             </h2>
             <p className="text-steel text-sm mt-1">
-              Currently showing parts matching:{" "}
-              <strong className="text-plate-yellow font-mono">{bikeName}</strong>
+              {bikeName ? (
+                <>
+                  Currently showing parts matching:{" "}
+                  <strong className="text-plate-yellow font-mono">{bikeName}</strong>
+                </>
+              ) : (
+                <>
+                  Showing popular parts &amp; mods.{" "}
+                  <span className="text-plate-yellow font-medium">Select your bike</span> to filter by exact fitment.
+                </>
+              )}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={onOpenBikeModal}
-              className="text-xs font-mono text-steel hover:text-plate-yellow underline underline-offset-4 transition-colors"
+              className="text-xs font-mono text-plate-yellow hover:text-off-white underline underline-offset-4 transition-colors font-bold uppercase tracking-wider"
             >
-              Change Bike Model
+              {bikeName ? "Change Bike Model" : "+ Select My Bike"}
             </button>
             <a
               href="#all-parts"
@@ -122,7 +133,7 @@ export default function CompatibleProducts({
             <ProductCard
               key={product.id}
               product={product}
-              selectedBikeName={bikeName}
+              selectedBikeName={bikeName || undefined}
               onAddToCart={onAddToCart}
               onToggleFav={onToggleFav}
             />

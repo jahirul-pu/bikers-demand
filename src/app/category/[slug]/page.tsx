@@ -13,11 +13,18 @@ export default function CategoryPage() {
   const params = useParams();
   const slug = (params.slug as string) || "riding-gear";
 
-  const [selectedBike, setSelectedBike] = useState<BikeOption | null>({
-    brand: "Yamaha",
-    model: "FZS-Fi",
-    variant: "v3",
-  });
+  const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("bd_selected_bike");
+      if (saved) {
+        setSelectedBike(JSON.parse(saved));
+      }
+    } catch {
+      // silent fallback
+    }
+  }, []);
   const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
