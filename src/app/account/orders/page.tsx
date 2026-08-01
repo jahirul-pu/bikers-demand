@@ -1,34 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Package, Truck, Clock, CheckCircle, ChevronRight, Eye } from "lucide-react";
+import { LocalStorageDB, DBOrder } from "@/lib/localStorageDB";
 
 export default function OrderHistoryPage() {
-  const [orders] = useState([
-    {
-      id: "ord-101",
-      orderNumber: "BD-2026-4155",
-      date: "2026-07-31",
-      itemsCount: 2,
-      total: 9510,
-      status: "PACKED",
-      paymentMethod: "COD",
-      paymentStatus: "UNPAID",
-      deliveryZone: "Dhaka (Tk 60)",
-    },
-    {
-      id: "ord-100",
-      orderNumber: "BD-2026-2890",
-      date: "2026-07-15",
-      itemsCount: 1,
-      total: 9860,
-      status: "DELIVERED",
-      paymentMethod: "COD",
-      paymentStatus: "PAID",
-      deliveryZone: "Outside Dhaka (Tk 130)",
-    },
-  ]);
+  const [orders, setOrders] = useState<DBOrder[]>([]);
+
+  useEffect(() => {
+    LocalStorageDB.init();
+    setOrders(LocalStorageDB.getOrders());
+  }, []);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -78,24 +61,24 @@ export default function OrderHistoryPage() {
                   {getStatusBadge(order.status)}
                 </div>
                 <div className="text-[11px] text-steel mt-0.5">
-                  Placed on {order.date} • {order.itemsCount} Items
+                  Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-BD") : "2026-08-01"} • {order.itemsCount || 1} Items
                 </div>
               </div>
 
               <div className="text-right">
                 <div className="text-sm font-extrabold text-off-white">
-                  Tk {order.total.toLocaleString("en-BD")}
+                  Tk {(order.totalAmount || 0).toLocaleString("en-BD")}
                 </div>
                 <div className="text-[10px] text-steel uppercase">
-                  Payment: {order.paymentMethod} ({order.paymentStatus})
+                  Payment: Cash on Delivery (COD)
                 </div>
               </div>
             </div>
 
             {/* Pipeline Step Visual */}
             <div className="grid grid-cols-5 gap-1 py-2 text-center text-[10px]">
-              {["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"].map((step, idx) => {
-                const pipelineOrder = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"];
+              {["CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"].map((step, idx) => {
+                const pipelineOrder = ["CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"];
                 const currentIdx = pipelineOrder.indexOf(order.status);
                 const isPassed = idx <= currentIdx;
                 return (
@@ -115,7 +98,7 @@ export default function OrderHistoryPage() {
 
             {/* Action Buttons */}
             <div className="pt-2 flex justify-between items-center text-xs">
-              <span className="text-steel">Delivery: {order.deliveryZone}</span>
+              <span className="text-steel">Customer: {order.customerName || "Rider"}</span>
               <Link
                 href={`/account/orders/${order.id}`}
                 className="bg-asphalt-2 hover:bg-asphalt border border-steel/30 text-off-white px-4 py-2 flex items-center gap-1.5 font-bold uppercase transition-colors"

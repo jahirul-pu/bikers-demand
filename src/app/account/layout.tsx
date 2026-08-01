@@ -14,6 +14,36 @@ export default function AccountLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [userData, setUserData] = React.useState({
+    name: "Rider Account",
+    phone: "017xxxxxxxx",
+    initials: "RA",
+  });
+
+  React.useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem("bikers_demand_user");
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        const nameVal = u.name && !/^\d+$/.test(u.name) ? u.name : "Rider Account";
+        const phoneVal = u.phone || u.phoneOrEmail || "017xxxxxxxx";
+        const initialsVal = nameVal
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2) || "RA";
+
+        setUserData({
+          name: nameVal,
+          phone: phoneVal,
+          initials: initialsVal,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const navItems = [
     { label: "My Garage", href: "/account/garage", icon: Bike },
@@ -36,11 +66,11 @@ export default function AccountLayout({
             <div className="bg-asphalt-2 p-5 border border-asphalt-2">
               <div className="flex items-center gap-3 border-b border-asphalt pb-4 mb-4">
                 <div className="w-10 h-10 bg-plate-yellow text-asphalt rounded flex items-center justify-center font-bold font-mono">
-                  TR
+                  {userData.initials}
                 </div>
                 <div>
-                  <h3 className="font-bold text-off-white text-sm">Tusher Rider</h3>
-                  <p className="text-xs text-steel font-mono">01800000000</p>
+                  <h3 className="font-bold text-off-white text-sm">{userData.name}</h3>
+                  <p className="text-xs text-steel font-mono">{userData.phone}</p>
                 </div>
               </div>
 

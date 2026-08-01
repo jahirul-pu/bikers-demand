@@ -1,61 +1,44 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bike, Plus, Trash2, CheckCircle2, ArrowRight, Shield } from "lucide-react";
+import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
 
 export default function GaragePage() {
-  const [garageBikes, setGarageBikes] = useState([
-    {
-      id: "gb-1",
-      brand: "Yamaha",
-      model: "FZS-Fi",
-      variant: "v3",
-      cc: 149,
-      nickname: "My Daily FZ",
-      isPrimary: true,
-    },
-    {
-      id: "gb-2",
-      brand: "Honda",
-      model: "CB Hornet",
-      variant: "160R ABS",
-      cc: 162,
-      nickname: "Weekend Hornet",
-      isPrimary: false,
-    },
-  ]);
+  const [garageBikes, setGarageBikes] = useState<DBBike[]>([]);
+
+  useEffect(() => {
+    LocalStorageDB.init();
+    setGarageBikes(LocalStorageDB.getUserGarage());
+  }, []);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newBrand, setNewBrand] = useState("Yamaha");
-  const [newModel, setNewModel] = useState("R15");
-  const [newVariant, setNewVariant] = useState("v4");
-  const [nickname, setNickname] = useState("");
+  const [newModel, setNewModel] = useState("R15 v4");
+  const [displacementCc, setDisplacementCc] = useState(155);
 
   const handleAddBike = (e: React.FormEvent) => {
     e.preventDefault();
-    const newBike = {
+    const newBike: DBBike = {
       id: `gb-${Date.now()}`,
       brand: newBrand,
       model: newModel,
-      variant: newVariant,
-      cc: 155,
-      nickname: nickname || `${newBrand} ${newModel}`,
-      isPrimary: false,
+      displacementCc: Number(displacementCc),
+      yearStart: 2021,
+      yearEnd: 2026,
+      slug: `${newBrand}-${newModel}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     };
-    setGarageBikes([...garageBikes, newBike]);
+    const updated = [newBike, ...garageBikes];
+    setGarageBikes(updated);
+    LocalStorageDB.saveUserGarage(updated);
     setShowAddForm(false);
-    setNickname("");
-  };
-
-  const handleSetPrimary = (id: string) => {
-    setGarageBikes((prev) =>
-      prev.map((b) => ({ ...b, isPrimary: b.id === id }))
-    );
   };
 
   const handleRemoveBike = (id: string) => {
-    setGarageBikes((prev) => prev.filter((b) => b.id !== id));
+    const updated = garageBikes.filter((b) => b.id !== id);
+    setGarageBikes(updated);
+    LocalStorageDB.saveUserGarage(updated);
   };
 
   return (
@@ -120,26 +103,15 @@ export default function GaragePage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-steel">Variant / Gen</label>
+              <label className="text-steel">Engine CC</label>
               <input
-                type="text"
+                type="number"
                 required
-                value={newVariant}
-                onChange={(e) => setNewVariant(e.target.value)}
+                value={displacementCc}
+                onChange={(e) => setDisplacementCc(Number(e.target.value))}
                 className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
               />
             </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-steel">Custom Nickname (Optional)</label>
-            <input
-              type="text"
-              placeholder="e.g. My Red Beast"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
-            />
           </div>
 
           <button
@@ -153,11 +125,11 @@ export default function GaragePage() {
 
       {/* Garage Bikes Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {garageBikes.map((bike) => (
+        {garageBikes.map((bike, idx) => (
           <div
             key={bike.id}
             className={`p-5 border transition-all space-y-4 ${
-              bike.isPrimary
+              idx === 0
                 ? "bg-asphalt border-plate-yellow"
                 : "bg-asphalt/60 border-asphalt-2"
             }`}
@@ -165,46 +137,38 @@ export default function GaragePage() {
             <div className="flex justify-between items-start">
               {/* Number Plate Visual */}
               <div className="bg-plate-yellow text-asphalt px-3 py-1 border border-asphalt font-mono font-extrabold text-xs">
-                {bike.brand} • {bike.model} {bike.variant}
+                {bike.brand} • {bike.model}
               </div>
 
-              {bike.isPrimary ? (
+              {idx === 0 ? (
                 <span className="bg-plate-yellow/20 text-plate-yellow text-[10px] font-mono font-bold px-2 py-0.5 border border-plate-yellow/40 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3 text-plate-yellow" />
                   PRIMARY BIKE
                 </span>
-              ) : (
-                <button
-                  onClick={() => handleSetPrimary(bike.id)}
-                  className="text-[10px] font-mono text-steel hover:text-off-white underline"
-                >
-                  Set Primary
-                </button>
-              )}
+              ) : null}
             </div>
 
-            <div>
-              <h3 className="font-mono text-base font-bold text-off-white">
-                {bike.nickname}
+            <div className="space-y-1">
+              <h3 className="display-font text-xl font-bold uppercase text-off-white">
+                {bike.brand} {bike.model}
               </h3>
               <p className="text-xs text-steel font-mono">
-                {bike.brand} {bike.model} {bike.variant} ({bike.cc}cc Engine)
+                Engine Displacement: {bike.displacementCc || 150} cc
               </p>
             </div>
 
-            <div className="pt-3 border-t border-asphalt flex justify-between items-center text-xs font-mono">
+            <div className="pt-2 border-t border-asphalt-2/80 flex justify-between items-center text-xs font-mono">
               <Link
-                href="/account/compatible"
-                className="text-plate-yellow hover:underline flex items-center gap-1"
+                href={`/account/compatible`}
+                className="text-plate-yellow hover:underline font-bold flex items-center gap-1"
               >
-                <span>Browse Compatible Parts</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>View Compatible Parts →</span>
               </Link>
 
               <button
                 onClick={() => handleRemoveBike(bike.id)}
                 className="text-steel hover:text-ignition-red transition-colors p-1"
-                title="Remove bike"
+                title="Remove bike from garage"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

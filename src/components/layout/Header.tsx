@@ -35,10 +35,13 @@ export default function Header({
         const savedUser = localStorage.getItem("bikers_demand_user");
         if (savedUser) {
           const u = JSON.parse(savedUser);
-          if (u.name) setUserName(u.name); // Display exact name signed up with
-          else if (u.phoneOrEmail) setUserName(u.phoneOrEmail);
-          else if (u.phone) setUserName(u.phone);
-          else setUserName("Rider Account");
+          if (u.name && !/^\d+$/.test(u.name)) {
+            setUserName(u.name); // Display real name
+          } else if (u.email) {
+            setUserName(u.email.split("@")[0]);
+          } else {
+            setUserName("Rider");
+          }
         } else {
           setUserName(null);
         }
