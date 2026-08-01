@@ -1,12 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { Bike, ShoppingBag, MapPin, Heart, Settings, Wrench, ShieldAlert, LogOut } from "lucide-react";
+import { LocalStorageDB } from "@/lib/localStorageDB";
 
 export default function AccountLayout({
   children,
@@ -14,35 +15,56 @@ export default function AccountLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [userData, setUserData] = React.useState({
+  const [userData, setUserData] = useState({
     name: "Rider Account",
     phone: "017xxxxxxxx",
     initials: "RA",
   });
+  const [primaryBike, setPrimaryBike] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem("bikers_demand_user");
-      if (savedUser) {
-        const u = JSON.parse(savedUser);
-        const nameVal = u.name && !/^\d+$/.test(u.name) ? u.name : "Rider Account";
-        const phoneVal = u.phone || u.phoneOrEmail || "017xxxxxxxx";
-        const initialsVal = nameVal
-          .split(" ")
-          .map((n: string) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2) || "RA";
+  useEffect(() => {
+    const syncData = () => {
+      try {
+        const savedUser = localStorage.getItem("bikers_demand_user");
+        if (savedUser) {
+          const u = JSON.parse(savedUser);
+          const nameVal = u.name && !/^\d+$/.test(u.name) ? u.name : "Rider Account";
+          const phoneVal = u.phone || u.phoneOrEmail || "017xxxxxxxx";
+          const initialsVal = nameVal
+            .split(" ")
+            .map((n: string) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2) || "RA";
 
-        setUserData({
-          name: nameVal,
-          phone: phoneVal,
-          initials: initialsVal,
-        });
+          setUserData({
+            name: nameVal,
+            phone: phoneVal,
+            initials: initialsVal,
+          });
+        }
+
+        // Load primary bike from LocalStorageDB user garage
+        LocalStorageDB.init();
+        const garage = LocalStorageDB.getUserGarage();
+        if (garage && garage.length > 0) {
+          const b = garage[0];
+          setPrimaryBike(`${b.brand} ${b.model} (${b.displacementCc || 150}cc)`);
+        } else {
+          setPrimaryBike(null);
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    };
+
+    syncData();
+    window.addEventListener("storage", syncData);
+    window.addEventListener("focus", syncData);
+    return () => {
+      window.removeEventListener("storage", syncData);
+      window.removeEventListener("focus", syncData);
+    };
   }, []);
 
   const navItems = [
@@ -118,9 +140,13 @@ export default function AccountLayout({
                 <Bike className="w-4 h-4 text-plate-yellow" />
                 <span>MY GARAGE BIKE:</span>
               </div>
-              <p className="text-off-white font-semibold">Yamaha FZS-Fi v3 (149cc)</p>
+              <p className="text-off-white font-semibold">
+                {primaryBike ? primaryBike : "No Bike Added Yet"}
+              </p>
               <div className="text-[10px] text-steel">
-                All parts in Compatible View filtered for your saved machine.
+                {primaryBike
+                  ? "All parts in Compatible View filtered for your saved machine."
+                  : "Add your motorcycle in My Garage to auto-filter compatible parts."}
               </div>
             </div>
           </aside>

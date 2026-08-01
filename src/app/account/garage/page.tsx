@@ -62,6 +62,7 @@ export default function GaragePage() {
     const updated = [newBike, ...garageBikes];
     setGarageBikes(updated);
     LocalStorageDB.saveUserGarage(updated);
+    window.dispatchEvent(new Event("storage"));
     setShowAddForm(false);
   };
 
@@ -69,6 +70,7 @@ export default function GaragePage() {
     const updated = garageBikes.filter((b) => b.id !== id);
     setGarageBikes(updated);
     LocalStorageDB.saveUserGarage(updated);
+    window.dispatchEvent(new Event("storage"));
   };
 
   return (
