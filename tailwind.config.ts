@@ -19,9 +19,9 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-barlow-condensed)", "sans-serif"],
-        body: ["var(--font-barlow-condensed)", "sans-serif"],
-        sans: ["var(--font-barlow-condensed)", "sans-serif"],
-        mono: ["var(--font-barlow-condensed)", "sans-serif"],
+        body: ["var(--font-plus-jakarta-sans)", "sans-serif"],
+        sans: ["var(--font-plus-jakarta-sans)", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "monospace"],
       },
     },
   },
