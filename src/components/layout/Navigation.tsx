@@ -4,6 +4,22 @@ import React from "react";
 import Link from "next/link";
 import { Shield, Wrench, Zap, Droplet, Shirt, Award, HelpCircle, Bike, CheckCircle2, RefreshCw, XCircle, ArrowRight, LayoutGrid } from "lucide-react";
 
+const HelmetIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 3a9 9 0 0 0-9 9v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a9 9 0 0 0-9-9z" />
+    <path d="M4 11.5h16v3H4z" />
+    <circle cx="12" cy="7.5" r="1" fill="currentColor" />
+  </svg>
+);
+
 interface BikeOption {
   brand: string;
   model: string;
@@ -28,11 +44,11 @@ export default function Navigation({
 }: NavigationProps) {
   const navItems = [
     { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
-    { name: "Riding Gear", icon: Shield, id: "riding-gear", href: "/category/riding-gear" },
+    { name: "Helmets", icon: HelmetIcon, id: "helmets", href: "/category/helmets" },
     { name: "Parts & Mods", icon: Wrench, id: "parts-mods", href: "/category/parts-mods" },
     { name: "Electronics", icon: Zap, id: "electronics", href: "/category/electronics" },
     { name: "Additives & Oils", icon: Droplet, id: "additives", href: "/category/additives" },
-    { name: "Merchandise", icon: Shirt, id: "merchandise", href: "/category/merchandise" },
+    { name: "Riding Gear", icon: Shirt, id: "riding-gear", href: "/category/riding-gear" },
     { name: "Brands", icon: Award, id: "brands", href: "/search?brand=all" },
     { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
   ];

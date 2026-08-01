@@ -2,6 +2,22 @@ import React from "react";
 import Link from "next/link";
 import { Shield, Wrench, Zap, Droplet, Shirt, ArrowUpRight } from "lucide-react";
 
+const HelmetIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 3a9 9 0 0 0-9 9v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a9 9 0 0 0-9-9z" />
+    <path d="M4 11.5h16v3H4z" />
+    <circle cx="12" cy="7.5" r="1" fill="currentColor" />
+  </svg>
+);
+
 interface CategoryGridProps {
   onSelectCategory?: (category: string) => void;
 }
@@ -9,126 +25,127 @@ interface CategoryGridProps {
 export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
   const categories = [
     {
-      id: "riding-gear",
-      name: "Riding Gear",
-      tagline: "Helmets, Jackets, Gloves & Protection",
-      icon: Shield,
-      count: "120+ Products",
+      id: "helmets",
+      name: "Helmets",
+      tagline: "Full Face, Modular, Off-Road & Visors",
+      icon: HelmetIcon,
       badge: "DOT / ECE Certified",
-      bgGradient: "from-red-950/40 via-asphalt-2 to-asphalt-2",
+      image: "/images/categories/riding-gear.png",
       borderColor: "group-hover:border-ignition-red",
       iconColor: "text-ignition-red",
-      subcategories: ["Helmets", "Jackets", "Gloves", "Boots", "Rain Gear"],
+      subcategories: ["Full Face", "Modular", "Visors", "Bluetooth"],
     },
     {
       id: "parts-mods",
       name: "Parts & Mods",
       tagline: "Exhausts, Levers, Sprockets & Brakes",
       icon: Wrench,
-      count: "250+ Products",
       badge: "Model Specific",
-      bgGradient: "from-amber-950/40 via-asphalt-2 to-asphalt-2",
+      image: "/images/categories/parts-mods.png",
       borderColor: "group-hover:border-plate-yellow",
       iconColor: "text-plate-yellow",
-      subcategories: ["Exhausts", "Chains & Sprockets", "Levers", "Brakes"],
+      subcategories: ["Exhausts", "Chains", "Levers", "Brakes"],
     },
     {
       id: "electronics",
       name: "Electronics",
       tagline: "LED Lighting, Phone Mounts, Horns & Trackers",
       icon: Zap,
-      count: "80+ Products",
       badge: "12V Plug & Play",
-      bgGradient: "from-blue-950/40 via-asphalt-2 to-asphalt-2",
+      image: "/images/categories/electronics.png",
       borderColor: "group-hover:border-blue-500",
       iconColor: "text-blue-400",
-      subcategories: ["LED Fog Lights", "Phone Mounts", "GPS Trackers", "Horns"],
+      subcategories: ["LED Lights", "Phone Mounts", "GPS", "Horns"],
     },
     {
       id: "additives",
       name: "Additives & Oils",
       tagline: "Synthetic Engine Oils, Coolants & Chain Lube",
       icon: Droplet,
-      count: "60+ Products",
       badge: "100% Genuine Fluids",
-      bgGradient: "from-purple-950/40 via-asphalt-2 to-asphalt-2",
+      image: "/images/categories/additives.png",
       borderColor: "group-hover:border-purple-500",
       iconColor: "text-purple-400",
-      subcategories: ["Full Synthetic Oil", "Chain Lube", "Coolant", "Fuel Additives"],
+      subcategories: ["Synthetic Oil", "Chain Lube", "Coolant"],
     },
     {
-      id: "merchandise",
-      name: "Merchandise",
-      tagline: "Riding Backpacks, Apparel, Keychains & Accessories",
+      id: "riding-gear",
+      name: "Riding Gear",
+      tagline: "Armored Jackets, Gloves, Boots & Protection",
       icon: Shirt,
-      count: "45+ Products",
-      badge: "Own Label",
-      bgGradient: "from-emerald-950/40 via-asphalt-2 to-asphalt-2",
+      badge: "CE Level 2 Armor",
+      image: "/images/categories/merchandise.png",
       borderColor: "group-hover:border-emerald-500",
       iconColor: "text-emerald-400",
-      subcategories: ["Backpacks", "Tank Bags", "Apparel", "Keychains"],
+      subcategories: ["Jackets", "Gloves", "Boots", "Rain Suits"],
     },
   ];
 
   return (
-    <section id="category-grid" className="py-16 bg-asphalt border-b border-asphalt-2">
+    <section id="category-grid" className="py-8 sm:py-10 bg-asphalt border-b border-asphalt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <span className="text-xs font-mono text-plate-yellow uppercase tracking-widest block mb-1">
+        <div className="text-center mb-6">
+          <span className="text-[11px] font-mono text-plate-yellow uppercase tracking-widest block mb-0.5">
             EXPLORE CATALOG
           </span>
-          <h2 className="display-font text-3xl sm:text-4xl font-extrabold uppercase text-off-white tracking-wide">
+          <h2 className="display-font text-2xl sm:text-3xl font-extrabold uppercase text-off-white tracking-wide">
             Shop By Category
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {categories.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
                 key={cat.id}
                 href={`/category/${cat.id}`}
-                className={`group relative bg-gradient-to-b ${cat.bgGradient} border border-asphalt-2 ${cat.borderColor} p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg min-w-0`}
+                className={`group relative overflow-hidden bg-asphalt-2 border border-asphalt-2 ${cat.borderColor} p-3.5 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg min-w-0 min-h-[200px]`}
               >
-                {/* Top Badge & Icon */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className={`p-3 bg-asphalt border border-asphalt-2 ${cat.iconColor}`}>
-                      <Icon className="w-6 h-6 stroke-[2]" />
+                {/* Background Image with Vibrant Visibility */}
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-90"
+                  style={{ backgroundImage: `url(${cat.image})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-asphalt via-asphalt/70 to-asphalt/30 group-hover:via-asphalt/55 transition-colors duration-300" />
+
+                {/* Card Content */}
+                <div className="relative z-10 space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <div className={`p-2 bg-asphalt/90 backdrop-blur-sm border border-asphalt-2 ${cat.iconColor}`}>
+                      <Icon className="w-4 h-4 stroke-[2]" />
                     </div>
-                    <span className="text-[10px] font-mono uppercase bg-asphalt/80 text-steel px-2 py-0.5 border border-steel/20">
+                    <span className="text-[9px] font-mono uppercase bg-asphalt/90 backdrop-blur-sm text-steel px-1.5 py-0.5 border border-steel/20">
                       {cat.badge}
                     </span>
                   </div>
 
                   {/* Title & Tagline */}
                   <div>
-                    <h3 className="display-font text-2xl font-bold uppercase text-off-white group-hover:text-off-white flex items-center justify-between">
+                    <h3 className="display-font text-lg sm:text-xl font-bold uppercase text-off-white group-hover:text-off-white flex items-center justify-between">
                       <span>{cat.name}</span>
-                      <ArrowUpRight className="w-5 h-5 text-steel group-hover:text-off-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      <ArrowUpRight className="w-4 h-4 text-steel group-hover:text-off-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0 ml-1" />
                     </h3>
-                    <p className="text-xs text-steel mt-1 font-light leading-relaxed">
+                    <p className="text-[11px] text-steel mt-0.5 font-light leading-snug line-clamp-2">
                       {cat.tagline}
                     </p>
                   </div>
                 </div>
 
-                {/* Subcategories tags & Product Count */}
-                <div className="mt-8 pt-4 border-t border-asphalt-2/80 space-y-3">
+                {/* Subcategories tags & Action */}
+                <div className="relative z-10 mt-3.5 pt-2.5 border-t border-asphalt-2/80 space-y-2">
                   <div className="flex flex-wrap gap-1">
                     {cat.subcategories.map((sub) => (
                       <span
                         key={sub}
-                        className="text-[10px] bg-asphalt px-2 py-0.5 text-steel-light border border-asphalt-2"
+                        className="text-[9px] bg-asphalt/90 backdrop-blur-sm px-1.5 py-0.5 text-steel-light border border-asphalt-2"
                       >
                         {sub}
                       </span>
                     ))}
                   </div>
-                  <div className="flex justify-between items-center text-xs font-mono text-steel">
-                    <span>{cat.count}</span>
-                    <span className="group-hover:text-off-white transition-colors">
+                  <div className="flex justify-end items-center text-[11px] font-mono text-steel">
+                    <span className="group-hover:text-off-white transition-colors text-[10px]">
                       Browse →
                     </span>
                   </div>

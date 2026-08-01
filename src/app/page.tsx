@@ -21,7 +21,7 @@ export default function Home() {
   const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [favCount, setFavCount] = useState(0);
-  const [activeCategory, setActiveCategory] = useState("riding-gear");
+  const [activeCategory, setActiveCategory] = useState<string | undefined>(undefined);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Read primary bike (index 0) from garage on mount

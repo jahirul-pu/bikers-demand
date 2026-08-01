@@ -45,13 +45,23 @@ async function main() {
   console.log("✓ Users seeded");
 
   // 2. Create Categories
+  const helmetsCat = await prisma.category.upsert({
+    where: { slug: "helmets" },
+    update: {},
+    create: {
+      name: "Helmets",
+      slug: "helmets",
+      description: "Full face, modular, off-road, dual sport helmets & visors.",
+    },
+  });
+
   const ridingGearCat = await prisma.category.upsert({
     where: { slug: "riding-gear" },
     update: {},
     create: {
       name: "Riding Gear",
       slug: "riding-gear",
-      description: "Helmets, jackets, gloves, boots, and protection gear.",
+      description: "Armored jackets, gloves, boots, and protection gear.",
     },
   });
 
@@ -263,7 +273,7 @@ async function main() {
       comparePrice: 10500,
       stockQty: 9,
       stockStatus: StockStatus.IN_STOCK,
-      categoryId: ridingGearCat.id,
+      categoryId: helmetsCat.id,
       images: ["https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80"],
       isUniversal: true,
       certification: HelmetCertification.ECE_2206, // Mandatory certification per PRD 3.4

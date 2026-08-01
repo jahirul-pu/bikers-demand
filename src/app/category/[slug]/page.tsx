@@ -26,9 +26,13 @@ export default function CategoryPage() {
   const [cartCount, setCartCount] = useState(2);
 
   const categoryTitles: Record<string, { title: string; desc: string }> = {
+    helmets: {
+      title: "Helmets & Visors",
+      desc: "ECE 22.06 & DOT certified full face, modular, dual-sport helmets & replacement visors.",
+    },
     "riding-gear": {
       title: "Riding Gear & Protection",
-      desc: "ECE 22.06 / DOT certified helmets, CE armored jackets, gloves, boots & rain suits.",
+      desc: "CE Level 1 & Level 2 armored jackets, racing gloves, riding boots & rain suits.",
     },
     "parts-mods": {
       title: "Parts & Mods",
@@ -38,9 +42,9 @@ export default function CategoryPage() {
       title: "Electronics & Accessories",
       desc: "High power LED fog lights, phone mounts, horns, GPS trackers, and battery chargers.",
     },
-    merchandise: {
-      title: "Merchandise & Apparel",
-      desc: "Riding backpacks, tank bags, branded apparel, stickers, and keychains.",
+    additives: {
+      title: "Additives & Engine Oils",
+      desc: "100% full synthetic 4T engine oils, coolants, chain lube sprays & fuel additives.",
     },
   };
 
