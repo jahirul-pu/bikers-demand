@@ -23,11 +23,43 @@ export default function AdminProductsPage() {
   const [newWarranty, setNewWarranty] = useState("1 Year Warranty");
   const [newSizes, setNewSizes] = useState<string[]>(["M", "L", "XL"]);
   const [newCustomSpecs, setNewCustomSpecs] = useState("");
+  const [imageSourceMode, setImageSourceMode] = useState<"url" | "file">("url");
+  const [imageUrl, setImageUrl] = useState("");
 
   const toggleSize = (size: string) => {
     setNewSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const json = await res.json();
+        if (json.success && json.url) {
+          setImageUrl(json.url);
+          return;
+        }
+      } catch (err) {
+        console.error("Disk upload failed, falling back to base64:", err);
+      }
+
+      // Fallback: Base64 Data URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleAddProduct = (e: React.FormEvent) => {
@@ -50,7 +82,7 @@ export default function AdminProductsPage() {
       warranty: newWarranty,
       sizes: newSizes,
       specifications: specsArray,
-      imageUrl: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
+      imageUrl: imageUrl.trim() || "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
     };
 
     LocalStorageDB.addProduct(newProduct);
@@ -281,6 +313,73 @@ export default function AdminProductsPage() {
                 <span className="text-[10px] text-steel block">
                   * All specifications entered here will automatically generate interactive filter checkboxes on the store!
                 </span>
+              </div>
+
+              {/* Product Image Selection: Cloud URL vs Local Storage File */}
+              <div className="p-3 bg-asphalt border border-steel/30 space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-plate-yellow font-bold block">
+                    Product Image Source
+                  </label>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setImageSourceMode("url")}
+                      className={`px-2 py-0.5 text-[10px] font-bold uppercase transition-colors ${
+                        imageSourceMode === "url"
+                          ? "bg-plate-yellow text-asphalt"
+                          : "bg-asphalt-2 text-steel hover:text-off-white"
+                      }`}
+                    >
+                      🌐 Cloud URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageSourceMode("file")}
+                      className={`px-2 py-0.5 text-[10px] font-bold uppercase transition-colors ${
+                        imageSourceMode === "file"
+                          ? "bg-plate-yellow text-asphalt"
+                          : "bg-asphalt-2 text-steel hover:text-off-white"
+                      }`}
+                    >
+                      📁 Local File
+                    </button>
+                  </div>
+                </div>
+
+                {imageSourceMode === "url" ? (
+                  <div>
+                    <input
+                      type="url"
+                      placeholder="Paste cloud URL (e.g. https://images.unsplash.com/... or Supabase storage link)"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white placeholder-steel/60 text-xs"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-1.5 text-off-white text-xs file:mr-2 file:py-1 file:px-2 file:border-0 file:text-xs file:font-bold file:bg-ignition-red file:text-asphalt cursor-pointer"
+                    />
+                  </div>
+                )}
+
+                {/* Live Image Preview Thumbnail */}
+                {imageUrl && (
+                  <div className="flex items-center gap-3 pt-1 border-t border-asphalt-2">
+                    <div className="w-12 h-12 bg-asphalt border border-plate-yellow overflow-hidden shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                    <span className="text-[10px] text-emerald-400 font-mono">
+                      ✓ Image preview loaded cleanly
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between items-center pt-2">
