@@ -9,13 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        asphalt: "#15171A",
-        "asphalt-2": "#1E2125",
-        steel: "#8A8D91",
-        "steel-light": "#B7BABE",
-        "off-white": "#F2F1EC",
-        "plate-yellow": "#E8B93A",
-        "ignition-red": "#E23434",
+        asphalt: "rgb(var(--asphalt-rgb) / <alpha-value>)",
+        "asphalt-2": "rgb(var(--asphalt-2-rgb) / <alpha-value>)",
+        steel: "rgb(var(--steel-rgb) / <alpha-value>)",
+        "steel-light": "rgb(var(--steel-light-rgb) / <alpha-value>)",
+        "off-white": "rgb(var(--off-white-rgb) / <alpha-value>)",
+        "plate-yellow": "rgb(var(--plate-yellow-rgb) / <alpha-value>)",
+        "ignition-red": "rgb(var(--ignition-red-rgb) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-barlow-condensed)", "sans-serif"],

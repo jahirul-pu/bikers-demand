@@ -3,13 +3,41 @@
 @config "../../tailwind.config.ts";
 
 :root {
+  --asphalt-rgb: 21 23 26;
+  --asphalt-2-rgb: 30 33 37;
+  --steel-rgb: 138 141 145;
+  --steel-light-rgb: 183 186 190;
+  --off-white-rgb: 242 241 236;
+  --plate-yellow-rgb: 232 185 58;
+  --ignition-red-rgb: 226 52 52;
+
   --background: #15171A;
   --foreground: #F2F1EC;
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --asphalt-rgb: 244 245 247;
+  --asphalt-2-rgb: 255 255 255;
+  --steel-rgb: 100 116 139;
+  --steel-light-rgb: 51 65 85;
+  --off-white-rgb: 15 23 42;
+  --plate-yellow-rgb: 217 119 6;
+  --ignition-red-rgb: 220 38 38;
+
+  --background: #F4F5F7;
+  --foreground: #0F172A;
+
+  color-scheme: light;
 }
 
 /* Bump base size so all rem-based Tailwind sizes are larger with Barlow Condensed */
 html {
   font-size: 17px;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body {
@@ -19,6 +47,23 @@ body {
   font-size: 1rem;
   line-height: 1.5;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Light mode specific border & legibility enhancements */
+[data-theme="light"] .border-asphalt-2 {
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="light"] select {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+[data-theme="light"] input::placeholder {
+  color: #64748B;
 }
 
 /* Floor hardcoded tiny pixel sizes — keeps them legible */
@@ -36,14 +81,14 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #15171A;
+  background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E2125;
+  background: rgba(138, 141, 145, 0.4);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8A8D91;
+  background: rgba(138, 141, 145, 0.7);
 }
 
 /* Custom Utilities */
@@ -56,4 +101,3 @@ body {
   font-family: var(--font-barlow-condensed), sans-serif;
   letter-spacing: 0.01em;
 }
-

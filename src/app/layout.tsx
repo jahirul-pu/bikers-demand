@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Barlow_Condensed, Inter, Space_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const barlowCondensed = Barlow_Condensed({
@@ -35,7 +36,17 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${barlowCondensed.variable} ${inter.variable} ${spaceMono.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("bd_theme")||"dark";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="bg-asphalt text-off-white min-h-screen antialiased flex flex-col">
         {children}
       </body>

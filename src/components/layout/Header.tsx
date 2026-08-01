@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, User, Heart, ShoppingBag, Menu, X, Bike } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
+import ThemeToggle from "@/components/layout/ThemeToggle";
 
 interface HeaderProps {
   onOpenBikeModal?: () => void;
@@ -159,6 +160,8 @@ export default function Header({
               </span>
             )}
           </Link>
+
+          <ThemeToggle />
 
           <button
             onClick={() => setIsCartOpen(true)}
