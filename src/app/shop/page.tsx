@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
@@ -67,8 +68,10 @@ function FilterSection({
   );
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
-export default function ShopPage() {
+// ─── Inner component (needs Suspense for useSearchParams) ───────────────────
+function ShopPageInner() {
+  const searchParams = useSearchParams();
+
   // Bike state
   const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
   const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
@@ -129,8 +132,15 @@ export default function ShopPage() {
     if (garage.length > 0) {
       const primary = garage[0];
       setSelectedBike({ brand: primary.brand, model: primary.model });
+      // Auto-enable compat filter if arriving via ?compat=1
+      if (searchParams.get("compat") === "1") {
+        setBikeCompatOnly(true);
+      }
+    } else if (searchParams.get("compat") === "1") {
+      // No garage bike — open modal so user can set one
+      setIsBikeModalOpen(true);
     }
-  }, []);
+  }, [searchParams]);
 
   // Available brands derived from products
   const availableBrands = useMemo(
@@ -636,6 +646,32 @@ export default function ShopPage() {
               </div>
             </div>
 
+
+            {/* Compatible Gear Mode Banner */}
+            {bikeCompatOnly && selectedBike && (
+              <div className="flex items-center justify-between bg-plate-yellow/10 border border-plate-yellow/40 px-4 py-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <Bike className="w-4 h-4 text-plate-yellow shrink-0" />
+                  <div>
+                    <span className="text-plate-yellow text-xs font-mono font-bold uppercase tracking-wide">
+                      Compatible Gear Mode Active
+                    </span>
+                    <p className="text-steel text-[11px] font-mono mt-0.5">
+                      Showing products compatible with{" "}
+                      <span className="text-plate-yellow font-bold">{bikeDisplayName}</span>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setBikeCompatOnly(false)}
+                  className="flex items-center gap-1.5 text-xs text-steel hover:text-off-white border border-steel/30 hover:border-steel px-3 py-1.5 font-mono transition-colors shrink-0"
+                >
+                  <X className="w-3 h-3" />
+                  Show All Gear
+                </button>
+              </div>
+            )}
+
             {/* Product count */}
             <p className="text-xs font-mono text-steel mb-4">
               Showing <span className="text-off-white font-bold">{filteredProducts.length}</span> of{" "}
@@ -782,5 +818,20 @@ export default function ShopPage() {
         currentBike={selectedBike}
       />
     </div>
+  );
+}
+
+// ─── Default export wrapped in Suspense ──────────────────────────────────────
+export default function ShopPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-asphalt flex items-center justify-center">
+          <span className="text-steel font-mono animate-pulse">Loading shop...</span>
+        </div>
+      }
+    >
+      <ShopPageInner />
+    </Suspense>
   );
 }

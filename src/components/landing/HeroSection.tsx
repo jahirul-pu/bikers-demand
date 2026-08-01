@@ -5,12 +5,17 @@ import { Bike, ArrowRight, CheckCircle } from "lucide-react";
 interface HeroSectionProps {
   onOpenBikeModal: () => void;
   onBrowseGear: () => void;
+  selectedBike?: { brand: string; model: string; variant?: string } | null;
 }
 
 export default function HeroSection({
   onOpenBikeModal,
   onBrowseGear,
+  selectedBike,
 }: HeroSectionProps) {
+  const bikeLabel = selectedBike
+    ? `${selectedBike.brand} ${selectedBike.model}${selectedBike.variant ? ` ${selectedBike.variant}` : ""}`
+    : null;
   return (
     <section className="relative bg-asphalt overflow-hidden border-b border-asphalt-2 py-12 md:py-20 lg:py-24">
       {/* Background Graphic Grid / Industrial Overlay */}
@@ -49,18 +54,30 @@ export default function HeroSection({
               >
                 <div className="transform skew-x-6 flex items-center gap-2">
                   <Bike className="w-5 h-5 stroke-[2.5]" />
-                  <span>Add Your Bike</span>
+                  <span>{bikeLabel ? "Change Bike" : "Add Your Bike"}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
 
-              {/* Secondary CTA */}
-              <Link
-                href="/shop"
-                className="w-full sm:w-auto bg-asphalt-2 hover:bg-asphalt border border-steel/40 hover:border-steel text-off-white font-bold uppercase text-sm sm:text-base px-7 py-4 tracking-wider transition-all transform -skew-x-6 text-center"
-              >
-                <span className="transform skew-x-6 block">Browse All Gear</span>
-              </Link>
+              {/* Secondary CTA — changes based on bike selection */}
+              {bikeLabel ? (
+                <Link
+                  href="/shop?compat=1"
+                  className="w-full sm:w-auto bg-plate-yellow hover:bg-plate-yellow/90 text-asphalt font-extrabold uppercase text-sm sm:text-base px-7 py-4 tracking-wider transition-all transform -skew-x-6 text-center flex items-center justify-center gap-2 shadow-lg shadow-plate-yellow/20"
+                >
+                  <span className="transform skew-x-6 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    Browse Compatible Gear
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href="/shop"
+                  className="w-full sm:w-auto bg-asphalt-2 hover:bg-asphalt border border-steel/40 hover:border-steel text-off-white font-bold uppercase text-sm sm:text-base px-7 py-4 tracking-wider transition-all transform -skew-x-6 text-center"
+                >
+                  <span className="transform skew-x-6 block">Browse All Gear</span>
+                </Link>
+              )}
             </div>
 
             {/* Feature Bullets */}

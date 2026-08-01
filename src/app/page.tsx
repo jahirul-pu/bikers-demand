@@ -113,6 +113,7 @@ export default function Home() {
         {/* 5. Hero Section */}
         <HeroSection
           onOpenBikeModal={() => setIsBikeModalOpen(true)}
+          selectedBike={selectedBike}
           onBrowseGear={() => {
             const el = document.getElementById("category-grid");
             if (el) el.scrollIntoView({ behavior: "smooth" });
