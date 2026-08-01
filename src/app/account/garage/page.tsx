@@ -66,6 +66,18 @@ export default function GaragePage() {
     setShowAddForm(false);
   };
 
+  const handleSetPrimary = (id: string) => {
+    const targetIndex = garageBikes.findIndex((b) => b.id === id);
+    if (targetIndex > -1) {
+      const targetBike = garageBikes[targetIndex];
+      const remaining = garageBikes.filter((b) => b.id !== id);
+      const updated = [targetBike, ...remaining];
+      setGarageBikes(updated);
+      LocalStorageDB.saveUserGarage(updated);
+      window.dispatchEvent(new Event("storage"));
+    }
+  };
+
   const handleRemoveBike = (id: string) => {
     const updated = garageBikes.filter((b) => b.id !== id);
     setGarageBikes(updated);
@@ -187,7 +199,14 @@ export default function GaragePage() {
                   <CheckCircle2 className="w-3 h-3 text-plate-yellow" />
                   PRIMARY BIKE
                 </span>
-              ) : null}
+              ) : (
+                <button
+                  onClick={() => handleSetPrimary(bike.id)}
+                  className="bg-asphalt-2 hover:bg-asphalt border border-steel/30 text-steel hover:text-plate-yellow text-[10px] font-mono px-2 py-0.5 font-bold uppercase transition-colors cursor-pointer"
+                >
+                  Set as Primary
+                </button>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -200,19 +219,15 @@ export default function GaragePage() {
             </div>
 
             <div className="pt-2 border-t border-asphalt-2/80 flex justify-between items-center text-xs font-mono">
-              <Link
-                href={`/account/compatible`}
-                className="text-plate-yellow hover:underline font-bold flex items-center gap-1"
-              >
-                <span>View Compatible Parts →</span>
-              </Link>
+              <span className="text-[10px] text-steel">Saved in My Garage</span>
 
               <button
                 onClick={() => handleRemoveBike(bike.id)}
-                className="text-steel hover:text-ignition-red transition-colors p-1"
+                className="text-steel hover:text-ignition-red transition-colors p-1 cursor-pointer flex items-center gap-1"
                 title="Remove bike from garage"
               >
                 <Trash2 className="w-4 h-4" />
+                <span className="text-[10px] font-mono uppercase">Remove</span>
               </button>
             </div>
           </div>

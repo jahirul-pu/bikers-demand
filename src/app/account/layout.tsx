@@ -69,7 +69,6 @@ export default function AccountLayout({
 
   const navItems = [
     { label: "My Garage", href: "/account/garage", icon: Bike },
-    { label: "Compatible Parts", href: "/account/compatible", icon: Wrench },
     { label: "Order History", href: "/account/orders", icon: ShoppingBag },
     { label: "Favorites", href: "/account/wishlist", icon: Heart },
     { label: "Saved Addresses", href: "/account/addresses", icon: MapPin },
