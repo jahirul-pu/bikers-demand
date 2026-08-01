@@ -18,12 +18,24 @@ export default function AdminProductsPage() {
   const [newBrand, setNewBrand] = useState("");
   const [newPrice, setNewPrice] = useState(0);
   const [newStockQty, setNewStockQty] = useState(10);
-  const [newCategory, setNewCategory] = useState<DBProduct["category"]>("riding-gear");
+  const [newCategory, setNewCategory] = useState<DBProduct["category"]>("helmets");
   const [newCertification, setNewCertification] = useState("ECE 22.06 / DOT");
   const [newWarranty, setNewWarranty] = useState("1 Year Warranty");
+  const [newSizes, setNewSizes] = useState<string[]>(["M", "L", "XL"]);
+  const [newCustomSpecs, setNewCustomSpecs] = useState("");
+
+  const toggleSize = (size: string) => {
+    setNewSizes((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+    );
+  };
 
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
+    const specsArray = newCustomSpecs
+      ? newCustomSpecs.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
     const newProduct: DBProduct = {
       id: `prod-${Date.now()}`,
       sku: newSku || `SKU-${Date.now()}`,
@@ -36,6 +48,8 @@ export default function AdminProductsPage() {
       stockStatus: Number(newStockQty) > 0 ? "in-stock" : "out-of-stock",
       certification: newCertification,
       warranty: newWarranty,
+      sizes: newSizes,
+      specifications: specsArray,
       imageUrl: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
     };
 
@@ -201,32 +215,73 @@ export default function AdminProductsPage() {
                     onChange={(e) => setNewCategory(e.target.value as DBProduct["category"])}
                     className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
                   >
+                    <option value="helmets">Helmets</option>
                     <option value="riding-gear">Riding Gear</option>
                     <option value="parts-mods">Parts & Mods</option>
                     <option value="electronics">Electronics</option>
                     <option value="additives">Additives & Oils</option>
-                    <option value="merchandise">Merchandise</option>
                   </select>
                 </div>
               </div>
 
-              {/* Mandatory Helmet Certification validation per PRD 3.4 */}
-              {newCategory === "riding-gear" && (
-                <div className="p-3 bg-asphalt border border-ignition-red/40 space-y-1">
-                  <label className="text-ignition-red font-bold block">
-                    Helmet Certification (Mandatory Catalog Field)
-                  </label>
-                  <select
-                    value={newCertification}
-                    onChange={(e) => setNewCertification(e.target.value)}
-                    className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white"
-                  >
-                    <option value="DOT">DOT (US Standard)</option>
-                    <option value="ECE 22.06">ECE 22.06 (EU Standard)</option>
-                    <option value="DOT / ECE">DOT + ECE Dual Certified</option>
-                  </select>
-                </div>
+              {/* Helmet & Riding Gear Certification */}
+              {(newCategory === "helmets" || newCategory === "riding-gear") && (
+                <>
+                  <div className="p-3 bg-asphalt border border-ignition-red/40 space-y-1">
+                    <label className="text-ignition-red font-bold block">
+                      Certification / Safety Rating (Auto-Appears in Filter)
+                    </label>
+                    <select
+                      value={newCertification}
+                      onChange={(e) => setNewCertification(e.target.value)}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white"
+                    >
+                      <option value="ECE 22.06">ECE 22.06 (EU Standard)</option>
+                      <option value="DOT">DOT (US Standard)</option>
+                      <option value="ECE / DOT">ECE + DOT Dual Certified</option>
+                      <option value="CE Level 2">CE Level 2 Armor Rating</option>
+                      <option value="CE Level 1">CE Level 1 Armor Rating</option>
+                    </select>
+                  </div>
+
+                  {/* Helmet & Gear Available Sizes */}
+                  <div className="p-3 bg-asphalt border border-steel/30 space-y-1.5">
+                    <label className="text-plate-yellow font-bold block">
+                      Available Sizes (Auto-Appears in Filter)
+                    </label>
+                    <div className="flex gap-3">
+                      {["S", "M", "L", "XL", "XXL"].map((sz) => (
+                        <label key={sz} className="flex items-center gap-1 text-off-white cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newSizes.includes(sz)}
+                            onChange={() => toggleSize(sz)}
+                            className="accent-ignition-red"
+                          />
+                          <span>{sz}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
+
+              {/* Custom Product Specifications (Auto-Appears in Filter) */}
+              <div className="space-y-1">
+                <label className="text-plate-yellow font-bold block">
+                  Product Specifications / Filter Tags (Comma Separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Pinlock Visor, ESTER 10W-40, Double D-Ring, Waterproof IP67"
+                  value={newCustomSpecs}
+                  onChange={(e) => setNewCustomSpecs(e.target.value)}
+                  className="w-full bg-asphalt border border-steel/30 p-2 text-off-white placeholder-steel/60"
+                />
+                <span className="text-[10px] text-steel block">
+                  * All specifications entered here will automatically generate interactive filter checkboxes on the store!
+                </span>
+              </div>
 
               <div className="flex justify-between items-center pt-2">
                 <button
