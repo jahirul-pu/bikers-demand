@@ -7,11 +7,15 @@ import { Search, User, Heart, ShoppingBag, Menu, X, Bike } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 
-interface HeaderProps {
-  onOpenBikeModal?: () => void;
-  selectedBike?: string | null;
-  cartCount?: number;
-  favCount?: number;
+interface SearchProductResult {
+  id: string;
+  name: string;
+  slug: string;
+  brand: string;
+  price: number;
+  stockStatus: string;
+  images: string[];
+  category?: { name: string; slug: string };
 }
 
 export default function Header({
@@ -23,11 +27,61 @@ export default function Header({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchProductResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const searchContainerRef = React.useRef<HTMLDivElement>(null);
 
   const [liveCartCount, setLiveCartCount] = useState<number>(cartCount ?? 0);
   const [liveFavCount, setLiveFavCount] = useState<number>(favCount ?? 0);
   const [userName, setUserName] = useState<string | null>(null);
+
+  // Instant Search API fetch with debouncing
+  React.useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(query)}`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setSearchResults(json.data.slice(0, 5));
+          setShowDropdown(true);
+        }
+      } catch (err) {
+        console.error("Instant search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close instant search dropdown on click outside
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close instant search on Escape key
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setShowDropdown(false);
+    }
+  };
 
   // Sync badge counts and user session from localStorage
   React.useEffect(() => {
@@ -84,6 +138,7 @@ export default function Header({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowDropdown(false);
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -116,24 +171,94 @@ export default function Header({
           </Link>
         </div>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-4">
-          <div className="relative w-full">
-            <input
-              type="text"
-              placeholder="Search helmets, exhausts, brake pads, oils..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-ignition-red rounded-none py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none transition-colors"
-            />
-            <button
-              type="submit"
-              className="absolute right-0 top-0 bottom-0 px-3 bg-asphalt-2 text-steel hover:text-ignition-red flex items-center justify-center transition-colors"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-          </div>
-        </form>
+        {/* Search Bar with Instant Results Overlay */}
+        <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-xl mx-4 relative">
+          <form onSubmit={handleSearch} className="w-full">
+            <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="Search helmets, exhausts, brake pads, oils..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.trim().length >= 2 && setShowDropdown(true)}
+                onKeyDown={handleKeyDown}
+                className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-ignition-red rounded-none py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none transition-colors"
+              />
+              <button
+                type="submit"
+                className="absolute right-0 top-0 bottom-0 px-3 bg-asphalt-2 text-steel hover:text-ignition-red flex items-center justify-center transition-colors"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+          </form>
+
+          {/* Instant Search Results Dropdown */}
+          {showDropdown && (
+            <div className="absolute top-full left-0 right-0 z-50 bg-asphalt-2 border border-asphalt-2 shadow-2xl mt-1 overflow-hidden">
+              <div className="p-2 border-b border-asphalt flex justify-between items-center bg-asphalt/60">
+                <span className="text-[10px] font-mono text-steel uppercase tracking-widest">
+                  {isSearching ? "Searching catalog..." : `Instant Results (${searchResults.length})`}
+                </span>
+                <span className="text-[9px] font-mono text-steel">Esc to close</span>
+              </div>
+
+              {searchResults.length === 0 ? (
+                <div className="p-4 text-center text-xs text-steel">
+                  No direct product matches for &quot;{searchQuery}&quot;
+                </div>
+              ) : (
+                <div className="divide-y divide-asphalt/50">
+                  {searchResults.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/product/${item.slug}`}
+                      onClick={() => setShowDropdown(false)}
+                      className="p-2.5 flex items-center gap-3 hover:bg-asphalt/80 transition-colors group"
+                    >
+                      {item.images && item.images[0] && (
+                        <div className="w-10 h-10 bg-asphalt border border-asphalt-2 shrink-0 overflow-hidden">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.images[0]}
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-[9px] font-mono uppercase bg-asphalt px-1 text-plate-yellow border border-asphalt-2">
+                            {item.brand}
+                          </span>
+                          {item.category?.name && (
+                            <span className="text-[9px] font-mono text-steel uppercase">
+                              • {item.category.name}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-xs font-semibold text-off-white group-hover:text-ignition-red truncate">
+                          {item.name}
+                        </h4>
+                      </div>
+                      <div className="text-right font-mono text-xs font-bold text-off-white shrink-0">
+                        ৳{item.price.toLocaleString()}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* View All Results Action */}
+              <button
+                onClick={handleSearch}
+                className="w-full bg-asphalt border-t border-asphalt-2 p-2.5 text-center text-xs font-mono text-plate-yellow hover:text-off-white hover:bg-asphalt-2 transition-colors font-bold uppercase"
+              >
+                View all results for &quot;{searchQuery}&quot; →
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Right Action Icons: Account, Favorites, Cart */}
         <div className="flex items-center gap-3 sm:gap-5">
