@@ -30,38 +30,51 @@ export default function Header({
 
   // Sync badge counts and user session from localStorage
   React.useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem("bikers_demand_user");
-      if (savedUser) {
-        const u = JSON.parse(savedUser);
-        if (u.name) setUserName(u.name.split(" ")[0]); // Display first name e.g. Tanvir
-        else if (u.phoneOrEmail) setUserName(u.phoneOrEmail);
-        else setUserName("Rider Account");
-      }
-
-      const savedCart = localStorage.getItem("bikers_demand_cart");
-      if (savedCart) {
-        const arr = JSON.parse(savedCart);
-        if (Array.isArray(arr)) {
-          const totalQty = arr.reduce((acc: number, item: any) => acc + (item.quantity || 1), 0);
-          setLiveCartCount(totalQty);
+    const syncSession = () => {
+      try {
+        const savedUser = localStorage.getItem("bikers_demand_user");
+        if (savedUser) {
+          const u = JSON.parse(savedUser);
+          if (u.name) setUserName(u.name); // Display exact name signed up with
+          else if (u.phoneOrEmail) setUserName(u.phoneOrEmail);
+          else if (u.phone) setUserName(u.phone);
+          else setUserName("Rider Account");
+        } else {
+          setUserName(null);
         }
-      } else if (cartCount !== undefined) {
-        setLiveCartCount(cartCount);
-      }
 
-      const savedFavs = localStorage.getItem("bikers_demand_favs");
-      if (savedFavs) {
-        const arr = JSON.parse(savedFavs);
-        if (Array.isArray(arr)) {
-          setLiveFavCount(arr.length);
+        const savedCart = localStorage.getItem("bikers_demand_cart");
+        if (savedCart) {
+          const arr = JSON.parse(savedCart);
+          if (Array.isArray(arr)) {
+            const totalQty = arr.reduce((acc: number, item: any) => acc + (item.quantity || 1), 0);
+            setLiveCartCount(totalQty);
+          }
+        } else if (cartCount !== undefined) {
+          setLiveCartCount(cartCount);
         }
-      } else if (favCount !== undefined) {
-        setLiveFavCount(favCount);
+
+        const savedFavs = localStorage.getItem("bikers_demand_favs");
+        if (savedFavs) {
+          const arr = JSON.parse(savedFavs);
+          if (Array.isArray(arr)) {
+            setLiveFavCount(arr.length);
+          }
+        } else if (favCount !== undefined) {
+          setLiveFavCount(favCount);
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    };
+
+    syncSession();
+    window.addEventListener("storage", syncSession);
+    window.addEventListener("focus", syncSession);
+    return () => {
+      window.removeEventListener("storage", syncSession);
+      window.removeEventListener("focus", syncSession);
+    };
   }, [cartCount, favCount, isCartOpen]);
 
   const handleSearch = (e: React.FormEvent) => {

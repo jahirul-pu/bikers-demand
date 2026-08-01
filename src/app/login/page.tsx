@@ -24,10 +24,13 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLoading(false);
       try {
+        const derivedName = phoneOrEmail.includes("@")
+          ? phoneOrEmail.split("@")[0]
+          : phoneOrEmail;
         localStorage.setItem(
           "bikers_demand_user",
           JSON.stringify({
-            name: "Rider User",
+            name: derivedName,
             phoneOrEmail: phoneOrEmail,
             loggedInAt: new Date().toISOString(),
           })
