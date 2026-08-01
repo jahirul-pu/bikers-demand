@@ -103,49 +103,6 @@ export default function CategoryPage() {
     ? `${selectedBike.brand} ${selectedBike.model} ${selectedBike.variant || ""}`
     : null;
 
-  return (
-    <div className="min-h-screen flex flex-col bg-asphalt text-off-white">
-      <Header
-        onOpenBikeModal={() => setIsBikeModalOpen(true)}
-        selectedBike={bikeDisplayName}
-        cartCount={cartCount}
-      />
-      <Navigation activeCategory={slug} />
-
-      {/* Category Header */}
-      <div className="bg-asphalt-2 border-b border-asphalt-2 py-8 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-steel font-mono mb-2">
-              <a href="/" className="hover:text-off-white">Home</a>
-              <span>/</span>
-              <span className="text-plate-yellow capitalize">{slug.replace("-", " ")}</span>
-            </div>
-            <h1 className="display-font text-4xl font-extrabold uppercase text-off-white tracking-wide">
-              {currentCategoryInfo.title}
-            </h1>
-            <p className="text-steel text-sm max-w-xl mt-1">{currentCategoryInfo.desc}</p>
-          </div>
-
-          {/* Bike Selector Quick Action */}
-          <button
-            onClick={() => setIsBikeModalOpen(true)}
-            className="bg-asphalt border border-plate-yellow/40 hover:border-plate-yellow p-3 flex items-center gap-3 transition-colors"
-          >
-            <Bike className="w-5 h-5 text-plate-yellow" />
-            <div className="text-left font-mono">
-              <div className="text-[10px] text-steel uppercase">ACTIVE BIKE FILTER:</div>
-              <div className="text-xs font-bold text-plate-yellow">
-                {bikeDisplayName || "Select Your Bike"}
-              </div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Browse Body */}
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
   // Category-specific filter states
   const [selectedSubtype, setSelectedSubtype] = useState<string>("all");
   const [selectedCert, setSelectedCert] = useState<string>("all");
