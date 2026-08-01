@@ -49,7 +49,7 @@ export default function Navigation({
     { name: "Electronics", icon: Zap, id: "electronics", href: "/category/electronics" },
     { name: "Additives & Oils", icon: Droplet, id: "additives", href: "/category/additives" },
     { name: "Riding Gear", icon: Shirt, id: "riding-gear", href: "/category/riding-gear" },
-    { name: "Brands", icon: Award, id: "brands", href: "/search?brand=all" },
+    { name: "Brands", icon: Award, id: "brands", href: "/brands" },
     { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
   ];
 
