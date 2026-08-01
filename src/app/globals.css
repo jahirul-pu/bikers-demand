@@ -7,11 +7,27 @@
   --foreground: #F2F1EC;
 }
 
+/* Bump base size so all rem-based Tailwind sizes are larger with Barlow Condensed */
+html {
+  font-size: 17px;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-barlow-condensed), sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
   overflow-x: hidden;
+}
+
+/* Floor hardcoded tiny pixel sizes — keeps them legible */
+[class~="text-\[10px\]"],
+[class~="text-\[9px\]"] {
+  font-size: 13px !important;
+}
+[class~="text-\[11px\]"] {
+  font-size: 14px !important;
 }
 
 /* Custom Scrollbar */
@@ -32,10 +48,12 @@ body {
 
 /* Custom Utilities */
 .plate-font {
-  font-family: var(--font-space-mono), monospace;
-  letter-spacing: 0.1em;
+  font-family: var(--font-barlow-condensed), sans-serif;
+  letter-spacing: 0.08em;
 }
 
 .display-font {
   font-family: var(--font-barlow-condensed), sans-serif;
+  letter-spacing: 0.01em;
 }
+
