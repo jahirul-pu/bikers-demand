@@ -19,7 +19,8 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-barlow-condensed)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
+        body: ["var(--font-barlow-condensed)", "sans-serif"],
+        sans: ["var(--font-barlow-condensed)", "sans-serif"],
         mono: ["var(--font-space-mono)", "monospace"],
       },
     },
