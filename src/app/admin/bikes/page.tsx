@@ -1,39 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
-import { Bike, Plus, Edit, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bike, Plus, Edit, Check, Trash2 } from "lucide-react";
+import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
 
 export default function AdminBikesPage() {
-  const [bikes, setBikes] = useState([
-    { id: "b-1", brand: "Yamaha", model: "FZS-Fi", variant: "v3", cc: 149, yearFrom: 2019, yearTo: "Present" },
-    { id: "b-2", brand: "Yamaha", model: "R15", variant: "v4", cc: 155, yearFrom: 2021, yearTo: "Present" },
-    { id: "b-3", brand: "Honda", model: "CB Hornet", variant: "160R ABS", cc: 162, yearFrom: 2018, yearTo: "Present" },
-    { id: "b-4", brand: "Suzuki", model: "Gixxer", variant: "155 FI ABS", cc: 155, yearFrom: 2019, yearTo: "Present" },
-    { id: "b-5", brand: "Bajaj", model: "Pulsar N160", variant: "Dual Channel ABS", cc: 164, yearFrom: 2022, yearTo: "Present" },
-    { id: "b-6", brand: "TVS", model: "Apache RTR 160 4V", variant: "Special Edition", cc: 159, yearFrom: 2021, yearTo: "Present" },
-  ]);
+  const [bikes, setBikes] = useState<DBBike[]>([]);
+
+  useEffect(() => {
+    LocalStorageDB.init();
+    setBikes(LocalStorageDB.getBikes());
+  }, []);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [brand, setBrand] = useState("Yamaha");
   const [model, setModel] = useState("");
-  const [variant, setVariant] = useState("");
-  const [cc, setCc] = useState(150);
+  const [displacementCc, setDisplacementCc] = useState(150);
 
   const handleAddBike = (e: React.FormEvent) => {
     e.preventDefault();
-    const newBike = {
+    const newBike: DBBike = {
       id: `b-${Date.now()}`,
       brand,
       model,
-      variant,
-      cc: Number(cc),
-      yearFrom: 2024,
-      yearTo: "Present",
+      yearStart: 2020,
+      yearEnd: 2026,
+      displacementCc: Number(displacementCc),
+      slug: `${brand}-${model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     };
-    setBikes([...bikes, newBike]);
+    LocalStorageDB.addBike(newBike);
+    setBikes(LocalStorageDB.getBikes());
     setShowAddForm(false);
     setModel("");
-    setVariant("");
+  };
+
+  const handleDeleteBike = (id: string) => {
+    LocalStorageDB.deleteBike(id);
+    setBikes(LocalStorageDB.getBikes());
   };
 
   return (
@@ -96,23 +99,12 @@ export default function AdminBikesPage() {
             </div>
 
             <div>
-              <label className="text-steel block">Variant</label>
-              <input
-                type="text"
-                placeholder="e.g. Gen 3"
-                value={variant}
-                onChange={(e) => setVariant(e.target.value)}
-                className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white"
-              />
-            </div>
-
-            <div>
               <label className="text-steel block">Engine CC</label>
               <input
                 type="number"
                 required
-                value={cc}
-                onChange={(e) => setCc(Number(e.target.value))}
+                value={displacementCc}
+                onChange={(e) => setDisplacementCc(Number(e.target.value))}
                 className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white"
               />
             </div>
@@ -133,8 +125,7 @@ export default function AdminBikesPage() {
           <thead>
             <tr className="bg-asphalt-2 text-plate-yellow uppercase text-[11px] border-b border-asphalt-2">
               <th className="p-3">Brand</th>
-              <th className="p-3">Model Name</th>
-              <th className="p-3">Variant / Gen</th>
+              <th className="p-3">Model</th>
               <th className="p-3">Engine CC</th>
               <th className="p-3">Years</th>
               <th className="p-3">Actions</th>
@@ -145,12 +136,15 @@ export default function AdminBikesPage() {
               <tr key={b.id} className="hover:bg-asphalt-2/50 transition-colors">
                 <td className="p-3 font-bold text-plate-yellow">{b.brand}</td>
                 <td className="p-3 font-bold text-off-white">{b.model}</td>
-                <td className="p-3 text-steel">{b.variant}</td>
-                <td className="p-3 text-steel">{b.cc}cc</td>
-                <td className="p-3 text-steel">{b.yearFrom} – {b.yearTo}</td>
+                <td className="p-3 text-steel">{b.displacementCc} cc</td>
+                <td className="p-3 text-steel">{b.yearStart} – {b.yearEnd}</td>
                 <td className="p-3">
-                  <button className="text-steel hover:text-off-white p-1">
-                    <Edit className="w-4 h-4" />
+                  <button
+                    onClick={() => handleDeleteBike(b.id)}
+                    className="text-steel hover:text-ignition-red p-1 transition-colors"
+                    title="Delete Bike"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
               </tr>

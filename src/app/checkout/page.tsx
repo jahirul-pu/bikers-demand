@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { CartItem } from "@/components/cart/CartDrawer";
+import { LocalStorageDB } from "@/lib/localStorageDB";
 import {
   CheckCircle2,
   ShieldCheck,
@@ -112,15 +113,34 @@ function CheckoutContent() {
       } else {
         alert(json.error || "Failed to place order.");
       }
-    } catch (err) {
       const mockOrderNumber = `BD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-      setOrderConfirmed({
+      const confirmedData = {
         orderNumber: mockOrderNumber,
         total: grandTotal,
         deliveryCharge,
         paymentMethod: "COD",
         message: "Order placed successfully.",
-      });
+      };
+
+      try {
+        LocalStorageDB.addOrder({
+          id: `ord-${Date.now()}`,
+          orderNumber: mockOrderNumber,
+          customerName,
+          phone,
+          address: addressLine,
+          city: isInsideDhaka ? "Dhaka" : city,
+          status: "CONFIRMED",
+          totalAmount: grandTotal,
+          itemsCount: cartItems.length,
+          createdAt: new Date().toISOString(),
+          items: cartItems.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity })),
+        });
+      } catch (e) {
+        console.error(e);
+      }
+
+      setOrderConfirmed(confirmedData);
       localStorage.removeItem("bikers_demand_cart");
     } finally {
       setIsSubmitting(false);

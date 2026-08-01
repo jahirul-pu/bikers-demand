@@ -1,47 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check, Trash2 } from "lucide-react";
+import { LocalStorageDB, DBProduct } from "@/lib/localStorageDB";
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState([
-    {
-      id: "prod-1",
-      sku: "PARTS-EXH-001",
-      name: "Performance Slip-On Racing Exhaust (Black Coated)",
-      brand: "Akrapovič Replica",
-      price: 6500,
-      stockQty: 14,
-      category: "Parts & Mods",
-      certification: "NONE",
-      warranty: "No Warranty",
-      returnNote: "No return if opened",
-    },
-    {
-      id: "prod-3",
-      sku: "PARTS-LVR-003",
-      name: "Adjustable 6-Stage CNC Billet Aluminum Brake & Clutch Levers",
-      brand: "Racing Boy (RCB)",
-      price: 2200,
-      stockQty: 3,
-      category: "Parts & Mods",
-      certification: "NONE",
-      warranty: "No Warranty",
-      returnNote: "No return if opened",
-    },
-    {
-      id: "prod-5",
-      sku: "GEAR-HLM-005",
-      name: "MT Thunder 4 SV Full Face Helmet (Matt Black)",
-      brand: "MT Helmets",
-      price: 9800,
-      stockQty: 9,
-      category: "Riding Gear",
-      certification: "ECE 22.06 / DOT",
-      warranty: "1 Year Warranty",
-      returnNote: "7-day standard return",
-    },
-  ]);
+  const [products, setProducts] = useState<DBProduct[]>([]);
+
+  useEffect(() => {
+    LocalStorageDB.init();
+    setProducts(LocalStorageDB.getProducts());
+  }, []);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSku, setNewSku] = useState("");
@@ -49,28 +18,38 @@ export default function AdminProductsPage() {
   const [newBrand, setNewBrand] = useState("");
   const [newPrice, setNewPrice] = useState(0);
   const [newStockQty, setNewStockQty] = useState(10);
-  const [newCategory, setNewCategory] = useState("Riding Gear");
-  const [newCertification, setNewCertification] = useState("DOT"); // Required field validation per PRD 3.4
-  const [newWarranty, setNewWarranty] = useState("No Warranty");
+  const [newCategory, setNewCategory] = useState<DBProduct["category"]>("riding-gear");
+  const [newCertification, setNewCertification] = useState("ECE 22.06 / DOT");
+  const [newWarranty, setNewWarranty] = useState("1 Year Warranty");
 
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    const newProduct = {
+    const newProduct: DBProduct = {
       id: `prod-${Date.now()}`,
       sku: newSku || `SKU-${Date.now()}`,
       name: newName,
+      slug: newName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       brand: newBrand,
       price: Number(newPrice),
       stockQty: Number(newStockQty),
       category: newCategory,
-      certification: newCategory === "Riding Gear" ? newCertification : "NONE",
+      stockStatus: Number(newStockQty) > 0 ? "in-stock" : "out-of-stock",
+      certification: newCertification,
       warranty: newWarranty,
-      returnNote: newCategory === "Parts & Mods" ? "No return if opened" : "7-day return",
+      imageUrl: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
     };
-    setProducts([...products, newProduct]);
+
+    LocalStorageDB.addProduct(newProduct);
+    setProducts(LocalStorageDB.getProducts());
     setShowAddModal(false);
+    setNewSku("");
     setNewName("");
     setNewBrand("");
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    LocalStorageDB.deleteProduct(id);
+    setProducts(LocalStorageDB.getProducts());
   };
 
   return (
@@ -219,19 +198,20 @@ export default function AdminProductsPage() {
                   <label className="text-steel block">Category</label>
                   <select
                     value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
+                    onChange={(e) => setNewCategory(e.target.value as DBProduct["category"])}
                     className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
                   >
-                    <option value="Riding Gear">Riding Gear</option>
-                    <option value="Parts & Mods">Parts & Mods</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Merchandise">Merchandise</option>
+                    <option value="riding-gear">Riding Gear</option>
+                    <option value="parts-mods">Parts & Mods</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="additives">Additives & Oils</option>
+                    <option value="merchandise">Merchandise</option>
                   </select>
                 </div>
               </div>
 
               {/* Mandatory Helmet Certification validation per PRD 3.4 */}
-              {newCategory === "Riding Gear" && (
+              {newCategory === "riding-gear" && (
                 <div className="p-3 bg-asphalt border border-ignition-red/40 space-y-1">
                   <label className="text-ignition-red font-bold block">
                     Helmet Certification (Mandatory Catalog Field per PRD 3.4)
