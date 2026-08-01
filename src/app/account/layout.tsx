@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
-import { Bike, ShoppingBag, MapPin, Heart, Settings, Wrench, ShieldAlert } from "lucide-react";
+import { Bike, ShoppingBag, MapPin, Heart, Settings, Wrench, ShieldAlert, LogOut } from "lucide-react";
 
 export default function AccountLayout({
   children,
@@ -93,6 +93,22 @@ export default function AccountLayout({
                     </Link>
                   );
                 })}
+
+                <button
+                  onClick={() => {
+                    try {
+                      localStorage.removeItem("bikers_demand_user");
+                      window.dispatchEvent(new Event("storage"));
+                    } catch (e) {
+                      console.error(e);
+                    }
+                    window.location.href = "/login";
+                  }}
+                  className="w-full text-left flex items-center gap-3 py-2.5 px-3 border-l-2 border-transparent text-steel hover:text-ignition-red hover:bg-asphalt/50 transition-all cursor-pointer mt-2 pt-3 border-t border-asphalt"
+                >
+                  <LogOut className="w-4 h-4 text-ignition-red" />
+                  <span>Sign Out</span>
+                </button>
               </nav>
             </div>
 
