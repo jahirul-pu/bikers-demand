@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UtilityBar from "@/components/layout/UtilityBar";
+import { LocalStorageDB } from "@/lib/localStorageDB";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import BikeSelectionStrip from "@/components/landing/BikeSelectionStrip";
@@ -15,17 +16,61 @@ import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelector
 import { Product } from "@/components/landing/ProductCard";
 
 export default function Home() {
-  // Bike state management
-  const [selectedBike, setSelectedBike] = useState<BikeOption | null>({
-    brand: "Yamaha",
-    model: "FZS-Fi",
-    variant: "v3",
-    cc: "149cc",
-  });
+  // Bike state management — loaded from user garage
+  const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
   const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(2);
-  const [favCount, setFavCount] = useState(1);
+  const [cartCount, setCartCount] = useState(0);
+  const [favCount, setFavCount] = useState(0);
   const [activeCategory, setActiveCategory] = useState("riding-gear");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Read primary bike (index 0) from garage on mount
+  const loadPrimaryBike = () => {
+    try {
+      const user = localStorage.getItem("bikers_demand_user");
+      const loggedIn = !!user;
+      setIsLoggedIn(loggedIn);
+
+      if (loggedIn) {
+        // Only read garage bike if logged in
+        const garage = LocalStorageDB.getUserGarage();
+        if (garage.length > 0) {
+          const primary = garage[0];
+          setSelectedBike({
+            brand: primary.brand,
+            model: primary.model,
+            variant: "",
+            cc: `${primary.displacementCc}cc`,
+          });
+        } else {
+          setSelectedBike(null);
+        }
+      } else {
+        // Guest — always blank, no persistent bike
+        setSelectedBike(null);
+      }
+
+      // Sync cart & fav counts
+      const cart = JSON.parse(localStorage.getItem("bikers_demand_cart") || "[]");
+      const favs = JSON.parse(localStorage.getItem("bikers_demand_favs") || "[]");
+      setCartCount(Array.isArray(cart) ? cart.reduce((s: number, i: {quantity?: number}) => s + (i.quantity ?? 1), 0) : 0);
+      setFavCount(Array.isArray(favs) ? favs.length : 0);
+    } catch {
+      // silent fail
+    }
+  };
+
+  useEffect(() => {
+    LocalStorageDB.init();
+    loadPrimaryBike();
+    window.addEventListener("storage", loadPrimaryBike);
+    window.addEventListener("focus", loadPrimaryBike);
+    return () => {
+      window.removeEventListener("storage", loadPrimaryBike);
+      window.removeEventListener("focus", loadPrimaryBike);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const bikeDisplayName = selectedBike
     ? `${selectedBike.brand} ${selectedBike.model} ${selectedBike.variant || ""}`.trim()
@@ -61,6 +106,7 @@ export default function Home() {
       {/* 4. Bike Selection Strip */}
       <BikeSelectionStrip
         selectedBike={selectedBike}
+        isLoggedIn={isLoggedIn}
         onOpenBikeModal={() => setIsBikeModalOpen(true)}
         onClearBike={() => setSelectedBike(null)}
       />
@@ -106,7 +152,33 @@ export default function Home() {
       <BikeSelectorModal
         isOpen={isBikeModalOpen}
         onClose={() => setIsBikeModalOpen(false)}
-        onSelectBike={(bike) => setSelectedBike(bike)}
+        onSelectBike={(bike) => {
+          setSelectedBike(bike);
+          // Only persist to garage if logged in
+          if (isLoggedIn) {
+            try {
+              const garage = LocalStorageDB.getUserGarage();
+              const slug = `${bike.brand}-${bike.model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              const cc = parseInt(bike.cc?.replace(/[^0-9]/g, "") || "0", 10);
+              const existingIdx = garage.findIndex(
+                (b) => b.brand === bike.brand && b.model === bike.model
+              );
+              let updated;
+              if (existingIdx > -1) {
+                const [existing] = garage.splice(existingIdx, 1);
+                updated = [existing, ...garage];
+              } else {
+                updated = [
+                  { id: `gb-${Date.now()}`, brand: bike.brand, model: bike.model, displacementCc: cc, yearStart: 2018, yearEnd: 2026, slug },
+                  ...garage,
+                ];
+              }
+              LocalStorageDB.saveUserGarage(updated);
+              window.dispatchEvent(new Event("storage"));
+            } catch { /* silent */ }
+          }
+          setIsBikeModalOpen(false);
+        }}
         currentBike={selectedBike}
       />
     </div>

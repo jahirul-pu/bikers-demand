@@ -1,5 +1,5 @@
 import React from "react";
-import { Bike, ShieldCheck, ArrowRight, Wrench, CheckCircle } from "lucide-react";
+import { Bike, ArrowRight, CheckCircle } from "lucide-react";
 
 interface HeroSectionProps {
   onOpenBikeModal: () => void;
@@ -19,9 +19,9 @@ export default function HeroSection({
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-ignition-red/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Column: Headlines & CTAs */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+        <div className="max-w-4xl mx-auto">
+          {/* Hero Content */}
+          <div className="space-y-6 text-center">
             {/* Tagline Badge */}
             <div className="inline-flex items-center gap-2 bg-asphalt-2 border border-steel/30 px-3 py-1.5 text-xs text-plate-yellow font-mono uppercase tracking-wider">
               <span className="w-2 h-2 rounded-full bg-ignition-red animate-pulse" />
@@ -35,12 +35,12 @@ export default function HeroSection({
             </h1>
 
             {/* Supporting Copy */}
-            <p className="text-steel-light text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
+            <p className="text-steel-light text-base sm:text-lg max-w-2xl mx-auto font-light leading-relaxed">
               Add your bike once. See only the parts, mods, and accessories that actually fit your machine — 100% confirmed compatibility guarantee.
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
               {/* Primary CTA */}
               <button
                 onClick={onOpenBikeModal}
@@ -66,75 +66,15 @@ export default function HeroSection({
             <div className="pt-6 border-t border-asphalt-2/80 grid grid-cols-3 gap-2 text-left">
               <div className="flex items-center gap-2 text-xs text-steel">
                 <CheckCircle className="w-4 h-4 text-ignition-red shrink-0" />
-                <span>Genuine Inventory</span>
+                <span>Genuine Parts</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-steel">
                 <CheckCircle className="w-4 h-4 text-plate-yellow shrink-0" />
                 <span>Zero Compatibility Risk</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-steel">
+              <div className="flex items-center gap-2 text-xs text-steel justify-center">
                 <CheckCircle className="w-4 h-4 text-ignition-red shrink-0" />
-                <span>Dhaka & BD Delivery</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Hero Visual Card */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative bg-asphalt-2 border border-steel/20 p-6 sm:p-8 shadow-2xl space-y-6">
-              {/* Card Badge */}
-              <div className="flex justify-between items-center border-b border-asphalt pb-4">
-                <div className="flex items-center gap-2">
-                  <Wrench className="w-5 h-5 text-plate-yellow" />
-                  <span className="display-font text-lg uppercase font-bold text-off-white">
-                    Compatibility Matrix
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono bg-asphalt px-2 py-1 text-plate-yellow border border-plate-yellow/30">
-                  REAL-TIME FILTER
-                </span>
-              </div>
-
-              {/* Interactive Demo Selector Mockup */}
-              <div className="space-y-3 bg-asphalt p-4 border border-asphalt-2">
-                <label className="text-xs text-steel uppercase font-mono block">
-                  1. Select Make & Model
-                </label>
-                <div className="bg-asphalt-2 text-off-white px-3 py-2 text-sm border border-steel/30 flex justify-between items-center">
-                  <span className="font-medium">Yamaha FZS-Fi v3 (149cc)</span>
-                  <span className="text-xs text-plate-yellow">✓ Active</span>
-                </div>
-              </div>
-
-              {/* Dynamic Filter Output Demo */}
-              <div className="space-y-2">
-                <span className="text-xs text-steel font-mono uppercase block">
-                  2. Showing 48 Verified Accessories:
-                </span>
-                <div className="space-y-2">
-                  <div className="bg-asphalt/80 p-2.5 flex items-center justify-between border-l-2 border-plate-yellow text-xs">
-                    <span className="text-off-white font-medium">Racing Exhaust Slip-On</span>
-                    <span className="bg-plate-yellow/20 text-plate-yellow px-1.5 py-0.5 text-[10px] font-mono">
-                      EXACT FIT
-                    </span>
-                  </div>
-                  <div className="bg-asphalt/80 p-2.5 flex items-center justify-between border-l-2 border-plate-yellow text-xs">
-                    <span className="text-off-white font-medium">Chain & Sprocket Kit (428-132L)</span>
-                    <span className="bg-plate-yellow/20 text-plate-yellow px-1.5 py-0.5 text-[10px] font-mono">
-                      EXACT FIT
-                    </span>
-                  </div>
-                  <div className="bg-asphalt/80 p-2.5 flex items-center justify-between border-l-2 border-plate-yellow text-xs">
-                    <span className="text-off-white font-medium">Adjustable CNC Levers Set</span>
-                    <span className="bg-plate-yellow/20 text-plate-yellow px-1.5 py-0.5 text-[10px] font-mono">
-                      EXACT FIT
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 text-center text-xs text-steel font-mono">
-                No guessing thread pitches, socket sizes, or bolt patterns.
+                <span>Home Delivery All Over Bangladesh</span>
               </div>
             </div>
           </div>

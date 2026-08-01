@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, RefreshCw, XCircle } from "lucide-react";
+import { CheckCircle2, RefreshCw, XCircle, Bike, ArrowRight } from "lucide-react";
 
 interface BikeSelectionStripProps {
   selectedBike: {
@@ -8,17 +8,43 @@ interface BikeSelectionStripProps {
     variant?: string;
     year?: string;
   } | null;
+  isLoggedIn?: boolean;
   onOpenBikeModal: () => void;
   onClearBike: () => void;
 }
 
 export default function BikeSelectionStrip({
   selectedBike,
+  isLoggedIn = false,
   onOpenBikeModal,
   onClearBike,
 }: BikeSelectionStripProps) {
-  if (!selectedBike) return null;
+  // No bike selected yet — show prompt for everyone
+  if (!selectedBike) {
+    return (
+      <div className="bg-asphalt-2/95 border-b border-asphalt-2 py-3 px-4 shadow-md">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3 text-steel">
+            <Bike className="w-5 h-5 text-steel shrink-0" />
+            <div>
+              <p className="text-xs sm:text-sm text-steel-light">
+                No bike selected. Add a bike to your garage to see compatible parts &amp; mods.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onOpenBikeModal}
+            className="flex items-center gap-1.5 bg-plate-yellow text-asphalt hover:bg-plate-yellow/90 px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors shrink-0"
+          >
+            <span>Select My Bike</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  // Logged in with a primary bike selected
   const bikeDisplayName = `${selectedBike.brand} ${selectedBike.model} ${
     selectedBike.variant || ""
   }`.trim();
@@ -45,7 +71,7 @@ export default function BikeSelectionStrip({
               <span>COMPATIBILITY FILTER ACTIVE</span>
             </div>
             <p className="text-xs text-steel">
-              Showing parts, mods & electronics matching{" "}
+              Showing parts, mods &amp; electronics matching{" "}
               <strong className="text-off-white font-semibold">{bikeDisplayName}</strong>
             </p>
           </div>

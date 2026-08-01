@@ -73,18 +73,13 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
   return (
     <section id="category-grid" className="py-16 bg-asphalt border-b border-asphalt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-          <div>
-            <span className="text-xs font-mono text-plate-yellow uppercase tracking-widest block mb-1">
-              EXPLORE CATALOG
-            </span>
-            <h2 className="display-font text-3xl sm:text-4xl font-extrabold uppercase text-off-white tracking-wide">
-              Shop By Category
-            </h2>
-          </div>
-          <p className="text-steel text-sm max-w-md">
-            All items are owned inventory in our Dhaka fulfillment center — ready for instant packing and shipping.
-          </p>
+        <div className="text-center mb-10">
+          <span className="text-xs font-mono text-plate-yellow uppercase tracking-widest block mb-1">
+            EXPLORE CATALOG
+          </span>
+          <h2 className="display-font text-3xl sm:text-4xl font-extrabold uppercase text-off-white tracking-wide">
+            Shop By Category
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
