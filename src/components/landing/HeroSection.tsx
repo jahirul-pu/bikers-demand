@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Bike, ArrowRight, CheckCircle } from "lucide-react";
 
 interface HeroSectionProps {
@@ -54,12 +55,12 @@ export default function HeroSection({
               </button>
 
               {/* Secondary CTA */}
-              <button
-                onClick={onBrowseGear}
-                className="w-full sm:w-auto bg-asphalt-2 hover:bg-asphalt border border-steel/40 hover:border-steel text-off-white font-bold uppercase text-sm sm:text-base px-7 py-4 tracking-wider transition-all transform -skew-x-6"
+              <Link
+                href="/shop"
+                className="w-full sm:w-auto bg-asphalt-2 hover:bg-asphalt border border-steel/40 hover:border-steel text-off-white font-bold uppercase text-sm sm:text-base px-7 py-4 tracking-wider transition-all transform -skew-x-6 text-center"
               >
                 <span className="transform skew-x-6 block">Browse All Gear</span>
-              </button>
+              </Link>
             </div>
 
             {/* Feature Bullets */}

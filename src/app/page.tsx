@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import UtilityBar from "@/components/layout/UtilityBar";
+
 import { LocalStorageDB } from "@/lib/localStorageDB";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
-import BikeSelectionStrip from "@/components/landing/BikeSelectionStrip";
+
 import HeroSection from "@/components/landing/HeroSection";
 import CategoryGrid from "@/components/landing/CategoryGrid";
 import CompatibleProducts from "@/components/landing/CompatibleProducts";
@@ -86,30 +86,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-asphalt text-off-white">
-      {/* 1. Utility Bar */}
-      <UtilityBar />
 
-      {/* 2. Header */}
-      <Header
-        onOpenBikeModal={() => setIsBikeModalOpen(true)}
-        selectedBike={bikeDisplayName}
-        cartCount={cartCount}
-        favCount={favCount}
-      />
 
-      {/* 3. Navigation */}
-      <Navigation
-        activeCategory={activeCategory}
-        onSelectCategory={(cat) => setActiveCategory(cat)}
-      />
+      {/* Sticky Header + Nav block */}
+      <div className="sticky top-0 z-50">
+        {/* 2. Header */}
+        <Header
+          onOpenBikeModal={() => setIsBikeModalOpen(true)}
+          selectedBike={bikeDisplayName}
+          cartCount={cartCount}
+          favCount={favCount}
+        />
 
-      {/* 4. Bike Selection Strip */}
-      <BikeSelectionStrip
-        selectedBike={selectedBike}
-        isLoggedIn={isLoggedIn}
-        onOpenBikeModal={() => setIsBikeModalOpen(true)}
-        onClearBike={() => setSelectedBike(null)}
-      />
+        {/* 3. Navigation */}
+        <Navigation
+          activeCategory={activeCategory}
+          onSelectCategory={(cat) => setActiveCategory(cat)}
+          selectedBike={selectedBike}
+          onOpenBikeModal={() => setIsBikeModalOpen(true)}
+          onClearBike={() => setSelectedBike(null)}
+        />
+      </div>
 
       {/* Main Landing Content */}
       <main className="flex-grow">
