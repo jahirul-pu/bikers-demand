@@ -26,10 +26,19 @@ export default function Header({
 
   const [liveCartCount, setLiveCartCount] = useState<number>(cartCount ?? 0);
   const [liveFavCount, setLiveFavCount] = useState<number>(favCount ?? 0);
+  const [userName, setUserName] = useState<string | null>(null);
 
-  // Sync badge counts from localStorage
+  // Sync badge counts and user session from localStorage
   React.useEffect(() => {
     try {
+      const savedUser = localStorage.getItem("bikers_demand_user");
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        if (u.name) setUserName(u.name.split(" ")[0]); // Display first name e.g. Tanvir
+        else if (u.phoneOrEmail) setUserName(u.phoneOrEmail);
+        else setUserName("Rider Account");
+      }
+
       const savedCart = localStorage.getItem("bikers_demand_cart");
       if (savedCart) {
         const arr = JSON.parse(savedCart);
@@ -123,12 +132,14 @@ export default function Header({
           </button>
 
           <Link
-            href="/login"
-            className="flex items-center gap-1 text-steel hover:text-off-white transition-colors p-1"
-            title="Account Login / Garage"
+            href={userName ? "/account/garage" : "/login"}
+            className="flex items-center gap-1.5 text-steel hover:text-off-white transition-colors p-1"
+            title={userName ? `Signed in as ${userName}` : "Account Login / Garage"}
           >
-            <User className="w-5 h-5" />
-            <span className="hidden lg:inline text-xs font-medium">Account</span>
+            <User className={`w-5 h-5 ${userName ? "text-plate-yellow" : ""}`} />
+            <span className={`hidden lg:inline text-xs font-medium truncate max-w-[110px] ${userName ? "text-plate-yellow font-bold uppercase" : ""}`}>
+              {userName ? userName : "Account"}
+            </span>
           </Link>
 
           <Link
