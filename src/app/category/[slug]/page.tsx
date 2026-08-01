@@ -217,6 +217,22 @@ export default function CategoryPage() {
               </button>
             </div>
 
+            {/* COMMON FILTER: Availability (At the Very Top) */}
+            <div className="space-y-2 pb-3 border-b border-asphalt">
+              <label className="text-xs font-mono text-plate-yellow uppercase tracking-wider block font-bold">
+                Availability
+              </label>
+              <label className="flex items-center gap-2 text-xs text-steel-light cursor-pointer hover:text-off-white">
+                <input
+                  type="checkbox"
+                  checked={inStockOnly}
+                  onChange={(e) => setInStockOnly(e.target.checked)}
+                  className="accent-ignition-red w-4 h-4 cursor-pointer"
+                />
+                <span className="font-semibold">In Stock Only</span>
+              </label>
+            </div>
+
             {/* CATEGORY SPECIFIC FILTER SECTION 1: Subtype / Product Type */}
             {slug === "helmets" && (
               <>
@@ -564,22 +580,6 @@ export default function CategoryPage() {
                 </div>
               </div>
             )}
-
-            {/* COMMON FILTER: Availability */}
-            <div className="space-y-2 pt-2 border-t border-asphalt">
-              <label className="text-xs font-mono text-plate-yellow uppercase tracking-wider block">
-                Availability
-              </label>
-              <label className="flex items-center gap-2 text-xs text-steel-light cursor-pointer hover:text-off-white">
-                <input
-                  type="checkbox"
-                  checked={inStockOnly}
-                  onChange={(e) => setInStockOnly(e.target.checked)}
-                  className="accent-ignition-red"
-                />
-                <span>In Stock Only</span>
-              </label>
-            </div>
 
             <div className="pt-4 border-t border-asphalt text-[11px] text-steel font-mono space-y-1">
               <div>✓ Owned Inventory</div>
