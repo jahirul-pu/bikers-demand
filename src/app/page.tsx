@@ -32,7 +32,7 @@ export default function Home() {
       setIsLoggedIn(loggedIn);
 
       if (loggedIn) {
-        // Only read garage bike if logged in
+        // Logged-in: use garage as source of truth
         const garage = LocalStorageDB.getUserGarage();
         if (garage.length > 0) {
           const primary = garage[0];
@@ -46,8 +46,13 @@ export default function Home() {
           setSelectedBike(null);
         }
       } else {
-        // Guest — always blank, no persistent bike
-        setSelectedBike(null);
+        // Guest: persist selected bike in its own localStorage key
+        const saved = localStorage.getItem("bd_selected_bike");
+        if (saved) {
+          setSelectedBike(JSON.parse(saved));
+        } else {
+          setSelectedBike(null);
+        }
       }
 
       // Sync cart & fav counts
@@ -104,7 +109,17 @@ export default function Home() {
           onSelectCategory={(cat) => setActiveCategory(cat)}
           selectedBike={selectedBike}
           onOpenBikeModal={() => setIsBikeModalOpen(true)}
-          onClearBike={() => setSelectedBike(null)}
+          onClearBike={() => {
+            setSelectedBike(null);
+            // Remove from both guest key and garage slot 0
+            try {
+              localStorage.removeItem("bd_selected_bike");
+              if (isLoggedIn) {
+                const garage = LocalStorageDB.getUserGarage();
+                LocalStorageDB.saveUserGarage(garage.slice(1));
+              }
+            } catch { /* silent */ }
+          }}
         />
       </div>
 
@@ -152,8 +167,9 @@ export default function Home() {
         onClose={() => setIsBikeModalOpen(false)}
         onSelectBike={(bike) => {
           setSelectedBike(bike);
-          // Only persist to garage if logged in
+
           if (isLoggedIn) {
+            // Logged-in: save to garage as primary bike
             try {
               const garage = LocalStorageDB.getUserGarage();
               const slug = `${bike.brand}-${bike.model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -174,7 +190,13 @@ export default function Home() {
               LocalStorageDB.saveUserGarage(updated);
               window.dispatchEvent(new Event("storage"));
             } catch { /* silent */ }
+          } else {
+            // Guest: persist selected bike in its own key
+            try {
+              localStorage.setItem("bd_selected_bike", JSON.stringify(bike));
+            } catch { /* silent */ }
           }
+
           setIsBikeModalOpen(false);
         }}
         currentBike={selectedBike}

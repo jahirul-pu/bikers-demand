@@ -33,12 +33,24 @@ export default function BikeSelectorModal({
       LocalStorageDB.init();
       const bikes = LocalStorageDB.getBikes();
       setBikesList(bikes);
-      if (bikes.length > 0) {
-        setSelectedBrand(currentBike?.brand ?? bikes[0].brand);
+
+      // Pre-select brand from current bike (or first available)
+      const initialBrand = currentBike?.brand ?? bikes[0]?.brand ?? "Yamaha";
+      setSelectedBrand(initialBrand);
+
+      // Pre-highlight the currently selected bike
+      if (currentBike) {
+        const match = bikes.find(
+          (b) =>
+            b.brand.toLowerCase() === currentBike.brand.toLowerCase() &&
+            b.model.toLowerCase() === currentBike.model.toLowerCase()
+        );
+        setPendingBike(match ?? null);
+      } else {
+        setPendingBike(null);
       }
-      setPendingBike(null);
     }
-  }, [isOpen]);
+  }, [isOpen, currentBike]);
 
   if (!isOpen) return null;
 
@@ -121,6 +133,10 @@ export default function BikeSelectorModal({
               )}
               {filteredBikes.map((item) => {
                 const isSelected = pendingBike?.id === item.id;
+                const isCurrent =
+                  currentBike &&
+                  item.brand.toLowerCase() === currentBike.brand.toLowerCase() &&
+                  item.model.toLowerCase() === currentBike.model.toLowerCase();
                 return (
                   <button
                     key={item.id}
@@ -135,8 +151,15 @@ export default function BikeSelectorModal({
                       <div className={`font-bold text-sm ${isSelected ? "text-plate-yellow" : "text-off-white"}`}>
                         {item.model}
                       </div>
-                      <div className="text-[11px] font-mono text-steel mt-0.5">
-                        {item.displacementCc} cc Engine
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] font-mono text-steel">
+                          {item.displacementCc} cc Engine
+                        </span>
+                        {isCurrent && (
+                          <span className="text-[10px] font-mono font-bold text-plate-yellow bg-plate-yellow/10 border border-plate-yellow/40 px-1.5 py-0.5 uppercase tracking-wide">
+                            Current
+                          </span>
+                        )}
                       </div>
                     </div>
                     {isSelected ? (

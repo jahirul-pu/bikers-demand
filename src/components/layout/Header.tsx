@@ -136,17 +136,6 @@ export default function Header({
 
         {/* Right Action Icons: Account, Favorites, Cart */}
         <div className="flex items-center gap-3 sm:gap-5">
-          {/* Quick Bike Select Pill */}
-          <button
-            onClick={onOpenBikeModal}
-            className="hidden sm:flex items-center gap-2 bg-asphalt-2 border border-asphalt-2 hover:border-plate-yellow px-3 py-1.5 text-xs transition-all"
-          >
-            <div className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
-            <span className="font-mono text-steel-light">
-              {selectedBike ? selectedBike : "Select Bike"}
-            </span>
-          </button>
-
           <Link
             href={userName ? "/account/garage" : "/login"}
             className="flex items-center gap-1.5 text-steel hover:text-off-white transition-colors p-1"

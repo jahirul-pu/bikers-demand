@@ -127,17 +127,31 @@ function ShopPageInner() {
       setCartCount(qty);
     } catch {}
 
-    // Garage / primary bike
-    const garage = LocalStorageDB.getUserGarage();
-    if (garage.length > 0) {
-      const primary = garage[0];
-      setSelectedBike({ brand: primary.brand, model: primary.model });
-      // Auto-enable compat filter if arriving via ?compat=1
+    // Resolve selected bike: garage (logged-in) or guest key
+    const user = localStorage.getItem("bikers_demand_user");
+    const loggedIn = !!user;
+    let bikeToSet: BikeOption | null = null;
+
+    if (loggedIn) {
+      const garage = LocalStorageDB.getUserGarage();
+      if (garage.length > 0) {
+        const primary = garage[0];
+        bikeToSet = { brand: primary.brand, model: primary.model };
+      }
+    } else {
+      const saved = localStorage.getItem("bd_selected_bike");
+      if (saved) {
+        try { bikeToSet = JSON.parse(saved); } catch {}
+      }
+    }
+
+    if (bikeToSet) {
+      setSelectedBike(bikeToSet);
       if (searchParams.get("compat") === "1") {
         setBikeCompatOnly(true);
       }
     } else if (searchParams.get("compat") === "1") {
-      // No garage bike — open modal so user can set one
+      // No bike saved — prompt user to select one
       setIsBikeModalOpen(true);
     }
   }, [searchParams]);
@@ -293,6 +307,31 @@ function ShopPageInner() {
           </button>
         )}
       </div>
+
+      {/* Availability — top of filters */}
+      <FilterSection title="Availability">
+        <div className="space-y-1.5">
+          {[
+            { value: "all", label: "All Products" },
+            { value: "in-stock", label: "In Stock" },
+            { value: "low-stock", label: "Low Stock" },
+          ].map((opt) => (
+            <label
+              key={opt.value}
+              className="flex items-center gap-2 text-xs text-steel-light cursor-pointer hover:text-off-white"
+            >
+              <input
+                type="radio"
+                name="stock"
+                checked={stockFilter === opt.value}
+                onChange={() => setStockFilter(opt.value as StockFilter)}
+                className="accent-ignition-red"
+              />
+              <span>{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </FilterSection>
 
       {/* Search */}
       <FilterSection title="Search">
@@ -467,37 +506,6 @@ function ShopPageInner() {
         </div>
       </FilterSection>
 
-      {/* Availability */}
-      <FilterSection title="Availability" defaultOpen={false}>
-        <div className="space-y-1.5">
-          {[
-            { value: "all", label: "All Products" },
-            { value: "in-stock", label: "In Stock" },
-            { value: "low-stock", label: "Low Stock" },
-          ].map((opt) => (
-            <label
-              key={opt.value}
-              className="flex items-center gap-2 text-xs text-steel-light cursor-pointer hover:text-off-white"
-            >
-              <input
-                type="radio"
-                name="stock"
-                checked={stockFilter === opt.value}
-                onChange={() => setStockFilter(opt.value as StockFilter)}
-                className="accent-ignition-red"
-              />
-              <span>{opt.label}</span>
-            </label>
-          ))}
-        </div>
-      </FilterSection>
-
-      {/* Trust badges */}
-      <div className="pt-2 text-[10px] text-steel font-mono space-y-1 border-t border-asphalt">
-        <div className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Owned Inventory</div>
-        <div className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Flat Tk 60 / 130 Delivery</div>
-        <div className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Cash on Delivery Available</div>
-      </div>
     </div>
   );
 
@@ -814,7 +822,16 @@ function ShopPageInner() {
       <BikeSelectorModal
         isOpen={isBikeModalOpen}
         onClose={() => setIsBikeModalOpen(false)}
-        onSelectBike={(b) => setSelectedBike(b)}
+        onSelectBike={(b) => {
+          setSelectedBike(b);
+          // Persist for guests so it survives refresh
+          try {
+            const user = localStorage.getItem("bikers_demand_user");
+            if (!user) {
+              localStorage.setItem("bd_selected_bike", JSON.stringify(b));
+            }
+          } catch {}
+        }}
         currentBike={selectedBike}
       />
     </div>
