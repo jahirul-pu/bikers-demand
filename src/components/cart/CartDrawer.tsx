@@ -115,10 +115,22 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           {/* Drawer Scrollable Body */}
           <div className="flex-1 overflow-y-auto p-5 space-y-4">
             {cartItems.length === 0 ? (
-              <div className="py-16 text-center space-y-3 text-steel">
+              <div className="py-16 text-center space-y-4 text-steel">
                 <ShoppingBag className="w-12 h-12 mx-auto text-steel/40" />
                 <p className="font-bold uppercase text-off-white">Cart is empty</p>
                 <p className="text-xs">Browse items and add them to your cart.</p>
+                <div className="pt-2">
+                  <Link
+                    href="/shop"
+                    onClick={onClose}
+                    className="inline-flex items-center gap-2 bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-6 py-3 tracking-wider transition-colors transform -skew-x-6 shadow-md cursor-pointer"
+                  >
+                    <span className="transform skew-x-6 flex items-center gap-2">
+                      <span>Shop Now</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
