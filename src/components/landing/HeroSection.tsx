@@ -19,7 +19,7 @@ export default function HeroSection({
   return (
     <section className="relative bg-asphalt overflow-hidden border-b border-asphalt-2 py-12 md:py-20 lg:py-24">
       {/* Background Graphic Grid / Industrial Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e2125_1px,transparent_1px),linear-gradient(to_bottom,#1e2125_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40 pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--grid-line-rgb))_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--grid-line-rgb))_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-60 pointer-events-none" />
 
       {/* Red Accent Glow */}
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-ignition-red/10 rounded-full blur-3xl pointer-events-none" />

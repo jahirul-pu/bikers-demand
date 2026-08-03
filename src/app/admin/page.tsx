@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
               <AlertTriangle className="w-4 h-4" />
               Low Stock Owned Inventory Alerts
             </span>
-            <span className="text-[10px] bg-amber-950 px-2 py-0.5 border border-amber-500/40">3 ITEMS</span>
+            <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 border border-amber-300">3 ITEMS</span>
           </div>
 
           <div className="space-y-2 text-[11px]">
@@ -80,7 +80,7 @@ export default function AdminDashboardPage() {
               <ShieldAlert className="w-5 h-5 text-ignition-red" />
               <span>Evidence Claim Queue</span>
             </h2>
-            <span className="text-[10px] bg-red-950 px-2 py-0.5 border border-ignition-red/40">1 PENDING</span>
+            <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 border border-ignition-red/40">1 PENDING</span>
           </div>
 
           <div className="text-[11px] space-y-1">

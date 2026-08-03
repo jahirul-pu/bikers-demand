@@ -75,7 +75,7 @@ export default function AdminOrdersPage() {
                     {o.status}
                   </span>
                   {o.confirmationCall === "PENDING_CALL" && (
-                    <span className="bg-amber-950 text-amber-400 border border-amber-500/40 text-[10px] px-2 py-0.5">
+                    <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] px-2 py-0.5">
                       ⚠️ Needs Confirmation Call
                     </span>
                   )}

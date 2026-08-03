@@ -5,11 +5,12 @@
 :root {
   --asphalt-rgb: 248 250 252;
   --asphalt-2-rgb: 255 255 255;
-  --steel-rgb: 100 116 139;
-  --steel-light-rgb: 71 85 105;
+  --steel-rgb: 71 85 105;
+  --steel-light-rgb: 51 65 85;
   --off-white-rgb: 15 23 42;
-  --plate-yellow-rgb: 217 119 6;
-  --ignition-red-rgb: 220 38 38;
+  --plate-yellow-rgb: 180 92 0;
+  --ignition-red-rgb: 204 28 28;
+  --grid-line-rgb: 203 213 225;
 
   --background: #F8FAFC;
   --foreground: #0F172A;
@@ -20,11 +21,12 @@
 [data-theme="light"] {
   --asphalt-rgb: 248 250 252;
   --asphalt-2-rgb: 255 255 255;
-  --steel-rgb: 100 116 139;
-  --steel-light-rgb: 71 85 105;
+  --steel-rgb: 71 85 105;
+  --steel-light-rgb: 51 65 85;
   --off-white-rgb: 15 23 42;
-  --plate-yellow-rgb: 217 119 6;
-  --ignition-red-rgb: 220 38 38;
+  --plate-yellow-rgb: 180 92 0;
+  --ignition-red-rgb: 204 28 28;
+  --grid-line-rgb: 203 213 225;
 
   --background: #F8FAFC;
   --foreground: #0F172A;
@@ -40,6 +42,7 @@
   --off-white-rgb: 242 241 236;
   --plate-yellow-rgb: 232 185 58;
   --ignition-red-rgb: 226 52 52;
+  --grid-line-rgb: 46 50 55;
 
   --background: #15171A;
   --foreground: #F2F1EC;
@@ -83,6 +86,37 @@ body {
 [data-theme="light"] input::placeholder,
 :root:not([data-theme="dark"]) input::placeholder {
   color: #64748B;
+}
+
+/* Light mode: deepen "400"-level accent text so it stays legible on light surfaces.
+   Dark theme keeps the original bright Tailwind shades. */
+:root:not([data-theme="dark"]) .text-emerald-400 { color: #047857; }
+:root:not([data-theme="dark"]) .text-blue-400   { color: #2563eb; }
+:root:not([data-theme="dark"]) .text-purple-400 { color: #7c3aed; }
+:root:not([data-theme="dark"]) .text-pink-400   { color: #db2777; }
+:root:not([data-theme="dark"]) .text-orange-400 { color: #ea580c; }
+:root:not([data-theme="dark"]) .text-amber-400  { color: #b45309; }
+:root:not([data-theme="dark"]) .text-cyan-400   { color: #0e7490; }
+:root:not([data-theme="dark"]) .text-sky-400    { color: #0369a1; }
+:root:not([data-theme="dark"]) .text-indigo-400 { color: #4338ca; }
+:root:not([data-theme="dark"]) .text-violet-400 { color: #6d28d9; }
+:root:not([data-theme="dark"]) .text-teal-400   { color: #0f766e; }
+:root:not([data-theme="dark"]) .text-lime-400   { color: #4d7c0f; }
+:root:not([data-theme="dark"]) .text-rose-400   { color: #be123c; }
+:root:not([data-theme="dark"]) .text-red-400    { color: #dc2626; }
+
+/* Light mode: match the small status dots to the deepened green */
+:root:not([data-theme="dark"]) .bg-emerald-400 { background-color: #059669; }
+
+/* Text selection + keyboard focus polish */
+::selection {
+  background-color: rgba(220, 38, 38, 0.22);
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--ignition-red-rgb));
+  outline-offset: 2px;
 }
 
 /* Floor hardcoded tiny pixel sizes — keeps them legible */

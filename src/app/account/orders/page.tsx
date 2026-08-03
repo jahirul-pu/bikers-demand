@@ -18,13 +18,13 @@ export default function OrderHistoryPage() {
       case "PLACED":
         return <span className="bg-asphalt text-plate-yellow border border-plate-yellow/40 px-2 py-0.5 text-[10px] font-mono font-bold">PLACED</span>;
       case "CONFIRMED":
-        return <span className="bg-blue-950 text-blue-400 border border-blue-500/40 px-2 py-0.5 text-[10px] font-mono font-bold">CONFIRMED</span>;
+        return <span className="bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 text-[10px] font-mono font-bold">CONFIRMED</span>;
       case "PACKED":
-        return <span className="bg-purple-950 text-purple-400 border border-purple-500/40 px-2 py-0.5 text-[10px] font-mono font-bold">PACKED</span>;
+        return <span className="bg-purple-100 text-purple-800 border border-purple-300 px-2 py-0.5 text-[10px] font-mono font-bold">PACKED</span>;
       case "SHIPPED":
-        return <span className="bg-amber-950 text-amber-400 border border-amber-500/40 px-2 py-0.5 text-[10px] font-mono font-bold">SHIPPED</span>;
+        return <span className="bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 text-[10px] font-mono font-bold">SHIPPED</span>;
       case "DELIVERED":
-        return <span className="bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-mono font-bold">DELIVERED</span>;
+        return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 text-[10px] font-mono font-bold">DELIVERED</span>;
       default:
         return <span className="bg-asphalt text-steel px-2 py-0.5 text-[10px] font-mono">{status}</span>;
     }

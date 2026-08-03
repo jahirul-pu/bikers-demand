@@ -386,7 +386,7 @@ function CheckoutContent() {
                   Promo Coupon Code:
                 </label>
                 {appliedCoupon ? (
-                  <div className="bg-emerald-950/60 border border-emerald-500/40 p-2.5 flex items-center justify-between text-xs text-emerald-400">
+                  <div className="bg-emerald-100 border border-emerald-300 p-2.5 flex items-center justify-between text-xs text-emerald-800">
                     <span>Applied: <strong>{appliedCoupon.code}</strong> (-Tk {appliedCoupon.discountAmount})</span>
                     <button type="button" onClick={() => setAppliedCoupon(null)} className="text-steel hover:text-ignition-red underline text-[10px]">Remove</button>
                   </div>
