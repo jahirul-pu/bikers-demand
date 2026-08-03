@@ -18,7 +18,7 @@ export default function AdminProductsPage() {
   const [newBrand, setNewBrand] = useState("");
   const [newPrice, setNewPrice] = useState(0);
   const [newStockQty, setNewStockQty] = useState(10);
-  const [newCategory, setNewCategory] = useState<DBProduct["category"]>("helmets");
+  const [newCategory, setNewCategory] = useState<DBProduct["category"]>("riding-gear");
   const [newCertification, setNewCertification] = useState("ECE 22.06 / DOT");
   const [newWarranty, setNewWarranty] = useState("1 Year Warranty");
   const [newSizes, setNewSizes] = useState<string[]>(["M", "L", "XL"]);
@@ -45,126 +45,134 @@ export default function AdminProductsPage() {
         const json = await res.json();
         if (json.success && json.url) {
           setImageUrl(json.url);
-          return;
+        } else {
+          alert("File upload failed: " + (json.error || "Unknown error"));
         }
       } catch (err) {
-        console.error("Disk upload failed, falling back to base64:", err);
+        console.error("Upload error:", err);
+        alert("File upload error");
       }
-
-      // Fallback: Base64 Data URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setImageUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
     }
   };
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    const specsArray = newCustomSpecs
-      ? newCustomSpecs.split(",").map((s) => s.trim()).filter(Boolean)
-      : [];
+    if (!newName || !newBrand || !newSku) {
+      alert("Please fill in all required fields.");
+      return;
+    }
 
-    const newProduct: DBProduct = {
+    const created = LocalStorageDB.addProduct({
       id: `prod-${Date.now()}`,
-      sku: newSku || `SKU-${Date.now()}`,
       name: newName,
       slug: newName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       brand: newBrand,
-      price: Number(newPrice),
-      stockQty: Number(newStockQty),
+      sku: newSku,
+      price: newPrice,
+      stockQty: newStockQty,
       category: newCategory,
-      stockStatus: Number(newStockQty) > 0 ? "in-stock" : "out-of-stock",
+      imageUrl: imageUrl || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
       certification: newCertification,
       warranty: newWarranty,
+      stockStatus: newStockQty > 5 ? "in-stock" : newStockQty > 0 ? "low-stock" : "out-of-stock",
       sizes: newSizes,
-      specifications: specsArray,
-      imageUrl: imageUrl.trim() || "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
-    };
+      specifications: newCustomSpecs ? newCustomSpecs.split(",").map((s) => s.trim()).filter(Boolean) : [],
+    });
 
-    LocalStorageDB.addProduct(newProduct);
     setProducts(LocalStorageDB.getProducts());
     setShowAddModal(false);
-    setNewSku("");
+    // Reset form
     setNewName("");
+    setNewSku("");
     setNewBrand("");
-  };
-
-  const handleDeleteProduct = (id: string) => {
-    LocalStorageDB.deleteProduct(id);
-    setProducts(LocalStorageDB.getProducts());
+    setNewPrice(0);
+    setImageUrl("");
   };
 
   return (
-    <div className="space-y-6 font-mono text-xs">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-asphalt pb-4">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-asphalt-2 p-6 border border-asphalt-2">
         <div>
-          <span className="text-plate-yellow uppercase tracking-wider block">CATALOG & INVENTORY</span>
-          <h1 className="display-font text-3xl font-extrabold uppercase text-off-white">
-            Product Inventory Management
+          <h1 className="display-font text-2xl font-extrabold text-off-white uppercase tracking-wider flex items-center gap-2">
+            <Package className="w-6 h-6 text-plate-yellow" />
+            Product & Inventory Management
           </h1>
+          <p className="text-xs text-steel font-mono">
+            {products.length} skus active in local inventory
+          </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-5 py-2.5 flex items-center gap-2 transition-colors transform -skew-x-6 self-start sm:self-auto"
+          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 flex items-center gap-2 transform -skew-x-6 cursor-pointer"
         >
           <div className="transform skew-x-6 flex items-center gap-1.5">
             <Plus className="w-4 h-4" />
-            <span>Add New Product SKU</span>
+            <span>Add New Product</span>
           </div>
         </button>
       </div>
 
       {/* Product List Table */}
-      <div className="bg-asphalt border border-asphalt-2 overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-asphalt-2 text-plate-yellow uppercase text-[11px] border-b border-asphalt-2">
+      <div className="bg-asphalt-2 border border-asphalt-2 overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-asphalt text-steel font-mono uppercase border-b border-asphalt-2">
+            <tr>
+              <th className="p-3">Product</th>
               <th className="p-3">SKU / Brand</th>
-              <th className="p-3">Product Name</th>
               <th className="p-3">Category</th>
-              <th className="p-3">Certification</th>
-              <th className="p-3">Stock Qty</th>
               <th className="p-3">Price</th>
-              <th className="p-3">Actions</th>
+              <th className="p-3">Stock</th>
+              <th className="p-3">Certification</th>
+              <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-asphalt-2">
-            {products.map((p) => (
-              <tr key={p.id} className="hover:bg-asphalt-2/50 transition-colors">
-                <td className="p-3 font-bold text-off-white">
-                  <div>{p.sku}</div>
-                  <div className="text-[10px] text-plate-yellow">{p.brand}</div>
+            {products.map((product) => (
+              <tr key={product.id} className="hover:bg-asphalt/50">
+                <td className="p-3 font-semibold text-off-white flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="w-10 h-10 object-cover bg-asphalt border border-asphalt-2 shrink-0"
+                  />
+                  <span>{product.name}</span>
                 </td>
-                <td className="p-3 text-off-white max-w-xs truncate">{p.name}</td>
-                <td className="p-3 text-steel">{p.category}</td>
-                <td className="p-3">
-                  {p.certification !== "NONE" ? (
-                    <span className="bg-ignition-red text-asphalt font-extrabold px-2 py-0.5 text-[10px]">
-                      {p.certification}
-                    </span>
-                  ) : (
-                    <span className="text-steel/50">N/A</span>
-                  )}
+                <td className="p-3 font-mono text-steel">
+                  <div>{product.sku}</div>
+                  <div className="text-[10px] text-plate-yellow">{product.brand}</div>
                 </td>
-                <td className="p-3 font-bold">
-                  {p.stockQty <= 5 ? (
-                    <span className="text-amber-400 flex items-center gap-1">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      {p.stockQty} (Low)
-                    </span>
-                  ) : (
-                    <span className="text-emerald-400">{p.stockQty}</span>
-                  )}
+                <td className="p-3 font-mono uppercase text-steel">{product.category}</td>
+                <td className="p-3 font-mono text-off-white font-bold">
+                  ৳{product.price.toLocaleString()}
                 </td>
-                <td className="p-3 text-off-white font-bold">Tk {p.price.toLocaleString("en-BD")}</td>
-                <td className="p-3">
-                  <button className="text-steel hover:text-off-white p-1">
-                    <Edit className="w-4 h-4" />
+                <td className="p-3 font-mono">
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+                      product.stockQty > 5
+                        ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                        : product.stockQty > 0
+                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                        : "bg-red-500/10 text-red-400 border border-red-500/20"
+                    }`}
+                  >
+                    {product.stockQty} in stock
+                  </span>
+                </td>
+                <td className="p-3 font-mono text-steel">
+                  {product.certification || "Standard"}
+                </td>
+                <td className="p-3 text-right">
+                  <button
+                    onClick={() => {
+                      LocalStorageDB.deleteProduct(product.id);
+                      setProducts(LocalStorageDB.getProducts());
+                    }}
+                    className="text-red-400 hover:text-red-300 p-1"
+                    title="Delete product"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
               </tr>
@@ -175,19 +183,19 @@ export default function AdminProductsPage() {
 
       {/* Add Product Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-asphalt/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-asphalt-2 border border-steel/40 p-6 max-w-lg w-full space-y-4">
-            <h3 className="display-font text-xl font-bold uppercase text-off-white">
-              Create New Owned Inventory SKU
-            </h3>
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-asphalt-2 border border-asphalt-2 max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="display-font text-xl font-bold text-off-white uppercase border-b border-steel/20 pb-2">
+              Add New Product SKU
+            </h2>
 
-            <form onSubmit={handleAddProduct} className="space-y-3 font-mono text-xs">
-              <div>
-                <label className="text-steel block">Product Name</label>
+            <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-steel block">Product Title</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. HJC RPHA 11 Helmet"
+                  placeholder="e.g. HJC RPHA 11 Helmet - Venom Edition"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
@@ -247,17 +255,17 @@ export default function AdminProductsPage() {
                     onChange={(e) => setNewCategory(e.target.value as DBProduct["category"])}
                     className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
                   >
-                    <option value="helmets">Helmets</option>
-                    <option value="riding-gear">Riding Gear</option>
+                    <option value="riding-gear">Riding Gear & Helmets</option>
                     <option value="parts-mods">Parts & Mods</option>
                     <option value="electronics">Electronics</option>
+                    <option value="merchandise">Merchandise</option>
                     <option value="additives">Additives & Oils</option>
                   </select>
                 </div>
               </div>
 
-              {/* Helmet & Riding Gear Certification */}
-              {(newCategory === "helmets" || newCategory === "riding-gear") && (
+              {/* Riding Gear Certification */}
+              {newCategory === "riding-gear" && (
                 <>
                   <div className="p-3 bg-asphalt border border-ignition-red/40 space-y-1">
                     <label className="text-ignition-red font-bold block">

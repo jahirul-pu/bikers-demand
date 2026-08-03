@@ -18,6 +18,13 @@ interface SearchProductResult {
   category?: { name: string; slug: string };
 }
 
+export interface HeaderProps {
+  onOpenBikeModal?: () => void;
+  selectedBike?: string | null;
+  cartCount?: number;
+  favCount?: number;
+}
+
 export default function Header({
   onOpenBikeModal,
   selectedBike,

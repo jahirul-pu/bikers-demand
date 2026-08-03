@@ -3,6 +3,36 @@
 @config "../../tailwind.config.ts";
 
 :root {
+  --asphalt-rgb: 248 250 252;
+  --asphalt-2-rgb: 255 255 255;
+  --steel-rgb: 100 116 139;
+  --steel-light-rgb: 71 85 105;
+  --off-white-rgb: 15 23 42;
+  --plate-yellow-rgb: 217 119 6;
+  --ignition-red-rgb: 220 38 38;
+
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+
+  color-scheme: light;
+}
+
+[data-theme="light"] {
+  --asphalt-rgb: 248 250 252;
+  --asphalt-2-rgb: 255 255 255;
+  --steel-rgb: 100 116 139;
+  --steel-light-rgb: 71 85 105;
+  --off-white-rgb: 15 23 42;
+  --plate-yellow-rgb: 217 119 6;
+  --ignition-red-rgb: 220 38 38;
+
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
   --asphalt-rgb: 21 23 26;
   --asphalt-2-rgb: 30 33 37;
   --steel-rgb: 138 141 145;
@@ -15,21 +45,6 @@
   --foreground: #F2F1EC;
 
   color-scheme: dark;
-}
-
-[data-theme="light"] {
-  --asphalt-rgb: 244 245 247;
-  --asphalt-2-rgb: 255 255 255;
-  --steel-rgb: 100 116 139;
-  --steel-light-rgb: 51 65 85;
-  --off-white-rgb: 15 23 42;
-  --plate-yellow-rgb: 217 119 6;
-  --ignition-red-rgb: 220 38 38;
-
-  --background: #F4F5F7;
-  --foreground: #0F172A;
-
-  color-scheme: light;
 }
 
 /* Bump base size so all rem-based Tailwind sizes are larger with Barlow Condensed */
@@ -51,18 +66,22 @@ body {
 }
 
 /* Light mode specific border & legibility enhancements */
-[data-theme="light"] .border-asphalt-2 {
+[data-theme="light"] .border-asphalt-2,
+:root:not([data-theme="dark"]) .border-asphalt-2 {
   border-color: #E2E8F0;
 }
 
 [data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
-[data-theme="light"] select {
+[data-theme="light"] select,
+:root:not([data-theme="dark"]) input:not([type="checkbox"]):not([type="radio"]),
+:root:not([data-theme="dark"]) select {
   background-color: #FFFFFF;
   color: #0F172A;
   border-color: #CBD5E1;
 }
 
-[data-theme="light"] input::placeholder {
+[data-theme="light"] input::placeholder,
+:root:not([data-theme="dark"]) input::placeholder {
   color: #64748B;
 }
 

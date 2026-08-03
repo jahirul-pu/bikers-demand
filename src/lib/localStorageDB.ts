@@ -21,6 +21,8 @@ export interface DBProduct {
   certification?: string; // DOT / ECE
   warranty?: string;
   description?: string;
+  sizes?: string[];
+  specifications?: string[];
 }
 
 export interface DBBike {
