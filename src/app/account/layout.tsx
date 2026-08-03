@@ -7,7 +7,6 @@ import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { Bike, ShoppingBag, MapPin, Heart, Settings, Wrench, ShieldAlert, LogOut } from "lucide-react";
-import { LocalStorageDB } from "@/lib/localStorageDB";
 
 export default function AccountLayout({
   children,
@@ -44,12 +43,10 @@ export default function AccountLayout({
           });
         }
 
-        // Load primary bike from LocalStorageDB user garage
-        LocalStorageDB.init();
-        const garage = LocalStorageDB.getUserGarage();
-        if (garage && garage.length > 0) {
-          const b = garage[0];
-          setPrimaryBike(`${b.brand} ${b.model} (${b.displacementCc || 150}cc)`);
+        const savedBike = localStorage.getItem("bd_selected_bike");
+        if (savedBike) {
+          const b = JSON.parse(savedBike);
+          setPrimaryBike(`${b.brand} ${b.model}`);
         } else {
           setPrimaryBike(null);
         }

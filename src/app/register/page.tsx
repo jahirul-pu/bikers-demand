@@ -7,7 +7,7 @@ import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { User, Lock, Phone, Mail, Bike, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
-import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
+import { DBBike } from "@/types/db";
 
 export default function RegisterPage() {
   const router = useRouter();

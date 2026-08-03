@@ -266,3 +266,15 @@ model Claim {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
+
+model Coupon {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  discountType   String   @default("FLAT")
+  discountValue  Float
+  minOrder       Float    @default(0)
+  categoryTarget String   @default("ALL")
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

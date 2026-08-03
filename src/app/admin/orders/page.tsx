@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ArrowRight, ShoppingBag, Phone, MapPin, CheckCircle2, Clock, Search, X, FileText, Printer } from "lucide-react";
-import { LocalStorageDB, DBOrder } from "@/lib/localStorageDB";
+import { DBOrder } from "@/types/db";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);

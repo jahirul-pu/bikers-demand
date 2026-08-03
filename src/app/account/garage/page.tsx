@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bike, Plus, Trash2, CheckCircle2, ArrowRight, Shield } from "lucide-react";
-import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
+import { DBBike } from "@/types/db";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function GaragePage() {
@@ -12,8 +12,18 @@ export default function GaragePage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
-    LocalStorageDB.init();
-    setGarageBikes(LocalStorageDB.getUserGarage());
+    const loadGarage = async () => {
+      try {
+        const res = await fetch("/api/user/garage");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setGarageBikes(json.data);
+        }
+      } catch (e) {
+        console.error("API error loading garage bikes:", e);
+      }
+    };
+    loadGarage();
 
     const loadRegistry = async () => {
       try {
@@ -30,13 +40,6 @@ export default function GaragePage() {
         }
       } catch (e) {
         console.warn("API error fetching bikes for garage:", e);
-      }
-      const registry = LocalStorageDB.getBikes();
-      setRegisteredBikes(registry);
-      if (registry.length > 0) {
-        setNewBrand(registry[0].brand);
-        setNewModel(registry[0].model);
-        setDisplacementCc(registry[0].displacementCc || 150);
       }
     };
 
@@ -83,7 +86,7 @@ export default function GaragePage() {
     };
     const updated = [newBike, ...garageBikes];
     setGarageBikes(updated);
-    LocalStorageDB.saveUserGarage(updated);
+    localStorage.setItem("bd_selected_bike", JSON.stringify({ brand: newBrand, model: newModel }));
     window.dispatchEvent(new Event("storage"));
     setShowAddForm(false);
   };
@@ -95,7 +98,7 @@ export default function GaragePage() {
       const remaining = garageBikes.filter((b) => b.id !== id);
       const updated = [targetBike, ...remaining];
       setGarageBikes(updated);
-      LocalStorageDB.saveUserGarage(updated);
+      localStorage.setItem("bd_selected_bike", JSON.stringify({ brand: targetBike.brand, model: targetBike.model }));
       window.dispatchEvent(new Event("storage"));
     }
   };
@@ -104,7 +107,11 @@ export default function GaragePage() {
     if (!deleteTarget) return;
     const updated = garageBikes.filter((b) => b.id !== deleteTarget.id);
     setGarageBikes(updated);
-    LocalStorageDB.saveUserGarage(updated);
+    if (updated.length > 0) {
+      localStorage.setItem("bd_selected_bike", JSON.stringify({ brand: updated[0].brand, model: updated[0].model }));
+    } else {
+      localStorage.removeItem("bd_selected_bike");
+    }
     window.dispatchEvent(new Event("storage"));
     setDeleteTarget(null);
   };

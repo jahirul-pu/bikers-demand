@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-
-import { LocalStorageDB } from "@/lib/localStorageDB";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
-
 import HeroSection from "@/components/landing/HeroSection";
 import CategoryGrid from "@/components/landing/CategoryGrid";
 import CompatibleProducts from "@/components/landing/CompatibleProducts";
@@ -13,10 +10,8 @@ import RidingGearSection from "@/components/landing/RidingGearSection";
 import TrustSection from "@/components/landing/TrustSection";
 import Footer from "@/components/layout/Footer";
 import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
-import { Product } from "@/components/landing/ProductCard";
 
 export default function Home() {
-  // Bike state management — loaded from user garage
   const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
   const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -24,35 +19,18 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState<string | undefined>(undefined);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Read primary bike (index 0) from garage on mount
+  // Read primary bike from saved guest selection or garage key
   const loadPrimaryBike = () => {
     try {
       const user = localStorage.getItem("bikers_demand_user");
       const loggedIn = !!user;
       setIsLoggedIn(loggedIn);
 
-      if (loggedIn) {
-        // Logged-in: use garage as source of truth
-        const garage = LocalStorageDB.getUserGarage();
-        if (garage.length > 0) {
-          const primary = garage[0];
-          setSelectedBike({
-            brand: primary.brand,
-            model: primary.model,
-            variant: "",
-            cc: `${primary.displacementCc}cc`,
-          });
-        } else {
-          setSelectedBike(null);
-        }
+      const saved = localStorage.getItem("bd_selected_bike");
+      if (saved) {
+        setSelectedBike(JSON.parse(saved));
       } else {
-        // Guest: persist selected bike in its own localStorage key
-        const saved = localStorage.getItem("bd_selected_bike");
-        if (saved) {
-          setSelectedBike(JSON.parse(saved));
-        } else {
-          setSelectedBike(null);
-        }
+        setSelectedBike(null);
       }
 
       // Sync cart & fav counts

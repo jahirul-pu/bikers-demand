@@ -4,26 +4,17 @@ import React, { useState } from "react";
 import ProductCard, { Product } from "@/components/landing/ProductCard";
 import { Bike, CheckCircle2, Wrench, ArrowRight } from "lucide-react";
 
-import { LocalStorageDB } from "@/lib/localStorageDB";
-
 export default function CompatiblePartsPage() {
   const [primaryBike, setPrimaryBike] = useState<string | null>(null);
 
   React.useEffect(() => {
     try {
-      const garage = LocalStorageDB.getUserGarage();
-      if (garage.length > 0) {
-        setPrimaryBike(`${garage[0].brand} ${garage[0].model}`);
-      } else {
-        const saved = localStorage.getItem("bd_selected_bike");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setPrimaryBike(`${parsed.brand} ${parsed.model}`);
-        }
+      const saved = localStorage.getItem("bd_selected_bike");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setPrimaryBike(`${parsed.brand} ${parsed.model}`);
       }
-    } catch {
-      // silent
-    }
+    } catch {}
   }, []);
 
   const compatibleProducts: Product[] = [

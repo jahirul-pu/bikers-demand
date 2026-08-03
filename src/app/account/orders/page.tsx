@@ -3,14 +3,24 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Package, Truck, Clock, CheckCircle, ChevronRight, Eye } from "lucide-react";
-import { LocalStorageDB, DBOrder } from "@/lib/localStorageDB";
+import { DBOrder } from "@/types/db";
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<DBOrder[]>([]);
 
   useEffect(() => {
-    LocalStorageDB.init();
-    setOrders(LocalStorageDB.getOrders());
+    const fetchLiveOrders = async () => {
+      try {
+        const res = await fetch("/api/orders");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setOrders(json.data);
+        }
+      } catch (e) {
+        console.error("API error loading user orders:", e);
+      }
+    };
+    fetchLiveOrders();
   }, []);
 
   const getStatusBadge = (status: string) => {

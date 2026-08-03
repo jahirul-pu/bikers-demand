@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Bike, Plus, Edit, Check, Trash2 } from "lucide-react";
-import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
+import { DBBike } from "@/types/db";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
 const DEFAULT_BRANDS = [

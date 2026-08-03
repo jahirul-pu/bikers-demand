@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check, Trash2 } from "lucide-react";
-import { LocalStorageDB, DBProduct } from "@/lib/localStorageDB";
+import { DBProduct } from "@/types/db";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function AdminProductsPage() {
@@ -346,20 +346,20 @@ export default function AdminProductsPage() {
                   <label className="text-steel block">Category</label>
                   <select
                     value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as DBProduct["category"])}
+                    onChange={(e) => setNewCategory(e.target.value as any)}
                     className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
                   >
-                    <option value="riding-gear">Riding Gear & Helmets</option>
+                    <option value="helmets">Helmets</option>
                     <option value="parts-mods">Parts & Mods</option>
                     <option value="electronics">Electronics</option>
-                    <option value="merchandise">Merchandise</option>
                     <option value="additives">Additives & Oils</option>
+                    <option value="riding-gear">Riding Gear</option>
                   </select>
                 </div>
               </div>
 
-              {/* Riding Gear Certification */}
-              {newCategory === "riding-gear" && (
+              {/* Helmet & Riding Gear Certification */}
+              {(newCategory === "riding-gear" || newCategory === "helmets") && (
                 <>
                   <div className="p-3 bg-asphalt border border-ignition-red/40 space-y-1">
                     <label className="text-ignition-red font-bold block">

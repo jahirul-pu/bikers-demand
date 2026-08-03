@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Tag, Plus, Edit2, Trash2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { LocalStorageDB, DBCoupon } from "@/lib/localStorageDB";
+import { DBCoupon } from "@/types/db";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function AdminCouponsPage() {
@@ -15,21 +15,26 @@ export default function AdminCouponsPage() {
   const [discountType, setDiscountType] = useState<"FLAT" | "PERCENTAGE">("FLAT");
   const [discountValue, setDiscountValue] = useState<number | "">(500);
   const [minOrder, setMinOrder] = useState<number | "">(3000);
-  const [categoryTarget, setCategoryTarget] = useState<"ALL" | "riding-gear" | "parts-mods" | "electronics" | "merchandise">("ALL");
+  const [categoryTarget, setCategoryTarget] = useState<"ALL" | "helmets" | "parts-mods" | "electronics" | "additives" | "riding-gear">("ALL");
   const [isActive, setIsActive] = useState(true);
 
   // Confirm Modal State
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const loadCoupons = () => {
-    LocalStorageDB.init();
-    setCoupons(LocalStorageDB.getCoupons());
+  const loadCoupons = async () => {
+    try {
+      const res = await fetch("/api/coupons");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setCoupons(json.data);
+      }
+    } catch (e) {
+      console.error("Error loading coupons from DB:", e);
+    }
   };
 
   useEffect(() => {
     loadCoupons();
-    window.addEventListener("storage", loadCoupons);
-    return () => window.removeEventListener("storage", loadCoupons);
   }, []);
 
   const handleOpenAddModal = () => {
@@ -46,15 +51,15 @@ export default function AdminCouponsPage() {
   const handleOpenEditModal = (coupon: DBCoupon) => {
     setEditingCoupon(coupon);
     setCode(coupon.code);
-    setDiscountType(coupon.discountType);
+    setDiscountType(coupon.discountType as any);
     setDiscountValue(coupon.discountValue);
     setMinOrder(coupon.minOrder);
-    setCategoryTarget(coupon.categoryTarget);
+    setCategoryTarget(coupon.categoryTarget as any);
     setIsActive(coupon.isActive);
     setIsModalOpen(true);
   };
 
-  const handleSaveCoupon = (e: React.FormEvent) => {
+  const handleSaveCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim()) return;
 
@@ -62,43 +67,61 @@ export default function AdminCouponsPage() {
     const val = Number(discountValue) || 0;
     const minOrd = Number(minOrder) || 0;
 
-    if (editingCoupon) {
-      LocalStorageDB.updateCoupon(editingCoupon.id, {
-        code: formattedCode,
-        discountType,
-        discountValue: val,
-        minOrder: minOrd,
-        categoryTarget,
-        isActive,
-      });
-    } else {
-      const newCoupon: DBCoupon = {
-        id: `cp-${Date.now()}`,
-        code: formattedCode,
-        discountType,
-        discountValue: val,
-        minOrder: minOrd,
-        categoryTarget,
-        isActive,
-        createdAt: new Date().toISOString(),
-      };
-      LocalStorageDB.addCoupon(newCoupon);
+    const payload = {
+      ...(editingCoupon && { id: editingCoupon.id }),
+      code: formattedCode,
+      discountType,
+      discountValue: val,
+      minOrder: minOrd,
+      categoryTarget,
+      isActive,
+    };
+
+    try {
+      if (editingCoupon) {
+        await fetch("/api/coupons", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetch("/api/coupons", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
+    } catch (err) {
+      console.error("API error saving coupon:", err);
     }
 
     setIsModalOpen(false);
-    loadCoupons();
+    await loadCoupons();
   };
 
-  const handleToggleActive = (coupon: DBCoupon) => {
-    LocalStorageDB.updateCoupon(coupon.id, { isActive: !coupon.isActive });
-    loadCoupons();
+  const handleToggleActive = async (coupon: DBCoupon) => {
+    try {
+      await fetch("/api/coupons", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: coupon.id, isActive: !coupon.isActive }),
+      });
+      await loadCoupons();
+    } catch (e) {
+      console.error("API error toggling coupon active status:", e);
+    }
   };
 
-  const handleDeleteCoupon = () => {
-    if (deleteConfirmId) {
-      LocalStorageDB.deleteCoupon(deleteConfirmId);
+  const handleDeleteCoupon = async () => {
+    if (!deleteConfirmId) return;
+    try {
+      await fetch(`/api/coupons?id=${deleteConfirmId}`, {
+        method: "DELETE",
+      });
       setDeleteConfirmId(null);
-      loadCoupons();
+      await loadCoupons();
+    } catch (e) {
+      console.error("API error deleting coupon:", e);
     }
   };
 
@@ -304,10 +327,11 @@ export default function AdminCouponsPage() {
                     className="w-full bg-asphalt border border-steel/30 p-2 text-off-white font-mono text-xs focus:border-plate-yellow focus:outline-none"
                   >
                     <option value="ALL">All Categories</option>
-                    <option value="riding-gear">Riding Gear</option>
+                    <option value="helmets">Helmets</option>
                     <option value="parts-mods">Parts & Mods</option>
                     <option value="electronics">Electronics</option>
-                    <option value="merchandise">Merchandise</option>
+                    <option value="additives">Additives & Oils</option>
+                    <option value="riding-gear">Riding Gear</option>
                   </select>
                 </div>
               </div>

@@ -7,7 +7,7 @@ import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { CartItem } from "@/components/cart/CartDrawer";
-import { LocalStorageDB } from "@/lib/localStorageDB";
+import { DBCoupon } from "@/types/db";
 import {
   CheckCircle2,
   ShieldCheck,
@@ -62,21 +62,31 @@ function CheckoutContent() {
   }, []);
 
   const CATEGORY_MAP: Record<string, { label: string; href: string }> = {
-    "riding-gear": { label: "Riding Gear", href: "/category/riding-gear" },
+    "helmets": { label: "Helmets", href: "/category/helmets" },
     "parts-mods": { label: "Parts & Mods", href: "/category/parts-mods" },
     "electronics": { label: "Electronics", href: "/category/electronics" },
-    "merchandise": { label: "Merchandise", href: "/category/merchandise" },
+    "additives": { label: "Additives & Oils", href: "/category/additives" },
+    "riding-gear": { label: "Riding Gear", href: "/category/riding-gear" },
   };
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!couponInput.trim()) return;
+
     setCouponError(null);
     const code = couponInput.trim().toUpperCase();
 
-    if (!code) return;
+    let availableCoupons: DBCoupon[] = [];
+    try {
+      const res = await fetch("/api/coupons");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        availableCoupons = json.data;
+      }
+    } catch (err) {
+      console.error("API error fetching coupons:", err);
+    }
 
-    LocalStorageDB.init();
-    const availableCoupons = LocalStorageDB.getCoupons();
     const targetCoupon = availableCoupons.find((c) => c.code.toUpperCase() === code);
 
     if (!targetCoupon || !targetCoupon.isActive) {
@@ -223,30 +233,6 @@ function CheckoutContent() {
         paymentMethod: "COD",
         message: "Order placed successfully in database.",
       };
-
-      // Cache order locally for instant client-side rendering
-      try {
-        LocalStorageDB.addOrder({
-          id: json.data.orderId,
-          orderNumber: json.data.orderNumber,
-          customerName,
-          phone,
-          address: `${addressLine}, ${isInsideDhaka ? "Dhaka" : city}`,
-          city: isInsideDhaka ? "Dhaka" : city,
-          status: "PLACED",
-          subtotal,
-          deliveryCharge,
-          couponCode: appliedCoupon?.code || undefined,
-          discountAmount,
-          totalAmount: json.data.total || grandTotal,
-          itemsCount: cartItems.length,
-          createdAt: new Date().toISOString(),
-          items: cartItems.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity })),
-        });
-        window.dispatchEvent(new Event("storage"));
-      } catch (e) {
-        console.error("LocalStorageDB sync error:", e);
-      }
 
       setOrderConfirmed(confirmedData);
       localStorage.removeItem("bikers_demand_cart");

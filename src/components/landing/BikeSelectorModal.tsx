@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X, Bike, Check, ChevronRight } from "lucide-react";
-import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
+import { DBBike } from "@/types/db";
 
 export interface BikeOption {
   brand: string;
@@ -30,25 +30,28 @@ export default function BikeSelectorModal({
 
   useEffect(() => {
     if (isOpen) {
-      LocalStorageDB.init();
-      const bikes = LocalStorageDB.getBikes();
-      setBikesList(bikes);
-
-      // Pre-select brand from current bike (or first available)
-      const initialBrand = currentBike?.brand ?? bikes[0]?.brand ?? "Yamaha";
-      setSelectedBrand(initialBrand);
-
-      // Pre-highlight the currently selected bike
-      if (currentBike) {
-        const match = bikes.find(
-          (b) =>
-            b.brand.toLowerCase() === currentBike.brand.toLowerCase() &&
-            b.model.toLowerCase() === currentBike.model.toLowerCase()
-        );
-        setPendingBike(match ?? null);
-      } else {
-        setPendingBike(null);
-      }
+      const fetchLiveBikes = async () => {
+        try {
+          const res = await fetch("/api/bikes");
+          const json = await res.json();
+          if (json.success && Array.isArray(json.list)) {
+            setBikesList(json.list);
+            const initialBrand = currentBike?.brand ?? json.list[0]?.brand ?? "Yamaha";
+            setSelectedBrand(initialBrand);
+            if (currentBike) {
+              const match = json.list.find(
+                (b: DBBike) =>
+                  b.brand.toLowerCase() === currentBike.brand.toLowerCase() &&
+                  b.model.toLowerCase() === currentBike.model.toLowerCase()
+              );
+              setPendingBike(match ?? null);
+            }
+          }
+        } catch (e) {
+          console.error("API error loading bikes:", e);
+        }
+      };
+      fetchLiveBikes();
     }
   }, [isOpen, currentBike]);
 

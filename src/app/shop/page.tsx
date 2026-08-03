@@ -7,7 +7,7 @@ import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import ProductCard, { Product } from "@/components/landing/ProductCard";
 import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
-import { LocalStorageDB, DBProduct } from "@/lib/localStorageDB";
+import { DBProduct } from "@/types/db";
 import {
   SlidersHorizontal,
   Search,
@@ -96,29 +96,36 @@ function ShopPageInner() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Load products + session from localStorage
+  // Load products from live DB API
   useEffect(() => {
-    LocalStorageDB.init();
-
-    // Products
-    const dbProds = LocalStorageDB.getProducts();
-    const mapped: Product[] = dbProds.map((p: DBProduct) => ({
-      id: p.id,
-      name: p.name,
-      brand: p.brand,
-      slug: p.slug,
-      category: p.category,
-      price: p.price,
-      originalPrice: p.originalPrice,
-      imageUrl: p.imageUrl,
-      fitBadge: p.fitBadge,
-      isUniversal: p.isUniversal ?? true,
-      stockStatus: p.stockStatus,
-      stockQty: p.stockQty,
-      certification: p.certification,
-      warranty: p.warranty,
-    }));
-    setAllProducts(mapped);
+    const fetchLiveProducts = async () => {
+      try {
+        const res = await fetch("/api/products");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped: Product[] = json.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            brand: p.brand,
+            slug: p.slug,
+            category: (p.category?.slug as any) || "riding-gear",
+            price: p.price,
+            originalPrice: p.comparePrice,
+            imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
+            fitBadge: p.isUniversal ? "Universal Fit" : undefined,
+            isUniversal: p.isUniversal ?? true,
+            stockStatus: p.stockStatus === "IN_STOCK" ? "in-stock" : "out-of-stock",
+            stockQty: p.stockQty ?? 10,
+            certification: p.certification !== "NONE" ? p.certification : undefined,
+            warranty: p.warrantyDuration || undefined,
+          }));
+          setAllProducts(mapped);
+        }
+      } catch (e) {
+        console.error("Error loading products from DB:", e);
+      }
+    };
+    fetchLiveProducts();
 
     // Cart count
     try {
