@@ -10,6 +10,7 @@ import RidingGearSection from "@/components/landing/RidingGearSection";
 import TrustSection from "@/components/landing/TrustSection";
 import Footer from "@/components/layout/Footer";
 import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
+import { Product } from "@/components/landing/ProductCard";
 
 export default function Home() {
   const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
