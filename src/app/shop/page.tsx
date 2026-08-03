@@ -134,22 +134,11 @@ function ShopPageInner() {
       setCartCount(qty);
     } catch {}
 
-    // Resolve selected bike: garage (logged-in) or guest key
-    const user = localStorage.getItem("bikers_demand_user");
-    const loggedIn = !!user;
+    // Resolve selected bike from saved preference
     let bikeToSet: BikeOption | null = null;
-
-    if (loggedIn) {
-      const garage = LocalStorageDB.getUserGarage();
-      if (garage.length > 0) {
-        const primary = garage[0];
-        bikeToSet = { brand: primary.brand, model: primary.model };
-      }
-    } else {
-      const saved = localStorage.getItem("bd_selected_bike");
-      if (saved) {
-        try { bikeToSet = JSON.parse(saved); } catch {}
-      }
+    const saved = localStorage.getItem("bd_selected_bike");
+    if (saved) {
+      try { bikeToSet = JSON.parse(saved); } catch {}
     }
 
     if (bikeToSet) {
