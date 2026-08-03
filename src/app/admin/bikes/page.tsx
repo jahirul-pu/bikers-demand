@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Bike, Plus, Edit, Check, Trash2 } from "lucide-react";
 import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 const DEFAULT_BRANDS = [
   "Yamaha",
@@ -24,6 +25,9 @@ const DEFAULT_BRANDS = [
 export default function AdminBikesPage() {
   const [bikes, setBikes] = useState<DBBike[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Delete Confirmation Modal State
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const fetchBikes = async () => {
     try {
@@ -170,7 +174,12 @@ export default function AdminBikesPage() {
     setEditingBike(null);
   };
 
-  const handleDeleteBike = async (id: string) => {
+  const handleConfirmDeleteBike = async () => {
+    if (!deleteTarget) return;
+
+    const id = deleteTarget.id;
+    setDeleteTarget(null);
+
     // Instant local state update
     LocalStorageDB.deleteBike(id);
     setBikes((prev) => prev.filter((b) => b.id !== id));
@@ -320,7 +329,7 @@ export default function AdminBikesPage() {
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteBike(b.id)}
+                      onClick={() => setDeleteTarget({ id: b.id, name: `${b.brand} ${b.model}` })}
                       className="text-steel hover:text-ignition-red p-1.5 transition-colors cursor-pointer"
                       title="Delete Bike"
                     >
@@ -437,6 +446,17 @@ export default function AdminBikesPage() {
           </div>
         </div>
       )}
+
+      {/* Branded Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="Delete Bike Model"
+        message={`Are you sure you want to delete "${deleteTarget?.name}" from the motorcycle compatibility registry?`}
+        confirmText="Yes, Delete Model"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDeleteBike}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

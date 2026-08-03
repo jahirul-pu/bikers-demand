@@ -4,10 +4,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bike, Plus, Trash2, CheckCircle2, ArrowRight, Shield } from "lucide-react";
 import { LocalStorageDB, DBBike } from "@/lib/localStorageDB";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function GaragePage() {
   const [garageBikes, setGarageBikes] = useState<DBBike[]>([]);
   const [registeredBikes, setRegisteredBikes] = useState<DBBike[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     LocalStorageDB.init();
@@ -98,11 +100,13 @@ export default function GaragePage() {
     }
   };
 
-  const handleRemoveBike = (id: string) => {
-    const updated = garageBikes.filter((b) => b.id !== id);
+  const handleConfirmRemoveBike = () => {
+    if (!deleteTarget) return;
+    const updated = garageBikes.filter((b) => b.id !== deleteTarget.id);
     setGarageBikes(updated);
     LocalStorageDB.saveUserGarage(updated);
     window.dispatchEvent(new Event("storage"));
+    setDeleteTarget(null);
   };
 
   return (
@@ -242,7 +246,7 @@ export default function GaragePage() {
               <span className="text-[10px] text-steel">Saved in My Garage</span>
 
               <button
-                onClick={() => handleRemoveBike(bike.id)}
+                onClick={() => setDeleteTarget({ id: bike.id, name: `${bike.brand} ${bike.model}` })}
                 className="text-steel hover:text-ignition-red transition-colors p-1 cursor-pointer flex items-center gap-1"
                 title="Remove bike from garage"
               >
@@ -253,6 +257,17 @@ export default function GaragePage() {
           </div>
         ))}
       </div>
+
+      {/* Branded Remove Bike Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="Remove Bike from Garage"
+        message={`Are you sure you want to remove "${deleteTarget?.name}" from your garage?`}
+        confirmText="Yes, Remove"
+        cancelText="Cancel"
+        onConfirm={handleConfirmRemoveBike}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

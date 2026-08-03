@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check, Trash2 } from "lucide-react";
 import { LocalStorageDB, DBProduct } from "@/lib/localStorageDB";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<DBProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const fetchProducts = async () => {
     try {
@@ -141,6 +143,13 @@ export default function AdminProductsPage() {
     setImageUrl("");
   };
 
+  const handleConfirmDeleteProduct = () => {
+    if (!deleteTarget) return;
+    LocalStorageDB.deleteProduct(deleteTarget.id);
+    setProducts(LocalStorageDB.getProducts());
+    setDeleteTarget(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-asphalt-2 p-6 border border-asphalt-2">
@@ -217,11 +226,8 @@ export default function AdminProductsPage() {
                 </td>
                 <td className="p-3 text-right">
                   <button
-                    onClick={() => {
-                      LocalStorageDB.deleteProduct(product.id);
-                      setProducts(LocalStorageDB.getProducts());
-                    }}
-                    className="text-red-400 hover:text-red-300 p-1"
+                    onClick={() => setDeleteTarget({ id: product.id, name: product.name })}
+                    className="text-red-400 hover:text-red-300 p-1 cursor-pointer"
                     title="Delete product"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -461,6 +467,16 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
+      {/* Branded Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="Delete Product SKU"
+        message={`Are you sure you want to delete "${deleteTarget?.name}" from your active product inventory?`}
+        confirmText="Yes, Delete SKU"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDeleteProduct}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
