@@ -37,8 +37,8 @@ export default function AdminLayout({
       <Header />
 
       {/* Admin Top Bar */}
-      <div className="bg-asphalt-2 border-b border-asphalt-2 py-3 px-4 font-mono text-xs text-steel">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="bg-asphalt-2 border-b border-asphalt-2 py-2.5 px-3 font-mono text-xs text-steel">
+        <div className="max-w-[1700px] mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-ignition-red" />
             <span className="text-off-white font-bold uppercase">Bikers Demand Admin Control Panel</span>
@@ -47,12 +47,12 @@ export default function AdminLayout({
         </div>
       </div>
 
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="flex-grow max-w-[1700px] mx-auto px-2 sm:px-3 lg:px-4 py-4 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
           {/* Admin Sidebar Navigation */}
-          <aside className="lg:col-span-3 space-y-4">
-            <div className="bg-asphalt-2 p-5 border border-asphalt-2">
-              <h3 className="font-mono text-xs text-plate-yellow font-bold uppercase border-b border-asphalt pb-3 mb-3">
+          <aside className="lg:col-span-2 space-y-3">
+            <div className="bg-asphalt-2 p-3 border border-asphalt-2">
+              <h3 className="font-mono text-xs text-plate-yellow font-bold uppercase border-b border-asphalt pb-2 mb-2">
                 MANAGEMENT MENU
               </h3>
 
@@ -64,14 +64,14 @@ export default function AdminLayout({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 py-2.5 px-3 border-l-2 transition-all ${
+                      className={`flex items-center gap-2 py-2 px-2.5 border-l-2 transition-all text-[11px] ${
                         isActive
                           ? "bg-asphalt border-ignition-red text-off-white font-bold"
                           : "border-transparent text-steel hover:text-off-white hover:bg-asphalt/50"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? "text-ignition-red" : "text-steel"}`} />
-                      <span>{item.label}</span>
+                      <Icon className={`w-3.5 h-3.5 ${isActive ? "text-ignition-red" : "text-steel"}`} />
+                      <span className="truncate">{item.label}</span>
                     </Link>
                   );
                 })}
@@ -80,7 +80,7 @@ export default function AdminLayout({
           </aside>
 
           {/* Admin Content View */}
-          <div className="lg:col-span-9 bg-asphalt-2 p-6 border border-asphalt-2">
+          <div className="lg:col-span-10 bg-asphalt-2 p-3 sm:p-4 border border-asphalt-2">
             {children}
           </div>
         </div>

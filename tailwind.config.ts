@@ -21,7 +21,7 @@ const config: Config = {
         display: ["var(--font-barlow-condensed)", "sans-serif"],
         body: ["var(--font-plus-jakarta-sans)", "sans-serif"],
         sans: ["var(--font-plus-jakarta-sans)", "sans-serif"],
-        mono: ["var(--font-jetbrains-mono)", "monospace"],
+        mono: ["var(--font-plus-jakarta-sans)", "sans-serif"],
       },
     },
   },

@@ -41,7 +41,7 @@ export default function OrderHistoryPage() {
           Order History & Tracking
         </h1>
         <p className="text-steel text-xs font-mono mt-1">
-          Live tracking for your active order status pipeline (placed → confirmed → packed → shipped → delivered).
+          Live tracking for your active order status pipeline (placed → confirmed → shipped → delivered).
         </p>
       </div>
 
@@ -50,9 +50,9 @@ export default function OrderHistoryPage() {
         {orders.map((order) => (
           <div
             key={order.id}
-            className="bg-asphalt p-5 border border-asphalt-2 hover:border-steel/40 transition-all space-y-4"
+            className="bg-asphalt-2 p-5 border border-asphalt-2 hover:border-steel/40 transition-all space-y-4"
           >
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-asphalt-2 pb-3">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-asphalt pb-3">
               <div>
                 <div className="flex items-center gap-3">
                   <span className="font-extrabold text-plate-yellow text-sm">
@@ -67,7 +67,7 @@ export default function OrderHistoryPage() {
 
               <div className="text-right">
                 <div className="text-sm font-extrabold text-off-white">
-                  Tk {(order.totalAmount || 0).toLocaleString("en-BD")}
+                  ৳{(order.totalAmount || 0).toLocaleString("en-BD")}
                 </div>
                 <div className="text-[10px] text-steel uppercase">
                   Payment: Cash on Delivery (COD)
@@ -75,20 +75,20 @@ export default function OrderHistoryPage() {
               </div>
             </div>
 
-            {/* Pipeline Step Visual */}
-            <div className="grid grid-cols-5 gap-1 py-2 text-center text-[10px]">
-              {["CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"].map((step, idx) => {
-                const pipelineOrder = ["CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"];
-                const currentIdx = pipelineOrder.indexOf(order.status);
+            {/* 4-Stage Pipeline Step Visual */}
+            <div className="grid grid-cols-4 gap-2 py-2 text-center text-[10px]">
+              {["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"].map((step, idx) => {
+                const pipelineOrder = ["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"];
+                const currentIdx = pipelineOrder.indexOf(order.status === "PACKED" ? "CONFIRMED" : order.status);
                 const isPassed = idx <= currentIdx;
                 return (
-                  <div key={step} className="space-y-1">
+                  <div key={step} className="space-y-1.5">
                     <div
-                      className={`h-1.5 rounded-full ${
-                        isPassed ? "bg-plate-yellow" : "bg-asphalt-2"
+                      className={`h-2 rounded-full transition-colors ${
+                        isPassed ? "bg-plate-yellow" : "bg-asphalt"
                       }`}
                     />
-                    <span className={isPassed ? "text-off-white font-bold" : "text-steel/50"}>
+                    <span className={isPassed ? "text-off-white font-bold tracking-wider" : "text-steel/50"}>
                       {step}
                     </span>
                   </div>

@@ -90,21 +90,21 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Tracking Pipeline Visual */}
-      <div className="bg-asphalt p-5 border border-asphalt-2 space-y-3">
+      <div className="bg-asphalt-2 p-5 border border-asphalt-2 space-y-3">
         <h3 className="font-bold text-off-white uppercase">Live Delivery Pipeline</h3>
-        <div className="grid grid-cols-5 gap-2 text-center text-[10px]">
-          {["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"].map((step, idx) => {
-            const pipeline = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"];
-            const currentIdx = pipeline.indexOf(order.status);
+        <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+          {["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"].map((step, idx) => {
+            const pipeline = ["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"];
+            const currentIdx = pipeline.indexOf(order.status === "PACKED" ? "CONFIRMED" : order.status);
             const active = idx <= currentIdx;
             return (
               <div key={step} className="space-y-1.5">
                 <div
-                  className={`h-2 rounded-full ${
-                    active ? "bg-plate-yellow" : "bg-asphalt-2"
+                  className={`h-2 rounded-full transition-colors ${
+                    active ? "bg-plate-yellow" : "bg-asphalt"
                   }`}
                 />
-                <span className={active ? "text-off-white font-bold" : "text-steel/40"}>
+                <span className={active ? "text-off-white font-bold tracking-wider" : "text-steel/40"}>
                   {step}
                 </span>
               </div>

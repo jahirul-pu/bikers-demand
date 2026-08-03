@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        return await tx.order.create({
+        const createdOrder = await tx.order.create({
           data: {
             orderNumber,
             userId: user.id,
@@ -73,6 +73,25 @@ export async function POST(request: NextRequest) {
             notes: notes || null,
           },
         });
+
+        for (const item of items) {
+          if (item.id) {
+            const existingProd = await tx.product.findUnique({ where: { id: item.id } });
+            if (existingProd) {
+              await tx.orderItem.create({
+                data: {
+                  orderId: createdOrder.id,
+                  productId: existingProd.id,
+                  quantity: item.quantity || 1,
+                  unitPrice: item.price || existingProd.price,
+                  size: item.size || null,
+                },
+              });
+            }
+          }
+        }
+
+        return createdOrder;
       });
 
       return NextResponse.json({
@@ -86,20 +105,12 @@ export async function POST(request: NextRequest) {
           message: "Order placed successfully. Confirmation call/SMS will follow.",
         },
       });
-    } catch (dbError) {
-      console.warn("DB connection offline, returning processed checkout response:", dbError);
-      // Fallback for offline dev/test database
-      return NextResponse.json({
-        success: true,
-        data: {
-          orderId: "ord-offline-101",
-          orderNumber,
-          total,
-          deliveryCharge,
-          status: "PLACED",
-          message: "Order placed successfully. Confirmation call/SMS will follow.",
-        },
-      });
+    } catch (dbError: any) {
+      console.error("Database order placement error:", dbError);
+      return NextResponse.json(
+        { success: false, error: dbError.message || "Failed to place order in database" },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error("Checkout error:", error);

@@ -107,37 +107,38 @@ function CheckoutContent() {
         body: JSON.stringify(payload),
       });
       const json = await res.json();
-      if (json.success) {
-        setOrderConfirmed(json.data);
-        localStorage.removeItem("bikers_demand_cart");
-      } else {
-        alert(json.error || "Failed to place order.");
+
+      if (!json.success || !json.data) {
+        alert(json.error || "Failed to place order in database.");
+        return;
       }
-      const mockOrderNumber = `BD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
       const confirmedData = {
-        orderNumber: mockOrderNumber,
-        total: grandTotal,
-        deliveryCharge,
+        orderNumber: json.data.orderNumber,
+        total: json.data.total || grandTotal,
+        deliveryCharge: json.data.deliveryCharge || deliveryCharge,
         paymentMethod: "COD",
-        message: "Order placed successfully.",
+        message: "Order placed successfully in database.",
       };
 
+      // Cache order locally for instant client-side rendering
       try {
         LocalStorageDB.addOrder({
-          id: `ord-${Date.now()}`,
-          orderNumber: mockOrderNumber,
+          id: json.data.orderId,
+          orderNumber: json.data.orderNumber,
           customerName,
           phone,
-          address: addressLine,
+          address: `${addressLine}, ${isInsideDhaka ? "Dhaka" : city}`,
           city: isInsideDhaka ? "Dhaka" : city,
-          status: "CONFIRMED",
-          totalAmount: grandTotal,
+          status: "PLACED",
+          totalAmount: json.data.total || grandTotal,
           itemsCount: cartItems.length,
           createdAt: new Date().toISOString(),
           items: cartItems.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity })),
         });
+        window.dispatchEvent(new Event("storage"));
       } catch (e) {
-        console.error(e);
+        console.error("LocalStorageDB sync error:", e);
       }
 
       setOrderConfirmed(confirmedData);

@@ -42,7 +42,7 @@ export interface DBOrder {
   phone: string;
   address: string;
   city: string;
-  status: "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: "PLACED" | "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   totalAmount: number;
   itemsCount: number;
   createdAt: string;
@@ -167,24 +167,7 @@ const INITIAL_BIKES: DBBike[] = [
   { id: "bike-5", brand: "Bajaj", model: "Pulsar N160", yearStart: 2022, yearEnd: 2026, displacementCc: 165, slug: "bajaj-pulsar-n160" },
 ];
 
-const INITIAL_ORDERS: DBOrder[] = [
-  {
-    id: "ord-1001",
-    orderNumber: "ORD-98421",
-    customerName: "Sabbir Hossain",
-    phone: "01711223344",
-    address: "House 42, Road 11, Banani, Dhaka",
-    city: "Dhaka",
-    status: "CONFIRMED",
-    totalAmount: 12750,
-    itemsCount: 2,
-    createdAt: "2026-07-31T14:20:00Z",
-    items: [
-      { name: "MT Thunder 4 SV Helmet", price: 9800, quantity: 1 },
-      { name: "Dual Lens LED Fog Lights", price: 2950, quantity: 1 },
-    ],
-  },
-];
+const INITIAL_ORDERS: DBOrder[] = [];
 
 export const LocalStorageDB = {
   // Initialize LocalStorage DB
