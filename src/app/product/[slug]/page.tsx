@@ -30,51 +30,33 @@ import {
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = (params?.slug as string) || "performance-slip-on-racing-exhaust-black";
+  const slug = params?.slug as string;
 
-  // Product state with comprehensive mockup data matching PRD
-  const [product, setProduct] = useState({
-    id: "prod-1",
-    sku: "PARTS-EXH-001",
-    name: "Performance Slip-On Racing Exhaust (Black Coated Stainless Steel)",
-    slug: "performance-slip-on-racing-exhaust-black",
-    brand: "Akrapovič Replica",
-    category: "Parts & Mods",
-    categorySlug: "parts-mods",
-    price: 6500,
-    originalPrice: 7200,
-    stockQty: 14,
-    stockStatus: "in-stock",
-    certification: "NONE", // DOT / ECE for helmets
-    warranty: "No Warranty", // PRD 4.6 explicit term
-    returnNote: "Parts & Mods items are non-returnable once opened or unsealed.",
-    description:
-      "High-flow stainless steel racing exhaust muffler engineered for 150-160cc motorcycle engines. Delivers deep bass exhaust notes, lightweight weight reduction (-2.4 kg vs OEM exhaust), and improved high-RPM exhaust gas clearance.",
-    specs: [
-      { key: "Material", value: "304 Stainless Steel with Heat-Resistant Matte Black Coating" },
-      { key: "Inlet Diameter", value: "51mm Universal Slip-On Joint" },
-      { key: "Weight", value: "1.8 kg" },
-      { key: "DB Killer Included", value: "Yes (Removable Baffle Insert)" },
-      { key: "Mounting Bracket", value: "Included with Mounting Springs" },
-    ],
-    compatibleBikes: [
-      "Yamaha FZS-Fi v2 / v3 (149cc)",
-      "Yamaha R15 v3 / v4 (155cc)",
-      "Yamaha MT-15 v1 / v2 (155cc)",
-      "Honda CB Hornet 160R (162cc)",
-      "Honda XBlade 160 (162cc)",
-      "Suzuki Gixxer 155 FI ABS",
-      "Bajaj Pulsar N160 / NS160",
-      "TVS Apache RTR 160 4V",
-    ],
-    images: [
-      "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
-    ],
-    sizes: [] as string[],
-  });
+  // Product state — starts null, populated from DB
+  const [product, setProduct] = useState<{
+    id: string;
+    sku: string;
+    name: string;
+    slug: string;
+    brand: string;
+    category: string;
+    categorySlug: string;
+    price: number;
+    originalPrice: number | null;
+    stockQty: number;
+    stockStatus: string;
+    certification: string;
+    warranty: string;
+    returnNote: string;
+    description: string;
+    specs: { key: string; value: string }[];
+    compatibleBikes: string[];
+    images: string[];
+    sizes: string[];
+  } | null>(null);
 
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -82,56 +64,71 @@ export default function ProductDetailPage() {
   const [isFav, setIsFav] = useState(false);
   const [activeTab, setActiveTab] = useState<"specs" | "compatibility" | "policy">("compatibility");
 
-  // Fetch product from API if slug changes
+  // Fetch product from API
   useEffect(() => {
+    if (!slug) return;
     async function fetchProduct() {
       try {
+        setLoading(true);
+        setNotFound(false);
         const res = await fetch(`/api/products/${slug}`);
+        if (!res.ok) {
+          console.error(`Product API returned ${res.status} for slug: ${slug}`);
+          setNotFound(true);
+          return;
+        }
         const json = await res.json();
-        if (json.success && json.data) {
-          const d = json.data;
+        if (json.success && json.data?.product) {
+          const d = json.data.product;
+          const compatBikes = d.compatibilities?.map(
+            (c: any) => `${c.bikeModel.brand} ${c.bikeModel.model}${c.bikeModel.variant ? ` ${c.bikeModel.variant}` : ""} (${c.bikeModel.cc}cc)`
+          ) || [];
           setProduct({
             id: d.id,
             sku: d.sku,
             name: d.name,
             slug: d.slug,
             brand: d.brand,
-            category: d.category?.name || "Parts & Mods",
-            categorySlug: d.category?.slug || "parts-mods",
+            category: d.category?.name || "General",
+            categorySlug: d.category?.slug || "riding-gear",
             price: d.price,
             originalPrice: d.comparePrice,
             stockQty: d.stockQty,
-            stockStatus: d.stockStatus === "OUT_OF_STOCK" ? "out-of-stock" : "in-stock",
+            stockStatus: d.stockStatus === "OUT_OF_STOCK" ? "out-of-stock" : d.stockStatus === "LOW_STOCK" ? "low-stock" : "in-stock",
             certification: d.certification || "NONE",
             warranty: d.warrantyDuration || (d.warrantyFlag ? "6 Months Warranty" : "No Warranty"),
-            returnNote: d.category?.slug === "parts-mods" ? "Parts & Mods non-returnable once opened" : "7-day return policy",
-            description: d.description,
+            returnNote: d.returnPolicyNote || (d.category?.slug === "parts-mods" ? "Parts & Mods items are non-returnable once opened." : "7-day return policy applies."),
+            description: d.description || "",
             specs: [
               { key: "SKU Code", value: d.sku },
               { key: "Brand", value: d.brand },
               { key: "Category", value: d.category?.name || "General" },
             ],
-            compatibleBikes: [
-              "Yamaha FZS-Fi v3",
-              "Yamaha R15 v4",
-              "Honda CB Hornet 160R",
-              "Suzuki Gixxer 155",
-              "Bajaj Pulsar N160",
-            ],
+            compatibleBikes: compatBikes.length > 0 ? compatBikes : (d.isUniversal ? ["Universal — Fits all bikes"] : []),
             images: d.images?.length > 0 ? d.images : [
               "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80"
             ],
-            sizes: d.category?.slug === "riding-gear" ? ["S", "M", "L", "XL", "XXL"] : [],
+            sizes: d.sizes?.length > 0 ? d.sizes : (d.category?.slug === "riding-gear" || d.category?.slug === "helmets" ? ["M", "L", "XL"] : []),
           });
+          const resolvedSizes = d.sizes?.length > 0 ? d.sizes : (d.category?.slug === "riding-gear" || d.category?.slug === "helmets" ? ["M", "L", "XL"] : []);
+          if (resolvedSizes.length > 0) {
+            setSelectedSize(resolvedSizes[0]);
+          }
+        } else {
+          setNotFound(true);
         }
       } catch (e) {
-        console.warn("Using product detail mockup fallback:", e);
+        console.error("Error fetching product:", e);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
       }
     }
     fetchProduct();
   }, [slug]);
 
   const handleAddToCart = () => {
+    if (!product) return;
     setAddedToCart(true);
     try {
       const existing = localStorage.getItem("bikers_demand_cart");
@@ -167,6 +164,43 @@ export default function ProductDetailPage() {
     handleAddToCart();
     router.push("/checkout");
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-asphalt text-off-white font-mono text-xs">
+        <Header />
+        <Navigation />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <div className="w-8 h-8 border-2 border-plate-yellow border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-steel text-sm">Loading product details...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Not found state
+  if (notFound || !product) {
+    return (
+      <div className="min-h-screen flex flex-col bg-asphalt text-off-white font-mono text-xs">
+        <Header />
+        <Navigation />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <h1 className="display-font text-4xl font-extrabold text-plate-yellow uppercase">Product Not Found</h1>
+            <p className="text-steel text-sm">The product you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+            <Link href="/shop" className="inline-block bg-ignition-red text-asphalt font-bold uppercase text-xs px-6 py-3 hover:bg-red-600 transition-colors">
+              Browse All Products
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-asphalt text-off-white font-mono text-xs">

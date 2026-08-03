@@ -139,6 +139,7 @@ export default function AdminProductsPage() {
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
       certification: newCertification,
       warranty: newWarranty,
+      sizes: newSizes,
       description: newCustomSpecs || `Genuine ${newBrand} motorcycle accessory. Certified for quality and performance.`,
     };
 

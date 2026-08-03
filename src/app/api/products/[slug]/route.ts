@@ -8,7 +8,8 @@ export async function GET(
   try {
     const { slug } = await params;
 
-    const product = await prisma.product.findUnique({
+    // Try finding by slug first, then fall back to ID lookup
+    let product = await prisma.product.findUnique({
       where: { slug },
       include: {
         category: true,
@@ -19,6 +20,21 @@ export async function GET(
         },
       },
     });
+
+    if (!product) {
+      // Fallback: try by ID
+      product = await prisma.product.findUnique({
+        where: { id: slug },
+        include: {
+          category: true,
+          compatibilities: {
+            include: {
+              bikeModel: true,
+            },
+          },
+        },
+      });
+    }
 
     if (!product) {
       return NextResponse.json(

@@ -153,6 +153,7 @@ model Product {
   categoryId       String
   category         Category             @relation(fields: [categoryId], references: [id])
   images           String[]
+  sizes            String[]
   isUniversal      Boolean              @default(false)
   
   // Helmet certification mandatory validation per PRD 3.4
