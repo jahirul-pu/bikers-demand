@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
       city = "Dhaka",
       isInsideDhaka = true,
       paymentMethod = "COD",
+      couponCode,
+      discountAmount = 0,
       items = [],
       notes,
     } = body;
@@ -29,8 +31,12 @@ export async function POST(request: NextRequest) {
     for (const item of items) {
       subtotal += (item.price || 0) * (item.quantity || 1);
     }
-    const total = subtotal + deliveryCharge;
+    const discount = Number(discountAmount || 0);
+    const total = Math.max(0, subtotal + deliveryCharge - discount);
     const orderNumber = `BD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const formattedNotes = couponCode
+      ? `Coupon: ${couponCode} (-Tk ${discount}). ${notes || ""}`.trim()
+      : (notes || null);
 
     // Try database transaction
     try {
@@ -70,7 +76,7 @@ export async function POST(request: NextRequest) {
             subtotal,
             deliveryCharge,
             total,
-            notes: notes || null,
+            notes: formattedNotes,
           },
         });
 
@@ -99,8 +105,11 @@ export async function POST(request: NextRequest) {
         data: {
           orderId: order.id,
           orderNumber: order.orderNumber,
+          subtotal,
+          deliveryCharge,
+          couponCode: couponCode || null,
+          discountAmount: discount,
           total: order.total,
-          deliveryCharge: order.deliveryCharge,
           status: order.status,
           message: "Order placed successfully. Confirmation call/SMS will follow.",
         },

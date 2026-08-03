@@ -34,10 +34,12 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-asphalt text-off-white">
-      <Header />
+      <div className="no-print">
+        <Header />
+      </div>
 
       {/* Admin Top Bar */}
-      <div className="bg-asphalt-2 border-b border-asphalt-2 py-2.5 px-3 font-mono text-xs text-steel">
+      <div className="bg-asphalt-2 border-b border-asphalt-2 py-2.5 px-3 font-mono text-xs text-steel no-print">
         <div className="max-w-[1700px] mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-ignition-red" />
@@ -50,7 +52,7 @@ export default function AdminLayout({
       <main className="flex-grow max-w-[1700px] mx-auto px-2 sm:px-3 lg:px-4 py-4 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
           {/* Admin Sidebar Navigation */}
-          <aside className="lg:col-span-2 space-y-3">
+          <aside className="lg:col-span-2 space-y-3 no-print">
             <div className="bg-asphalt-2 p-3 border border-asphalt-2">
               <h3 className="font-mono text-xs text-plate-yellow font-bold uppercase border-b border-asphalt pb-2 mb-2">
                 MANAGEMENT MENU
@@ -86,7 +88,9 @@ export default function AdminLayout({
         </div>
       </main>
 
-      <Footer />
+      <div className="no-print">
+        <Footer />
+      </div>
     </div>
   );
 }

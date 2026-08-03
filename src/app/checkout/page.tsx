@@ -13,6 +13,9 @@ import {
   ShieldCheck,
   MapPin,
   ArrowRight,
+  Minus,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 function CheckoutContent() {
@@ -38,7 +41,7 @@ function CheckoutContent() {
     code: string;
     discountAmount: number;
   } | null>(null);
-  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponError, setCouponError] = useState<React.ReactNode | null>(null);
 
   // Checkout submission states
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +61,13 @@ function CheckoutContent() {
     }
   }, []);
 
+  const CATEGORY_MAP: Record<string, { label: string; href: string }> = {
+    "riding-gear": { label: "Riding Gear", href: "/category/riding-gear" },
+    "parts-mods": { label: "Parts & Mods", href: "/category/parts-mods" },
+    "electronics": { label: "Electronics", href: "/category/electronics" },
+    "merchandise": { label: "Merchandise", href: "/category/merchandise" },
+  };
+
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
     setCouponError(null);
@@ -65,15 +75,105 @@ function CheckoutContent() {
 
     if (!code) return;
 
-    if (code === "BIKERS500") {
-      setAppliedCoupon({ code: "BIKERS500", discountAmount: 500 });
-      setCouponInput("");
-    } else if (code === "RIDER10") {
-      const discount = Math.round(subtotal * 0.1);
-      setAppliedCoupon({ code: "RIDER10", discountAmount: discount });
-      setCouponInput("");
+    LocalStorageDB.init();
+    const availableCoupons = LocalStorageDB.getCoupons();
+    const targetCoupon = availableCoupons.find((c) => c.code.toUpperCase() === code);
+
+    if (!targetCoupon || !targetCoupon.isActive) {
+      setCouponError(`Invalid or expired coupon code '${code}'.`);
+      return;
+    }
+
+    const hasCategoryTarget = targetCoupon.categoryTarget !== "ALL";
+    const categoryMeta = hasCategoryTarget ? CATEGORY_MAP[targetCoupon.categoryTarget] : null;
+
+    let eligibleItems: any[] = [];
+    if (hasCategoryTarget) {
+      eligibleItems = cartItems.filter((item: any) => item.category === targetCoupon.categoryTarget);
     } else {
-      setCouponError("Invalid coupon code. Try 'BIKERS500'");
+      eligibleItems = cartItems;
+    }
+    const eligibleSubtotal = eligibleItems.reduce((sum: number, i: any) => sum + i.price * i.quantity, 0);
+
+    // Case 1: Category targeted, but cart has NO items from that category
+    if (hasCategoryTarget && eligibleItems.length === 0) {
+      const catLink = categoryMeta ? (
+        <Link href={categoryMeta.href} className="underline text-plate-yellow font-bold hover:text-yellow-400">
+          {categoryMeta.label}
+        </Link>
+      ) : targetCoupon.categoryTarget;
+
+      if (targetCoupon.minOrder > 0) {
+        setCouponError(
+          <span>
+            Coupon <strong>&apos;{code}&apos;</strong> requires a minimum spend of ৳{targetCoupon.minOrder.toLocaleString("en-BD")} on {catLink} items.
+          </span>
+        );
+      } else {
+        setCouponError(
+          <span>
+            Coupon <strong>&apos;{code}&apos;</strong> is only valid for {catLink} products.
+          </span>
+        );
+      }
+      return;
+    }
+
+    // Case 2: Cart has category items (or ALL), but minimum order spend is not met
+    if (targetCoupon.minOrder > 0 && eligibleSubtotal < targetCoupon.minOrder) {
+      if (hasCategoryTarget) {
+        const catLink = categoryMeta ? (
+          <Link href={categoryMeta.href} className="underline text-plate-yellow font-bold hover:text-yellow-400">
+            {categoryMeta.label}
+          </Link>
+        ) : targetCoupon.categoryTarget;
+
+        setCouponError(
+          <span>
+            Coupon <strong>&apos;{code}&apos;</strong> requires a minimum spend of ৳{targetCoupon.minOrder.toLocaleString("en-BD")} on {catLink} items. (Current eligible subtotal: ৳{eligibleSubtotal.toLocaleString("en-BD")}).
+          </span>
+        );
+      } else {
+        setCouponError(
+          <span>
+            Coupon <strong>&apos;{code}&apos;</strong> requires a minimum order subtotal of ৳{targetCoupon.minOrder.toLocaleString("en-BD")}. (Current subtotal: ৳{subtotal.toLocaleString("en-BD")}).
+          </span>
+        );
+      }
+      return;
+    }
+
+    // Calculate Discount
+    let discount = 0;
+    if (targetCoupon.discountType === "FLAT") {
+      discount = targetCoupon.discountValue;
+    } else {
+      discount = Math.round(eligibleSubtotal * (targetCoupon.discountValue / 100));
+    }
+
+    setAppliedCoupon({ code: targetCoupon.code, discountAmount: discount });
+    setCouponInput("");
+  };
+
+  const updateQuantity = (id: string, delta: number) => {
+    const updated = cartItems.map((item) => {
+      if (item.id === id) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    });
+    setCartItems(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bikers_demand_cart", JSON.stringify(updated));
+    }
+  };
+
+  const removeItem = (id: string) => {
+    const updated = cartItems.filter((item) => item.id !== id);
+    setCartItems(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bikers_demand_cart", JSON.stringify(updated));
     }
   };
 
@@ -97,6 +197,9 @@ function CheckoutContent() {
       city: isInsideDhaka ? "Dhaka" : city,
       isInsideDhaka,
       paymentMethod: "COD",
+      couponCode: appliedCoupon?.code || null,
+      discountAmount,
+      deliveryCharge,
       items: cartItems,
     };
 
@@ -131,6 +234,10 @@ function CheckoutContent() {
           address: `${addressLine}, ${isInsideDhaka ? "Dhaka" : city}`,
           city: isInsideDhaka ? "Dhaka" : city,
           status: "PLACED",
+          subtotal,
+          deliveryCharge,
+          couponCode: appliedCoupon?.code || undefined,
+          discountAmount,
           totalAmount: json.data.total || grandTotal,
           itemsCount: cartItems.length,
           createdAt: new Date().toISOString(),
@@ -338,12 +445,49 @@ function CheckoutContent() {
                     <div className="w-12 h-12 bg-asphalt-2 p-1 border border-steel/20 shrink-0 flex items-center justify-center">
                       <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] text-plate-yellow font-bold uppercase block">{item.brand}</span>
-                      <h4 className="text-xs font-semibold text-off-white line-clamp-1">{item.name}</h4>
-                      <div className="text-[10px] text-steel">Qty: {item.quantity} × Tk {item.price.toLocaleString("en-BD")}</div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div>
+                        <span className="text-[10px] text-plate-yellow font-bold uppercase block leading-none">{item.brand}</span>
+                        <h4 className="text-xs font-semibold text-off-white line-clamp-1">{item.name}</h4>
+                        <div className="text-[10px] text-steel">Tk {item.price.toLocaleString("en-BD")} each</div>
+                      </div>
+
+                      {/* Interactive Quantity Control Stepper */}
+                      <div className="flex items-center gap-2 pt-1">
+                        <div className="flex items-center border border-steel/30 bg-asphalt-2">
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.id, -1)}
+                            disabled={item.quantity <= 1}
+                            className="w-5 h-5 flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          
+                          <span className="w-6 text-center font-bold text-off-white text-xs">
+                            {item.quantity}
+                          </span>
+                          
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.id, 1)}
+                            className="w-5 h-5 flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt text-xs font-bold cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="text-steel hover:text-ignition-red transition-colors p-1 cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="font-bold text-off-white display-font text-sm">
+                    <div className="font-bold text-off-white display-font text-sm shrink-0 text-right">
                       Tk {(item.price * item.quantity).toLocaleString("en-BD")}
                     </div>
                   </div>

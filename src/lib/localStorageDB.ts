@@ -43,6 +43,10 @@ export interface DBOrder {
   address: string;
   city: string;
   status: "PLACED" | "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  subtotal?: number;
+  deliveryCharge?: number;
+  couponCode?: string;
+  discountAmount?: number;
   totalAmount: number;
   itemsCount: number;
   createdAt: string;
@@ -51,6 +55,17 @@ export interface DBOrder {
     price: number;
     quantity: number;
   }>;
+}
+
+export interface DBCoupon {
+  id: string;
+  code: string;
+  discountType: "FLAT" | "PERCENTAGE";
+  discountValue: number;
+  minOrder: number;
+  categoryTarget: "ALL" | "riding-gear" | "parts-mods" | "electronics" | "merchandise";
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface DBClaim {
@@ -74,7 +89,41 @@ const STORAGE_KEYS = {
   WISHLIST: "bikers_demand_favs",
   CART: "bikers_demand_cart",
   USER: "bikers_demand_user",
+  COUPONS: "bd_db_coupons",
 };
+
+const INITIAL_COUPONS: DBCoupon[] = [
+  {
+    id: "cp-1",
+    code: "BIKERS500",
+    discountType: "FLAT",
+    discountValue: 500,
+    minOrder: 3000,
+    categoryTarget: "ALL",
+    isActive: true,
+    createdAt: "2026-08-01T00:00:00Z",
+  },
+  {
+    id: "cp-2",
+    code: "RIDER10",
+    discountType: "PERCENTAGE",
+    discountValue: 10,
+    minOrder: 2000,
+    categoryTarget: "ALL",
+    isActive: true,
+    createdAt: "2026-08-01T00:00:00Z",
+  },
+  {
+    id: "cp-3",
+    code: "GEAR15",
+    discountType: "PERCENTAGE",
+    discountValue: 15,
+    minOrder: 4000,
+    categoryTarget: "riding-gear",
+    isActive: true,
+    createdAt: "2026-08-01T00:00:00Z",
+  },
+];
 
 // Initial Seed Dataset for Local DB if completely empty
 const INITIAL_PRODUCTS: DBProduct[] = [
@@ -115,17 +164,18 @@ const INITIAL_PRODUCTS: DBProduct[] = [
   {
     id: "elec-1",
     sku: "ELEC-FOG-001",
-    name: "Dual Lens High Power LED Fog Lights with Bracket & Relay Wire",
-    slug: "dual-lens-high-power-led-fog-lights",
+    name: "Dual Lens LED Fog Light Kit with Harness",
+    slug: "dual-lens-led-fog-light-kit",
     brand: "Future Eye",
     category: "electronics",
     price: 2950,
-    imageUrl: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=80",
+    originalPrice: 3400,
+    imageUrl: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=500&auto=format&fit=crop&q=80",
     isUniversal: true,
     stockStatus: "in-stock",
     stockQty: 22,
     warranty: "6 Months Warranty",
-    description: "60W dual color LED auxiliary fog light set with wiring harness and switch.",
+    description: "High intensity dual-lens LED spot/flood fog lights for night riding.",
   },
   {
     id: "add-1",
@@ -161,9 +211,9 @@ const INITIAL_PRODUCTS: DBProduct[] = [
 
 const INITIAL_BIKES: DBBike[] = [
   { id: "bike-1", brand: "Yamaha", model: "FZS-Fi v3", yearStart: 2019, yearEnd: 2026, displacementCc: 149, slug: "yamaha-fzs-fi-v3" },
-  { id: "bike-2", brand: "Yamaha", model: "R15 v4", yearStart: 2021, yearEnd: 2026, displacementCc: 155, slug: "yamaha-r15-v4" },
-  { id: "bike-3", brand: "Honda", model: "CB Hornet 160R", yearStart: 2018, yearEnd: 2024, displacementCc: 162, slug: "honda-cb-hornet-160r" },
-  { id: "bike-4", brand: "Suzuki", model: "Gixxer 155 FI ABS", yearStart: 2020, yearEnd: 2026, displacementCc: 155, slug: "suzuki-gixxer-155" },
+  { id: "bike-2", brand: "Yamaha", model: "R15 V4", yearStart: 2021, yearEnd: 2026, displacementCc: 155, slug: "yamaha-r15-v4" },
+  { id: "bike-3", brand: "Honda", model: "CBR 150R", yearStart: 2021, yearEnd: 2026, displacementCc: 149, slug: "honda-cbr-150r" },
+  { id: "bike-4", brand: "TVS", model: "Apache RTR 160 4V", yearStart: 2018, yearEnd: 2026, displacementCc: 159, slug: "tvs-apache-rtr-160-4v" },
   { id: "bike-5", brand: "Bajaj", model: "Pulsar N160", yearStart: 2022, yearEnd: 2026, displacementCc: 165, slug: "bajaj-pulsar-n160" },
 ];
 
@@ -173,18 +223,17 @@ export const LocalStorageDB = {
   // Initialize LocalStorage DB
   init() {
     if (typeof window === "undefined") return;
-    try {
-      if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
-        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
-      }
-      if (!localStorage.getItem(STORAGE_KEYS.BIKES)) {
-        localStorage.setItem(STORAGE_KEYS.BIKES, JSON.stringify(INITIAL_BIKES));
-      }
-      if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(INITIAL_ORDERS));
-      }
-    } catch (e) {
-      console.error("Failed to initialize LocalStorageDB:", e);
+    if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.BIKES)) {
+      localStorage.setItem(STORAGE_KEYS.BIKES, JSON.stringify(INITIAL_BIKES));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(INITIAL_ORDERS));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.COUPONS)) {
+      localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(INITIAL_COUPONS));
     }
   },
 
@@ -202,11 +251,12 @@ export const LocalStorageDB = {
   saveProducts(products: DBProduct[]) {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    window.dispatchEvent(new Event("storage"));
   },
 
-  addProduct(product: DBProduct) {
+  addProduct(prod: DBProduct) {
     const list = this.getProducts();
-    list.unshift(product);
+    list.unshift(prod);
     this.saveProducts(list);
   },
 
@@ -229,6 +279,7 @@ export const LocalStorageDB = {
   saveBikes(bikes: DBBike[]) {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE_KEYS.BIKES, JSON.stringify(bikes));
+    window.dispatchEvent(new Event("storage"));
   },
 
   addBike(bike: DBBike) {
@@ -247,6 +298,39 @@ export const LocalStorageDB = {
       b.id === id ? { ...b, ...updatedFields } : b
     );
     this.saveBikes(list);
+  },
+
+  // Coupons
+  getCoupons(): DBCoupon[] {
+    if (typeof window === "undefined") return INITIAL_COUPONS;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.COUPONS);
+      return raw ? JSON.parse(raw) : INITIAL_COUPONS;
+    } catch (e) {
+      return INITIAL_COUPONS;
+    }
+  },
+
+  saveCoupons(coupons: DBCoupon[]) {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(coupons));
+    window.dispatchEvent(new Event("storage"));
+  },
+
+  addCoupon(coupon: DBCoupon) {
+    const list = this.getCoupons();
+    list.unshift(coupon);
+    this.saveCoupons(list);
+  },
+
+  updateCoupon(id: string, updatedFields: Partial<DBCoupon>) {
+    const list = this.getCoupons().map((c) => (c.id === id ? { ...c, ...updatedFields } : c));
+    this.saveCoupons(list);
+  },
+
+  deleteCoupon(id: string) {
+    const list = this.getCoupons().filter((c) => c.id !== id);
+    this.saveCoupons(list);
   },
 
   // Orders

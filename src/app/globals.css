@@ -162,3 +162,83 @@ body {
 .font-mono {
   font-family: var(--font-plus-jakarta-sans), sans-serif !important;
 }
+
+/* Print Media Styles for Invoices */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  #printable-invoice-modal {
+    position: static !important;
+    inset: auto !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  #printable-invoice {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 2px solid #111827 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    display: block !important;
+    border-radius: 0 !important;
+  }
+
+  #printable-invoice button {
+    display: none !important;
+  }
+
+  #printable-invoice .text-off-white,
+  #printable-invoice .text-steel-light {
+    color: #111827 !important;
+  }
+
+  #printable-invoice .text-steel {
+    color: #4b5563 !important;
+  }
+
+  #printable-invoice .text-plate-yellow {
+    color: #b85c00 !important;
+    font-weight: 800 !important;
+  }
+
+  #printable-invoice .bg-asphalt,
+  #printable-invoice .bg-asphalt-2 {
+    background: #f9fafb !important;
+    border-color: #e5e7eb !important;
+  }
+
+  #printable-invoice table th {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+    border-bottom: 2px solid #d1d5db !important;
+  }
+
+  #printable-invoice table td {
+    border-bottom: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+  }
+}
