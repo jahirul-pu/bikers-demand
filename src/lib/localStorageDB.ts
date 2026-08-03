@@ -29,9 +29,9 @@ export interface DBBike {
   id: string;
   brand: string;
   model: string;
-  yearStart: number;
-  yearEnd: number;
-  displacementCc: number;
+  yearStart?: number;
+  yearEnd?: number;
+  displacementCc?: number;
   slug: string;
 }
 
@@ -256,6 +256,13 @@ export const LocalStorageDB = {
 
   deleteBike(id: string) {
     const list = this.getBikes().filter((b) => b.id !== id);
+    this.saveBikes(list);
+  },
+
+  updateBike(id: string, updatedFields: Partial<DBBike>) {
+    const list = this.getBikes().map((b) =>
+      b.id === id ? { ...b, ...updatedFields } : b
+    );
     this.saveBikes(list);
   },
 

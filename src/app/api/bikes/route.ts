@@ -35,10 +35,6 @@ export async function GET() {
       orderBy: [{ brand: "asc" }, { model: "asc" }],
     });
 
-    if (bikeModels.length === 0) {
-      return NextResponse.json({ success: true, data: FALLBACK_BIKES });
-    }
-
     const grouped: Record<
       string,
       { model: string; variants: { id: string; variant: string | null; cc: number }[] }[]
@@ -60,9 +56,61 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ success: true, data: grouped });
+    return NextResponse.json({
+      success: true,
+      data: grouped,
+      list: bikeModels.map((b) => ({
+        id: b.id,
+        brand: b.brand,
+        model: b.model,
+        variant: b.variant,
+        displacementCc: b.cc,
+        slug: `${b.brand}-${b.model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      })),
+    });
   } catch (error) {
-    console.warn("DB offline, serving fallback bike registry:", error);
-    return NextResponse.json({ success: true, data: FALLBACK_BIKES });
+    console.warn("DB query failed, returning fallback:", error);
+    return NextResponse.json({ success: true, data: FALLBACK_BIKES, list: [] });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { brand, model, variant, cc } = body;
+
+    if (!brand || !model) {
+      return NextResponse.json(
+        { success: false, error: "Brand and model are required" },
+        { status: 400 }
+      );
+    }
+
+    const created = await prisma.bikeModel.create({
+      data: {
+        brand: brand.trim(),
+        model: model.trim(),
+        variant: variant ? variant.trim() : null,
+        cc: cc ? Number(cc) : 150,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: created.id,
+        brand: created.brand,
+        model: created.model,
+        variant: created.variant,
+        displacementCc: created.cc,
+        slug: `${created.brand}-${created.model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      },
+    });
+  } catch (error: any) {
+    console.error("Error creating bike model in DB:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to create bike model" },
+      { status: 500 }
+    );
   }
 }

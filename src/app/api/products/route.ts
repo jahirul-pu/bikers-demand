@@ -109,3 +109,60 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, count: FALLBACK_PRODUCTS.length, data: FALLBACK_PRODUCTS });
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { name, brand, sku, price, stockQty, category, imageUrl, certification, warranty, description } = body;
+
+    if (!name || !brand || !sku) {
+      return NextResponse.json(
+        { success: false, error: "Product name, brand, and SKU are required" },
+        { status: 400 }
+      );
+    }
+
+    // Ensure category exists
+    const categorySlug = typeof category === "string" ? category : category?.slug || "riding-gear";
+    let catRecord = await prisma.category.findUnique({
+      where: { slug: categorySlug },
+    });
+
+    if (!catRecord) {
+      catRecord = await prisma.category.create({
+        data: {
+          name: categorySlug.replace("-", " ").toUpperCase(),
+          slug: categorySlug,
+        },
+      });
+    }
+
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+    const created = await prisma.product.create({
+      data: {
+        name,
+        slug: `${slug}-${Date.now().toString().slice(-4)}`,
+        brand,
+        sku,
+        price: Number(price) || 0,
+        stockQty: Number(stockQty) || 0,
+        categoryId: catRecord.id,
+        description: description || `Genuine ${brand} product.`,
+        images: imageUrl ? [imageUrl] : [],
+        isUniversal: true,
+        warrantyDuration: warranty || "1 Year Warranty",
+        warrantyFlag: !!warranty,
+      },
+      include: { category: true },
+    });
+
+    return NextResponse.json({ success: true, data: created });
+  } catch (error: any) {
+    console.error("Error creating product in DB:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to create product" },
+      { status: 500 }
+    );
+  }
+}

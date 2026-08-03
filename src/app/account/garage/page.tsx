@@ -12,13 +12,33 @@ export default function GaragePage() {
   useEffect(() => {
     LocalStorageDB.init();
     setGarageBikes(LocalStorageDB.getUserGarage());
-    const registry = LocalStorageDB.getBikes();
-    setRegisteredBikes(registry);
-    if (registry.length > 0) {
-      setNewBrand(registry[0].brand);
-      setNewModel(registry[0].model);
-      setDisplacementCc(registry[0].displacementCc);
-    }
+
+    const loadRegistry = async () => {
+      try {
+        const res = await fetch("/api/bikes");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.list) && json.list.length > 0) {
+          setRegisteredBikes(json.list);
+          if (json.list.length > 0) {
+            setNewBrand(json.list[0].brand);
+            setNewModel(json.list[0].model);
+            setDisplacementCc(json.list[0].displacementCc || 150);
+          }
+          return;
+        }
+      } catch (e) {
+        console.warn("API error fetching bikes for garage:", e);
+      }
+      const registry = LocalStorageDB.getBikes();
+      setRegisteredBikes(registry);
+      if (registry.length > 0) {
+        setNewBrand(registry[0].brand);
+        setNewModel(registry[0].model);
+        setDisplacementCc(registry[0].displacementCc || 150);
+      }
+    };
+
+    loadRegistry();
   }, []);
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -35,7 +55,7 @@ export default function GaragePage() {
     const modelsForBrand = registeredBikes.filter((b) => b.brand === brand);
     if (modelsForBrand.length > 0) {
       setNewModel(modelsForBrand[0].model);
-      setDisplacementCc(modelsForBrand[0].displacementCc);
+      setDisplacementCc(modelsForBrand[0].displacementCc || 150);
     }
   };
 
@@ -43,7 +63,7 @@ export default function GaragePage() {
     setNewModel(modelName);
     const selected = registeredBikes.find((b) => b.brand === newBrand && b.model === modelName);
     if (selected) {
-      setDisplacementCc(selected.displacementCc);
+      setDisplacementCc(selected.displacementCc || 150);
     }
   };
 

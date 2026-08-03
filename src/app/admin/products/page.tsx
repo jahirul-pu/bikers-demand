@@ -6,10 +6,45 @@ import { LocalStorageDB, DBProduct } from "@/lib/localStorageDB";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<DBProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("/api/products");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        const mapped: DBProduct[] = json.data.map((p: any) => ({
+          id: p.id,
+          sku: p.sku || `SKU-${p.id}`,
+          name: p.name,
+          slug: p.slug,
+          brand: p.brand,
+          category: (p.category?.slug as any) || "riding-gear",
+          price: p.price,
+          originalPrice: p.comparePrice,
+          imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
+          stockStatus: p.stockStatus === "IN_STOCK" ? "in-stock" : "out-of-stock",
+          stockQty: p.stockQty ?? 10,
+          certification: p.certification !== "NONE" ? p.certification : "Standard",
+          warranty: p.warrantyDuration || "1 Year Warranty",
+          description: p.description,
+        }));
+        setProducts(mapped);
+        LocalStorageDB.saveProducts(mapped);
+        return;
+      }
+    } catch (e) {
+      console.warn("Error fetching products from DB, falling back to localStorage:", e);
+    } finally {
+      setIsLoading(false);
+    }
+
     LocalStorageDB.init();
     setProducts(LocalStorageDB.getProducts());
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -55,17 +90,15 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleCreateProduct = (e: React.FormEvent) => {
+  const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newBrand || !newSku) {
       alert("Please fill in all required fields.");
       return;
     }
 
-    const created = LocalStorageDB.addProduct({
-      id: `prod-${Date.now()}`,
+    const newProdPayload = {
       name: newName,
-      slug: newName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       brand: newBrand,
       sku: newSku,
       price: newPrice,
@@ -75,11 +108,30 @@ export default function AdminProductsPage() {
       certification: newCertification,
       warranty: newWarranty,
       stockStatus: newStockQty > 5 ? "in-stock" : newStockQty > 0 ? "low-stock" : "out-of-stock",
-      sizes: newSizes,
-      specifications: newCustomSpecs ? newCustomSpecs.split(",").map((s) => s.trim()).filter(Boolean) : [],
-    });
+      fitBadge: "Universal Fit",
+      isUniversal: true,
+      description: newCustomSpecs || `Genuine ${newBrand} motorcycle accessory. Certified for quality and performance.`,
+    };
 
+    // Instant local state update
+    LocalStorageDB.addProduct(newProdPayload as any);
     setProducts(LocalStorageDB.getProducts());
+
+    // Send to Supabase DB via API
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newProdPayload),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        fetchProducts();
+      }
+    } catch (err) {
+      console.error("API error creating product:", err);
+    }
+
     setShowAddModal(false);
     // Reset form
     setNewName("");
