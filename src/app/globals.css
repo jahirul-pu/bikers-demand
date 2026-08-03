@@ -166,8 +166,8 @@ body {
 /* Print Media Styles for Invoices */
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 10mm;
+    size: A5 portrait;
+    margin: 6mm;
   }
 
   html, body {
@@ -202,9 +202,10 @@ body {
     width: 100% !important;
     box-shadow: none !important;
     margin: 0 !important;
-    padding: 20px !important;
+    padding: 14px !important;
     display: block !important;
     border-radius: 0 !important;
+    font-size: 11px !important;
   }
 
   #printable-invoice button {
@@ -235,10 +236,12 @@ body {
     background: #f3f4f6 !important;
     color: #111827 !important;
     border-bottom: 2px solid #d1d5db !important;
+    padding: 6px !important;
   }
 
   #printable-invoice table td {
     border-bottom: 1px solid #e5e7eb !important;
     color: #111827 !important;
+    padding: 6px !important;
   }
 }
