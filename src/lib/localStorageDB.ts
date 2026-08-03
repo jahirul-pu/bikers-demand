@@ -265,6 +265,13 @@ export const LocalStorageDB = {
     this.saveProducts(list);
   },
 
+  updateProduct(id: string, updated: Partial<DBProduct>) {
+    const list = this.getProducts().map((p) =>
+      p.id === id ? { ...p, ...updated } : p
+    );
+    this.saveProducts(list);
+  },
+
   // Bikes
   getBikes(): DBBike[] {
     if (typeof window === "undefined") return INITIAL_BIKES;

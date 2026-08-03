@@ -11,15 +11,11 @@ export default function AdminOrdersPage() {
   const [viewingOrder, setViewingOrder] = useState<any | null>(null);
 
   const loadOrders = async () => {
-    LocalStorageDB.init();
-    const local = LocalStorageDB.getOrders();
-
-    let apiOrders: any[] = [];
     try {
       const res = await fetch("/api/admin/orders");
       const json = await res.json();
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        apiOrders = json.data.map((o: any) => ({
+      if (json.success && Array.isArray(json.data)) {
+        const mapped = json.data.map((o: any) => ({
           id: o.id,
           orderNumber: o.orderNumber,
           customer: o.user?.name || o.address?.name || o.customerName || "Rider Customer",
@@ -44,57 +40,19 @@ export default function AdminOrdersPage() {
             quantity: i.quantity || 1,
           })),
         }));
+        setOrders(mapped);
       }
     } catch (e) {
-      console.warn("API error fetching orders, using localStorageDB:", e);
+      console.error("API error fetching orders:", e);
+    } finally {
+      setIsLoading(false);
     }
-
-    const localMapped = (local || []).map((o: any) => ({
-      id: o.id,
-      orderNumber: o.orderNumber,
-      customer: o.customerName || o.customer || "Rider Customer",
-      phone: o.phone || "01700000000",
-      address: o.address
-        ? `${o.address}${o.city && !o.address.includes(o.city) ? `, ${o.city}` : ""}`
-        : (o.city || "House 12, Road 5, Mirpur, Dhaka"),
-      itemsCount: Number(o.itemsCount || o.items?.length || 1),
-      subtotal: Number(o.subtotal || o.items?.reduce((acc: number, item: any) => acc + (item.price || 0) * (item.quantity || 1), 0) || o.totalAmount || 0),
-      deliveryCharge: Number(o.deliveryCharge || (o.address?.includes("Outside") ? 130 : 60)),
-      couponCode: o.couponCode || null,
-      discountAmount: Number(o.discountAmount || 0),
-      total: Number(o.totalAmount ?? o.total ?? o.grandTotal ?? 0),
-      paymentMethod: o.paymentMethod || "COD",
-      paymentStatus: o.paymentStatus || "UNPAID",
-      status: o.status === "PACKED" ? "CONFIRMED" : (o.status as string) || "PLACED",
-      confirmationCall: (o.status as string) === "PLACED" ? "PENDING_CALL" : "CONFIRMED_VIA_PHONE",
-      date: o.createdAt ? new Date(o.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-      items: o.items || [],
-    }));
-
-    // Merge both API and local orders, prioritizing exact orderNumber match
-    const mergedMap = new Map<string, any>();
-    for (const o of apiOrders) {
-      if (o.orderNumber) mergedMap.set(o.orderNumber, o);
-    }
-    for (const o of localMapped) {
-      if (o.orderNumber) {
-        const existing = mergedMap.get(o.orderNumber) || {};
-        mergedMap.set(o.orderNumber, { ...existing, ...o });
-      }
-    }
-
-    setOrders(Array.from(mergedMap.values()));
-    setIsLoading(false);
   };
 
   useEffect(() => {
     loadOrders();
-    window.addEventListener("storage", loadOrders);
-    const interval = setInterval(loadOrders, 3000);
-    return () => {
-      window.removeEventListener("storage", loadOrders);
-      clearInterval(interval);
-    };
+    const interval = setInterval(loadOrders, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter orders by orderNumber, customer name, phone, or address
@@ -137,7 +95,6 @@ export default function AdminOrdersPage() {
   ];
 
   const handleSetStatus = async (id: string, newStatus: string) => {
-    LocalStorageDB.updateOrderStatus(id, newStatus as any);
     setOrders((prev) =>
       prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
     );
@@ -147,8 +104,9 @@ export default function AdminOrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: id, status: newStatus }),
       });
+      await loadOrders();
     } catch (e) {
-      console.warn("API error updating order status:", e);
+      console.error("Error updating order status:", e);
     }
   };
 

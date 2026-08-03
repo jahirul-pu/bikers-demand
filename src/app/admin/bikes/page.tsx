@@ -30,22 +30,18 @@ export default function AdminBikesPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const fetchBikes = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch("/api/bikes");
       const json = await res.json();
-      if (json.success && Array.isArray(json.list) && json.list.length > 0) {
+      if (json.success && Array.isArray(json.list)) {
         setBikes(json.list);
-        LocalStorageDB.saveBikes(json.list);
-        return;
       }
     } catch (e) {
-      console.warn("Error fetching bikes from DB, using localStorage:", e);
+      console.error("Error fetching bikes from DB:", e);
     } finally {
       setIsLoading(false);
     }
-    // Fallback
-    LocalStorageDB.init();
-    setBikes(LocalStorageDB.getBikes());
   };
 
   useEffect(() => {
@@ -77,18 +73,6 @@ export default function AdminBikesPage() {
       return;
     }
 
-    const newBikeLocal: DBBike = {
-      id: `b-${Date.now()}`,
-      brand: finalBrand,
-      model: model.trim(),
-      slug: `${finalBrand}-${model.trim()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    };
-
-    // Instant local state update
-    LocalStorageDB.addBike(newBikeLocal);
-    setBikes((prev) => [newBikeLocal, ...prev]);
-
-    // Send to Supabase DB via API
     try {
       const res = await fetch("/api/bikes", {
         method: "POST",
@@ -96,8 +80,8 @@ export default function AdminBikesPage() {
         body: JSON.stringify({ brand: finalBrand, model: model.trim() }),
       });
       const json = await res.json();
-      if (json.success && json.data) {
-        fetchBikes();
+      if (json.success) {
+        await fetchBikes();
       }
     } catch (err) {
       console.error("API error adding bike:", err);
@@ -147,26 +131,13 @@ export default function AdminBikesPage() {
       return;
     }
 
-    const updatedData = {
-      brand: finalBrand,
-      model: editModel.trim(),
-      slug: `${finalBrand}-${editModel.trim()}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    };
-
-    // Instant local state update
-    LocalStorageDB.updateBike(editingBike.id, updatedData);
-    setBikes((prev) =>
-      prev.map((b) => (b.id === editingBike.id ? { ...b, ...updatedData } : b))
-    );
-
-    // Send to Supabase DB via API
     try {
-      await fetch(`/api/bikes/${editingBike.id}`, {
-        method: "PUT",
+      await fetch("/api/bikes", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brand: finalBrand, model: editModel.trim() }),
       });
-      fetchBikes();
+      await fetchBikes();
     } catch (err) {
       console.error("API error updating bike:", err);
     }
@@ -180,16 +151,11 @@ export default function AdminBikesPage() {
     const id = deleteTarget.id;
     setDeleteTarget(null);
 
-    // Instant local state update
-    LocalStorageDB.deleteBike(id);
-    setBikes((prev) => prev.filter((b) => b.id !== id));
-
-    // Delete in Supabase DB via API
     try {
-      await fetch(`/api/bikes/${id}`, {
+      await fetch(`/api/bikes?id=${id}`, {
         method: "DELETE",
       });
-      fetchBikes();
+      await fetchBikes();
     } catch (err) {
       console.error("API error deleting bike:", err);
     }

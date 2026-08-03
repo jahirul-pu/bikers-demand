@@ -11,10 +11,11 @@ export default function AdminProductsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const fetchProducts = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch("/api/products");
       const json = await res.json();
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      if (json.success && Array.isArray(json.data)) {
         const mapped: DBProduct[] = json.data.map((p: any) => ({
           id: p.id,
           sku: p.sku || `SKU-${p.id}`,
@@ -32,23 +33,19 @@ export default function AdminProductsPage() {
           description: p.description,
         }));
         setProducts(mapped);
-        LocalStorageDB.saveProducts(mapped);
-        return;
       }
     } catch (e) {
-      console.warn("Error fetching products from DB, falling back to localStorage:", e);
+      console.error("Error fetching products from DB:", e);
     } finally {
       setIsLoading(false);
     }
-
-    LocalStorageDB.init();
-    setProducts(LocalStorageDB.getProducts());
   };
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
+  const [editingProduct, setEditingProduct] = useState<DBProduct | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSku, setNewSku] = useState("");
   const [newName, setNewName] = useState("");
@@ -62,6 +59,38 @@ export default function AdminProductsPage() {
   const [newCustomSpecs, setNewCustomSpecs] = useState("");
   const [imageSourceMode, setImageSourceMode] = useState<"url" | "file">("url");
   const [imageUrl, setImageUrl] = useState("");
+
+  const handleOpenAddModal = () => {
+    setEditingProduct(null);
+    setNewName("");
+    setNewBrand("");
+    setNewSku("");
+    setNewPrice(0);
+    setNewStockQty(10);
+    setNewCategory("riding-gear");
+    setNewCertification("ECE 22.06 / DOT");
+    setNewWarranty("1 Year Warranty");
+    setNewSizes(["M", "L", "XL"]);
+    setNewCustomSpecs("");
+    setImageUrl("");
+    setShowAddModal(true);
+  };
+
+  const handleOpenEditModal = (p: DBProduct) => {
+    setEditingProduct(p);
+    setNewName(p.name);
+    setNewBrand(p.brand);
+    setNewSku(p.sku);
+    setNewPrice(p.price);
+    setNewStockQty(p.stockQty);
+    setNewCategory(p.category || "riding-gear");
+    setNewCertification(p.certification || "ECE 22.06 / DOT");
+    setNewWarranty(p.warranty || "1 Year Warranty");
+    setNewSizes(p.sizes || ["M", "L", "XL"]);
+    setNewCustomSpecs(p.description || "");
+    setImageUrl(p.imageUrl || "");
+    setShowAddModal(true);
+  };
 
   const toggleSize = (size: string) => {
     setNewSizes((prev) =>
@@ -92,14 +121,15 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newBrand || !newSku) {
       alert("Please fill in all required fields.");
       return;
     }
 
-    const newProdPayload = {
+    const prodPayload = {
+      ...(editingProduct && { id: editingProduct.id }),
       name: newName,
       brand: newBrand,
       sku: newSku,
@@ -109,44 +139,42 @@ export default function AdminProductsPage() {
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
       certification: newCertification,
       warranty: newWarranty,
-      stockStatus: newStockQty > 5 ? "in-stock" : newStockQty > 0 ? "low-stock" : "out-of-stock",
-      fitBadge: "Universal Fit",
-      isUniversal: true,
       description: newCustomSpecs || `Genuine ${newBrand} motorcycle accessory. Certified for quality and performance.`,
     };
 
-    // Instant local state update
-    LocalStorageDB.addProduct(newProdPayload as any);
-    setProducts(LocalStorageDB.getProducts());
-
-    // Send to Supabase DB via API
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newProdPayload),
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        fetchProducts();
+      if (editingProduct) {
+        await fetch("/api/products", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(prodPayload),
+        });
+      } else {
+        await fetch("/api/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(prodPayload),
+        });
       }
     } catch (err) {
-      console.error("API error creating product:", err);
+      console.error("API error saving product:", err);
     }
 
+    await fetchProducts();
     setShowAddModal(false);
-    // Reset form
-    setNewName("");
-    setNewSku("");
-    setNewBrand("");
-    setNewPrice(0);
-    setImageUrl("");
   };
 
-  const handleConfirmDeleteProduct = () => {
+  const handleConfirmDeleteProduct = async () => {
     if (!deleteTarget) return;
-    LocalStorageDB.deleteProduct(deleteTarget.id);
-    setProducts(LocalStorageDB.getProducts());
+    try {
+      await fetch(`/api/products?id=${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.error("API error deleting product:", e);
+    }
+
+    await fetchProducts();
     setDeleteTarget(null);
   };
 
@@ -164,7 +192,7 @@ export default function AdminProductsPage() {
         </div>
 
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={handleOpenAddModal}
           className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 flex items-center gap-2 transform -skew-x-6 cursor-pointer"
         >
           <div className="transform skew-x-6 flex items-center gap-1.5">
@@ -226,11 +254,19 @@ export default function AdminProductsPage() {
                 </td>
                 <td className="p-3 text-right">
                   <button
+                    onClick={() => handleOpenEditModal(product)}
+                    className="text-steel hover:text-plate-yellow p-1 cursor-pointer mr-2 transition-colors"
+                    title="Edit product"
+                  >
+                    <Edit className="w-4 h-4 inline" />
+                  </button>
+
+                  <button
                     onClick={() => setDeleteTarget({ id: product.id, name: product.name })}
-                    className="text-red-400 hover:text-red-300 p-1 cursor-pointer"
+                    className="text-red-400 hover:text-red-300 p-1 cursor-pointer transition-colors"
                     title="Delete product"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 inline" />
                   </button>
                 </td>
               </tr>
@@ -244,10 +280,10 @@ export default function AdminProductsPage() {
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="bg-asphalt-2 border border-asphalt-2 max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h2 className="display-font text-xl font-bold text-off-white uppercase border-b border-steel/20 pb-2">
-              Add New Product SKU
+              {editingProduct ? "Edit Product SKU" : "Add New Product SKU"}
             </h2>
 
-            <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
               <div className="space-y-1">
                 <label className="text-steel block">Product Title</label>
                 <input

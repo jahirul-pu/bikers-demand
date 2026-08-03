@@ -166,3 +166,74 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, name, brand, sku, price, stockQty, category, imageUrl, warranty, description } = body;
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Product ID required" }, { status: 400 });
+    }
+
+    const categorySlug = typeof category === "string" ? category : category?.slug;
+    let categoryId = undefined;
+    if (categorySlug) {
+      let catRecord = await prisma.category.findUnique({ where: { slug: categorySlug } });
+      if (!catRecord) {
+        catRecord = await prisma.category.create({
+          data: { name: categorySlug.replace("-", " ").toUpperCase(), slug: categorySlug },
+        });
+      }
+      categoryId = catRecord.id;
+    }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: {
+        ...(name && { name }),
+        ...(brand && { brand }),
+        ...(sku && { sku }),
+        ...(price !== undefined && { price: Number(price) }),
+        ...(stockQty !== undefined && { stockQty: Number(stockQty) }),
+        ...(categoryId && { categoryId }),
+        ...(description && { description }),
+        ...(imageUrl && { images: [imageUrl] }),
+        ...(warranty && { warrantyDuration: warranty, warrantyFlag: true }),
+      },
+      include: { category: true },
+    });
+
+    return NextResponse.json({ success: true, data: updated });
+  } catch (error: any) {
+    console.error("Error updating product in DB:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to update product" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Product ID required" }, { status: 400 });
+    }
+
+    await prisma.product.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
+    return NextResponse.json({ success: true, message: "Product deleted" });
+  } catch (error: any) {
+    console.error("Error deleting product in DB:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to delete product" },
+      { status: 500 }
+    );
+  }
+}

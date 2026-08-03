@@ -114,3 +114,26 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Bike ID required" }, { status: 400 });
+    }
+
+    await prisma.bikeModel.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, message: "Bike model deleted" });
+  } catch (error: any) {
+    console.error("Error deleting bike model from DB:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to delete bike model" },
+      { status: 500 }
+    );
+  }
+}
