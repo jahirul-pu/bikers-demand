@@ -10,9 +10,6 @@
     "lint": "next lint",
     "db:seed": "tsx prisma/seed.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "@supabase/ssr": "^0.12.4",
