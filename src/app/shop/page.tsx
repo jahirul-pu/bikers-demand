@@ -27,18 +27,6 @@ import {
 type SortOption = "newest" | "price-asc" | "price-desc" | "name-asc";
 type StockFilter = "all" | "in-stock" | "low-stock";
 
-const CATEGORIES = [
-  { id: "all", label: "All Categories" },
-  { id: "helmets", label: "Helmets" },
-  { id: "riding-gear", label: "Riding Gear" },
-  { id: "parts", label: "Parts" },
-  { id: "accessories", label: "Accessories" },
-  { id: "parts-mods", label: "Parts & Mods" },
-  { id: "electronics", label: "Electronics" },
-  { id: "additives", label: "Additives & Oils" },
-  { id: "merchandise", label: "Merchandise" },
-];
-
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "newest", label: "Newest First" },
   { value: "price-asc", label: "Price: Low → High" },
@@ -111,7 +99,6 @@ function ShopPageInner() {
   }, []);
 
   const dynamicCategories = useMemo(() => {
-    if (dbCategories.length === 0) return CATEGORIES;
     return [
       { id: "all", label: "All Categories" },
       ...dbCategories.map((c: any) => ({ id: c.slug, label: c.name })),
@@ -620,7 +607,7 @@ function ShopPageInner() {
                 {category !== "all" && (
                   <span className="flex items-center gap-1 bg-asphalt border border-ignition-red/50 text-ignition-red text-[11px] font-mono px-2 py-1">
                     <Tag className="w-2.5 h-2.5" />
-                    {CATEGORIES.find((c) => c.id === category)?.label}
+                    {dynamicCategories.find((c: any) => c.id === category)?.label}
                     <button onClick={() => setCategory("all")} className="ml-1 hover:text-off-white"><X className="w-2.5 h-2.5" /></button>
                   </span>
                 )}

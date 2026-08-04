@@ -32,40 +32,21 @@ export default function CategoryPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [cartCount, setCartCount] = useState(2);
 
-  const categoryTitles: Record<string, { title: string; desc: string }> = {
-    helmets: {
-      title: "Helmets & Visors",
-      desc: "ECE 22.06 & DOT certified full face, modular, dual-sport helmets & replacement visors.",
-    },
-    "riding-gear": {
-      title: "Riding Gear & Protection",
-      desc: "CE Level 1 & Level 2 armored jackets, racing gloves, riding boots & rain suits.",
-    },
-    parts: {
-      title: "Motorcycle Parts",
-      desc: "Performance exhausts, high-flow air filters, brake pads, chains & sprocket kits.",
-    },
-    accessories: {
-      title: "Rider & Bike Accessories",
-      desc: "Mobile holders, bike covers, crash guards, frame sliders & pannier bags.",
-    },
-    "parts-mods": {
-      title: "Parts & Mods",
-      desc: "Model-specific exhausts, CNC levers, chain & sprocket kits, brake pads & body fairings.",
-    },
-    electronics: {
-      title: "Electronics & Gadgets",
-      desc: "High power LED fog lights, intercoms, action camera mounts, GPS trackers, and chargers.",
-    },
-    additives: {
-      title: "Additives & Engine Oils",
-      desc: "100% full synthetic 4T engine oils, coolants, chain lube sprays & fuel additives.",
-    },
-  };
+  const [dbCategories, setDbCategories] = useState<{ id: string; name: string; slug: string; description?: string }[]>([]);
 
-  const currentCategoryInfo = categoryTitles[slug] || {
-    title: slug.replace("-", " ").toUpperCase(),
-    desc: "Browse our owned inventory of genuine motorcycle accessories.",
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) setDbCategories(j.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const currentCatRecord = dbCategories.find((c) => c.slug === slug);
+  const currentCategoryInfo = {
+    title: currentCatRecord ? currentCatRecord.name : slug.replace("-", " ").toUpperCase(),
+    desc: currentCatRecord?.description || "Browse our owned inventory of genuine motorcycle accessories.",
   };
 
   useEffect(() => {

@@ -43,6 +43,7 @@ export default function AdminProductsPage() {
   };
 
   const [dbCategoriesList, setDbCategoriesList] = useState<{ id: string; name: string; slug: string; children?: { id: string; name: string; slug: string }[] }[]>([]);
+  const [dbBrandsList, setDbBrandsList] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [newSubCategory, setNewSubCategory] = useState("");
 
   const loadDbCategories = useCallback(() => {
@@ -56,12 +57,28 @@ export default function AdminProductsPage() {
       .catch(() => {});
   }, []);
 
+  const loadDbBrands = useCallback(() => {
+    fetch("/api/brands")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) {
+          setDbBrandsList(j.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchProducts();
     loadDbCategories();
+    loadDbBrands();
     window.addEventListener("category-updated", loadDbCategories);
-    return () => window.removeEventListener("category-updated", loadDbCategories);
-  }, [loadDbCategories]);
+    window.addEventListener("brand-updated", loadDbBrands);
+    return () => {
+      window.removeEventListener("category-updated", loadDbCategories);
+      window.removeEventListener("brand-updated", loadDbBrands);
+    };
+  }, [loadDbCategories, loadDbBrands]);
 
   const [editingProduct, setEditingProduct] = useState<DBProduct | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -443,14 +460,29 @@ export default function AdminProductsPage() {
                   </div>
                   <div>
                     <label className="text-steel block font-bold">Brand *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. AGV"
-                      value={newBrand}
-                      onChange={(e) => setNewBrand(e.target.value)}
-                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
-                    />
+                    {dbBrandsList.length > 0 ? (
+                      <select
+                        value={newBrand}
+                        onChange={(e) => setNewBrand(e.target.value)}
+                        className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                      >
+                        <option value="">-- Select Brand --</option>
+                        {dbBrandsList.map((b) => (
+                          <option key={b.id} value={b.name}>
+                            {b.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. AGV"
+                        value={newBrand}
+                        onChange={(e) => setNewBrand(e.target.value)}
+                        className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                      />
+                    )}
                   </div>
                   <div>
                     <label className="text-steel block font-bold">SKU Code *</label>

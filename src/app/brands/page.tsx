@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
@@ -8,20 +8,17 @@ import Footer from "@/components/layout/Footer";
 import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
 import { Award, Shield, ArrowRight, Search, CheckCircle2, Globe, Wrench, Zap, Droplet } from "lucide-react";
 
-interface BrandItem {
+interface DBBrand {
   id: string;
   name: string;
   slug: string;
-  country: string;
-  flag: string;
-  category: string;
-  description: string;
-  productCount: number;
-  featuredProduct: string;
-  badge: string;
-  logoColor: string;
-  borderColor: string;
-  image: string;
+  logoUrl?: string | null;
+  website?: string | null;
+  description?: string | null;
+  country?: string | null;
+  flag?: string | null;
+  isFeatured: boolean;
+  productCount?: number;
 }
 
 export default function BrandsPage() {
@@ -30,144 +27,47 @@ export default function BrandsPage() {
   const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
   const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
 
-  const brands: BrandItem[] = [
-    {
-      id: "mt-helmets",
-      name: "MT Helmets",
-      slug: "mt-helmets",
-      country: "Spain",
-      flag: "🇪🇸",
-      category: "Helmets",
-      description: "European ECE 22.06 & DOT certified full-face, modular and adventure helmets.",
-      productCount: 18,
-      featuredProduct: "Thunder 4 SV Matt Black",
-      badge: "ECE 22.06 Certified",
-      logoColor: "text-ignition-red",
-      borderColor: "hover:border-ignition-red",
-      image: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: "did-japan",
-      name: "DID Japan",
-      slug: "did-japan",
-      country: "Japan",
-      flag: "🇯🇵",
-      category: "Parts & Mods",
-      description: "JIS certified heavy duty O-Ring & X-Ring drive chains and hardened steel sprockets.",
-      productCount: 24,
-      featuredProduct: "428H 132L Gold O-Ring Chain",
-      badge: "Japanese Precision",
-      logoColor: "text-plate-yellow",
-      borderColor: "hover:border-plate-yellow",
-      image: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: "akrapovic",
-      name: "Akrapovič Replica",
-      slug: "akrapovic",
-      country: "Slovenia",
-      flag: "🇸🇮",
-      category: "Parts & Mods",
-      description: "High-flow stainless steel & carbon-tipped racing exhaust slip-on mufflers.",
-      productCount: 14,
-      featuredProduct: "Slip-On Racing Exhaust",
-      badge: "Performance Sound",
-      logoColor: "text-red-400",
-      borderColor: "hover:border-red-500",
-      image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: "future-eye",
-      name: "Future Eye",
-      slug: "future-eye",
-      country: "Taiwan",
-      flag: "🇹🇼",
-      category: "Electronics",
-      description: "IP67 waterproof 40W dual beam LED fog light pods and wiring relay harnesses.",
-      productCount: 12,
-      featuredProduct: "Dual Lens High Power LED Fog Light",
-      badge: "12V Plug & Play",
-      logoColor: "text-blue-400",
-      borderColor: "hover:border-blue-500",
-      image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: "racing-boy",
-      name: "Racing Boy (RCB)",
-      slug: "racing-boy",
-      country: "Malaysia",
-      flag: "🇲🇾",
-      category: "Parts & Mods",
-      description: "CNC billet aluminum 6-stage adjustable clutch/brake levers, rearsets and master cylinders.",
-      productCount: 32,
-      featuredProduct: "6-Stage Adjustable Billet Levers",
-      badge: "CNC Machined",
-      logoColor: "text-amber-400",
-      borderColor: "hover:border-amber-500",
-      image: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: "motul",
-      name: "Motul",
-      slug: "motul",
-      country: "France",
-      flag: "🇫🇷",
-      category: "Additives & Oils",
-      description: "100% full synthetic 300V Factory Line & 7100 ESTER 4T motorcycle engine lubricants.",
-      productCount: 16,
-      featuredProduct: "7100 10W-40 4T Synthetic Oil",
-      badge: "Ester Technology",
-      logoColor: "text-purple-400",
-      borderColor: "hover:border-purple-500",
-      image: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: "brembo",
-      name: "Brembo",
-      slug: "brembo",
-      country: "Italy",
-      flag: "🇮🇹",
-      category: "Parts & Mods",
-      description: "High-friction sintered ceramic brake pads and floating stainless steel disc rotors.",
-      productCount: 20,
-      featuredProduct: "Sintered Road Brake Pads",
-      badge: "Track Proven",
-      logoColor: "text-red-500",
-      borderColor: "hover:border-red-600",
-      image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: "kn-filters",
-      name: "K&N Engineering",
-      slug: "kn-filters",
-      country: "USA",
-      flag: "🇺🇸",
-      category: "Parts & Mods",
-      description: "High-flow washable cotton gauze air filters for increased horsepower & torque.",
-      productCount: 10,
-      featuredProduct: "High-Flow Washable Air Filter",
-      badge: "Million Mile Warranty",
-      logoColor: "text-emerald-400",
-      borderColor: "hover:border-emerald-500",
-      image: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&q=80&w=600",
-    },
-  ];
+  const [dbBrands, setDbBrands] = useState<DBBrand[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const categories = [
-    { id: "all", label: "All Categories" },
-    { id: "Helmets", label: "Helmets" },
-    { id: "Parts & Mods", label: "Parts & Mods" },
-    { id: "Electronics", label: "Electronics" },
-    { id: "Additives & Oils", label: "Additives & Oils" },
-  ];
+  const loadBrands = React.useCallback(() => {
+    setIsLoading(true);
+    fetch("/api/brands")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) {
+          setDbBrands(j.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, []);
 
-  const filteredBrands = brands.filter((brand) => {
-    const matchesSearch =
-      brand.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      brand.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      brand.country.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || brand.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+  useEffect(() => {
+    loadBrands();
+    window.addEventListener("brand-updated", loadBrands);
+    return () => window.removeEventListener("brand-updated", loadBrands);
+  }, [loadBrands]);
+
+  const [dbCategories, setDbCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) setDbCategories(j.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const filteredBrands = dbBrands.filter((brand) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      brand.name.toLowerCase().includes(q) ||
+      (brand.country && brand.country.toLowerCase().includes(q)) ||
+      (brand.description && brand.description.toLowerCase().includes(q))
+    );
   });
 
   const bikeDisplayName = selectedBike
@@ -219,21 +119,33 @@ export default function BrandsPage() {
                 />
               </div>
 
-              <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
-                {categories.map((cat) => (
+              {dbCategories.length > 0 && (
+                <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
                   <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
+                    onClick={() => setSelectedCategory("all")}
                     className={`px-3 py-2 text-xs font-mono uppercase whitespace-nowrap border transition-all ${
-                      selectedCategory === cat.id
+                      selectedCategory === "all"
                         ? "bg-plate-yellow text-asphalt font-bold border-plate-yellow"
                         : "bg-asphalt text-steel hover:text-off-white border-asphalt-2"
                     }`}
                   >
-                    {cat.label}
+                    All Categories
                   </button>
-                ))}
-              </div>
+                  {dbCategories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.slug)}
+                      className={`px-3 py-2 text-xs font-mono uppercase whitespace-nowrap border transition-all ${
+                        selectedCategory === cat.slug
+                          ? "bg-plate-yellow text-asphalt font-bold border-plate-yellow"
+                          : "bg-asphalt text-steel hover:text-off-white border-asphalt-2"
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -260,52 +172,52 @@ export default function BrandsPage() {
               {filteredBrands.map((brand) => (
                 <Link
                   key={brand.id}
-                  href={`/search?brand=${encodeURIComponent(brand.name)}`}
-                  className={`group relative bg-asphalt-2 border border-asphalt-2 ${brand.borderColor} p-4 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg overflow-hidden min-h-[260px]`}
+                  href={`/shop?brand=${encodeURIComponent(brand.name)}`}
+                  className="group relative bg-asphalt-2 border border-steel/20 hover:border-plate-yellow p-5 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg overflow-hidden min-h-[240px]"
                 >
                   {/* Background Image Overlay */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 opacity-25 group-hover:opacity-40"
-                    style={{ backgroundImage: `url(${brand.image})` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-asphalt via-asphalt/90 to-asphalt/40 group-hover:via-asphalt/75 transition-colors" />
+                  {brand.logoUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-center opacity-15 group-hover:opacity-25 transition-opacity duration-500"
+                      style={{ backgroundImage: `url(${brand.logoUrl})` }}
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-asphalt via-asphalt/90 to-asphalt/50" />
 
-                  {/* Header: Flag & Badge */}
+                  {/* Header: Flag & Country */}
                   <div className="relative z-10 space-y-3">
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1.5 bg-asphalt/90 px-2 py-0.5 border border-asphalt-2 text-xs">
-                        <span>{brand.flag}</span>
-                        <span className="font-mono text-steel text-[11px]">{brand.country}</span>
+                      <div className="flex items-center gap-1.5 bg-asphalt/90 px-2 py-0.5 border border-steel/20 text-xs">
+                        <span>{brand.flag || "🌐"}</span>
+                        <span className="font-mono text-steel text-[11px]">{brand.country || "Global Brand"}</span>
                       </div>
-                      <span className="text-[10px] font-mono uppercase bg-asphalt/90 text-steel px-2 py-0.5 border border-steel/20">
-                        {brand.badge}
-                      </span>
+                      {brand.isFeatured && (
+                        <span className="text-[10px] font-mono font-bold uppercase bg-plate-yellow/20 text-plate-yellow px-2 py-0.5 border border-plate-yellow/40">
+                          Partner Brand
+                        </span>
+                      )}
                     </div>
 
-                    {/* Brand Name & Category */}
+                    {/* Brand Name & Description */}
                     <div>
                       <h2 className="display-font text-2xl font-extrabold uppercase text-off-white group-hover:text-plate-yellow transition-colors flex items-center justify-between">
                         <span>{brand.name}</span>
                         <ArrowRight className="w-5 h-5 text-steel group-hover:text-plate-yellow group-hover:translate-x-1 transition-all shrink-0 ml-1" />
                       </h2>
-                      <span className="text-xs font-mono text-steel uppercase tracking-wider block mt-0.5">
-                        {brand.category}
-                      </span>
-                      <p className="text-xs text-steel mt-2 font-light leading-relaxed line-clamp-2">
-                        {brand.description}
+                      <p className="text-xs text-steel mt-2 font-light leading-relaxed line-clamp-3">
+                        {brand.description || `Genuine ${brand.name} products available with full manufacturer warranty.`}
                       </p>
                     </div>
                   </div>
 
-                  {/* Footer: Featured Item & Count */}
-                  <div className="relative z-10 mt-6 pt-3 border-t border-asphalt-2 space-y-2">
-                    <div className="text-[11px] text-steel">
-                      <span className="text-steel-light font-medium">Featured:</span>{" "}
-                      <span className="text-off-white">{brand.featuredProduct}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs font-mono text-plate-yellow font-bold">
-                      <span>View Products →</span>
-                    </div>
+                  {/* Footer: Product Count & Action */}
+                  <div className="relative z-10 mt-6 pt-3 border-t border-steel/20 flex items-center justify-between text-xs font-mono">
+                    <span className="text-steel">
+                      <span className="text-plate-yellow font-bold">{brand.productCount || 0}</span> products listed
+                    </span>
+                    <span className="text-plate-yellow font-bold group-hover:underline">
+                      Shop Brand →
+                    </span>
                   </div>
                 </Link>
               ))}

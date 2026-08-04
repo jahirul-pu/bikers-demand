@@ -15,6 +15,7 @@ import {
   BarChart2,
   Lock,
   FolderTree,
+  Award,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -28,6 +29,7 @@ export default function AdminLayout({
     { label: "Dashboard Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Products & Inventory", href: "/admin/products", icon: Package },
     { label: "Category Manager", href: "/admin/categories", icon: FolderTree },
+    { label: "Brand Directory", href: "/admin/brands", icon: Award },
     { label: "Bike Registry Matrix", href: "/admin/bikes", icon: Bike },
     { label: "Orders & Pipeline", href: "/admin/orders", icon: ShoppingBag },
     { label: "Evidence Claims Queue", href: "/admin/claims", icon: ShieldAlert },
