@@ -7,6 +7,7 @@ import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<DBCoupon[]>([]);
+  const [dbCategoriesList, setDbCategoriesList] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<DBCoupon | null>(null);
 
@@ -15,7 +16,7 @@ export default function AdminCouponsPage() {
   const [discountType, setDiscountType] = useState<"FLAT" | "PERCENTAGE">("FLAT");
   const [discountValue, setDiscountValue] = useState<number | "">(500);
   const [minOrder, setMinOrder] = useState<number | "">(3000);
-  const [categoryTarget, setCategoryTarget] = useState<"ALL" | "helmets" | "parts-mods" | "electronics" | "additives" | "riding-gear">("ALL");
+  const [categoryTarget, setCategoryTarget] = useState<string>("ALL");
   const [isActive, setIsActive] = useState(true);
 
   // Confirm Modal State
@@ -33,8 +34,22 @@ export default function AdminCouponsPage() {
     }
   };
 
+  const loadDbCategories = () => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) {
+          setDbCategoriesList(j.data);
+        }
+      })
+      .catch(() => {});
+  };
+
   useEffect(() => {
     loadCoupons();
+    loadDbCategories();
+    window.addEventListener("category-updated", loadDbCategories);
+    return () => window.removeEventListener("category-updated", loadDbCategories);
   }, []);
 
   const handleOpenAddModal = () => {
@@ -100,28 +115,60 @@ export default function AdminCouponsPage() {
   };
 
   const handleToggleActive = async (coupon: DBCoupon) => {
+    const updatedStatus = !coupon.isActive;
+
+    // Optimistically update UI
+    setCoupons((prev) =>
+      prev.map((c) => (c.id === coupon.id ? { ...c, isActive: updatedStatus } : c))
+    );
+
     try {
-      await fetch("/api/coupons", {
+      const res = await fetch("/api/coupons", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: coupon.id, isActive: !coupon.isActive }),
+        body: JSON.stringify({
+          id: coupon.id,
+          code: coupon.code,
+          discountType: coupon.discountType,
+          discountValue: coupon.discountValue,
+          minOrder: coupon.minOrder,
+          categoryTarget: coupon.categoryTarget,
+          isActive: updatedStatus,
+        }),
       });
-      await loadCoupons();
+      const json = await res.json();
+      if (!json.success) {
+        // Revert on failure
+        setCoupons((prev) =>
+          prev.map((c) => (c.id === coupon.id ? { ...c, isActive: coupon.isActive } : c))
+        );
+      } else {
+        await loadCoupons();
+      }
     } catch (e) {
       console.error("API error toggling coupon active status:", e);
+      setCoupons((prev) =>
+        prev.map((c) => (c.id === coupon.id ? { ...c, isActive: coupon.isActive } : c))
+      );
     }
   };
 
   const handleDeleteCoupon = async () => {
     if (!deleteConfirmId) return;
+    const targetId = deleteConfirmId;
+
+    // Optimistically update UI
+    setCoupons((prev) => prev.filter((c) => c.id !== targetId));
+    setDeleteConfirmId(null);
+
     try {
-      await fetch(`/api/coupons?id=${deleteConfirmId}`, {
+      await fetch(`/api/coupons?id=${targetId}`, {
         method: "DELETE",
       });
-      setDeleteConfirmId(null);
       await loadCoupons();
     } catch (e) {
       console.error("API error deleting coupon:", e);
+      await loadCoupons();
     }
   };
 
@@ -179,9 +226,15 @@ export default function AdminCouponsPage() {
                   </td>
 
                   <td className="p-3 font-bold text-off-white">
-                    {c.discountType === "FLAT"
-                      ? `৳${c.discountValue.toLocaleString("en-BD")} Flat Off`
-                      : `${c.discountValue}% Percentage Off`}
+                    {c.discountType === "FLAT" ? (
+                      <span className="bg-plate-yellow/10 text-plate-yellow border border-plate-yellow/30 px-2 py-1 text-[11px] font-bold">
+                        ৳{c.discountValue.toLocaleString("en-BD")} FLAT OFF
+                      </span>
+                    ) : (
+                      <span className="bg-ignition-red/10 text-ignition-red border border-ignition-red/30 px-2 py-1 text-[11px] font-bold">
+                        {c.discountValue}% PERCENTAGE OFF
+                      </span>
+                    )}
                   </td>
 
                   <td className="p-3 text-steel font-bold">
@@ -190,27 +243,31 @@ export default function AdminCouponsPage() {
 
                   <td className="p-3">
                     <span className="bg-asphalt-2 border border-steel/30 px-2 py-0.5 text-[10px] text-steel uppercase font-mono">
-                      {c.categoryTarget === "ALL" ? "All Categories" : c.categoryTarget}
+                      {c.categoryTarget === "ALL"
+                        ? "All Categories"
+                        : dbCategoriesList.find((cat) => cat.slug === c.categoryTarget)?.name || c.categoryTarget}
                     </span>
                   </td>
 
                   <td className="p-3">
                     <button
+                      type="button"
                       onClick={() => handleToggleActive(c)}
-                      className={`px-2.5 py-1 text-[10px] font-bold border font-mono uppercase flex items-center gap-1 cursor-pointer transition-all ${
+                      title={`Click to ${c.isActive ? "deactivate" : "activate"} coupon`}
+                      className={`px-3 py-1 text-[11px] font-bold border font-mono uppercase flex items-center gap-1.5 cursor-pointer transition-all rounded-xs ${
                         c.isActive
-                          ? "bg-asphalt-2 text-plate-yellow border-plate-yellow/40 hover:bg-plate-yellow/10"
-                          : "bg-asphalt-2 text-steel/60 border-steel/20 hover:text-steel"
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                          : "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
                       }`}
                     >
                       {c.isActive ? (
                         <>
-                          <CheckCircle className="w-3 h-3" />
+                          <CheckCircle className="w-3.5 h-3.5" />
                           <span>Active</span>
                         </>
                       ) : (
                         <>
-                          <XCircle className="w-3 h-3" />
+                          <XCircle className="w-3.5 h-3.5" />
                           <span>Inactive</span>
                         </>
                       )}
@@ -260,45 +317,79 @@ export default function AdminCouponsPage() {
             <form onSubmit={handleSaveCoupon} className="space-y-4">
               <div>
                 <label className="text-steel uppercase text-[10px] block font-bold mb-1">
-                  Coupon Code
+                  Coupon Code *
                 </label>
                 <input
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  placeholder="e.g. BIKERS500, SUMMER2026"
+                  placeholder="e.g. BIKERS500, SUMMER20"
                   required
                   className="w-full bg-asphalt border border-steel/30 p-2 text-off-white font-mono uppercase text-xs focus:border-plate-yellow focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-steel uppercase text-[10px] block font-bold mb-1">
-                    Discount Type
-                  </label>
-                  <select
-                    value={discountType}
-                    onChange={(e) => setDiscountType(e.target.value as "FLAT" | "PERCENTAGE")}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white font-mono text-xs focus:border-plate-yellow focus:outline-none"
+              {/* Discount Type Selector */}
+              <div>
+                <label className="text-steel uppercase text-[10px] block font-bold mb-1.5">
+                  Select Discount Type *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiscountType("FLAT");
+                      if (typeof discountValue === "number" && discountValue <= 100) {
+                        setDiscountValue(500);
+                      }
+                    }}
+                    className={`py-2 px-3 text-xs font-bold font-mono border uppercase transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                      discountType === "FLAT"
+                        ? "bg-plate-yellow text-asphalt border-plate-yellow font-extrabold"
+                        : "bg-asphalt text-steel border-steel/30 hover:text-off-white"
+                    }`}
                   >
-                    <option value="FLAT">Flat Amount (৳)</option>
-                    <option value="PERCENTAGE">Percentage (%)</option>
-                  </select>
-                </div>
+                    <span>Flat Amount (৳)</span>
+                  </button>
 
-                <div>
-                  <label className="text-steel uppercase text-[10px] block font-bold mb-1">
-                    Discount Value {discountType === "FLAT" ? "(৳)" : "(%)"}
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiscountType("PERCENTAGE");
+                      if (typeof discountValue === "number" && discountValue > 100) {
+                        setDiscountValue(15);
+                      }
+                    }}
+                    className={`py-2 px-3 text-xs font-bold font-mono border uppercase transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                      discountType === "PERCENTAGE"
+                        ? "bg-ignition-red text-asphalt border-ignition-red font-extrabold"
+                        : "bg-asphalt text-steel border-steel/30 hover:text-off-white"
+                    }`}
+                  >
+                    <span>Percentage (%)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Discount Value */}
+              <div>
+                <label className="text-steel uppercase text-[10px] block font-bold mb-1">
+                  Discount Value {discountType === "FLAT" ? "(Amount in BDT ৳)" : "(Percentage %)"} *
+                </label>
+                <div className="relative">
                   <input
                     type="number"
                     min="1"
+                    max={discountType === "PERCENTAGE" ? 100 : undefined}
                     value={discountValue}
                     onChange={(e) => setDiscountValue(e.target.value === "" ? "" : Number(e.target.value))}
+                    placeholder={discountType === "FLAT" ? "e.g. 500" : "e.g. 15 (for 15% off)"}
                     required
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white font-mono text-xs focus:border-plate-yellow focus:outline-none"
+                    className="w-full bg-asphalt border border-steel/30 p-2.5 text-off-white font-mono text-xs focus:border-plate-yellow focus:outline-none font-bold"
                   />
+                  <span className="absolute right-3 top-2.5 font-mono text-xs text-steel font-bold">
+                    {discountType === "FLAT" ? "BDT ৳" : "% OFF"}
+                  </span>
                 </div>
               </div>
 
@@ -323,15 +414,15 @@ export default function AdminCouponsPage() {
                   </label>
                   <select
                     value={categoryTarget}
-                    onChange={(e) => setCategoryTarget(e.target.value as any)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white font-mono text-xs focus:border-plate-yellow focus:outline-none"
+                    onChange={(e) => setCategoryTarget(e.target.value)}
+                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white font-mono text-xs focus:border-plate-yellow focus:outline-none cursor-pointer"
                   >
                     <option value="ALL">All Categories</option>
-                    <option value="helmets">Helmets</option>
-                    <option value="parts-mods">Parts & Mods</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="additives">Additives & Oils</option>
-                    <option value="riding-gear">Riding Gear</option>
+                    {dbCategoriesList.map((cat) => (
+                      <option key={cat.id} value={cat.slug}>
+                        {cat.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -382,3 +473,4 @@ export default function AdminCouponsPage() {
     </div>
   );
 }
+

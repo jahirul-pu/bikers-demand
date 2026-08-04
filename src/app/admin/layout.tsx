@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 import {
   LayoutDashboard,
   Package,
@@ -38,7 +37,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen flex flex-col bg-asphalt text-off-white">
       <div className="no-print">
-        <Header />
+        <Header isAdmin={true} />
       </div>
 
       {/* Admin Top Bar */}
@@ -55,13 +54,13 @@ export default function AdminLayout({
       <main className="flex-grow max-w-[1700px] mx-auto px-2 sm:px-3 lg:px-4 py-4 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
           {/* Admin Sidebar Navigation */}
-          <aside className="lg:col-span-2 space-y-3 no-print">
-            <div className="bg-asphalt-2 p-3 border border-asphalt-2">
-              <h3 className="font-mono text-xs text-plate-yellow font-bold uppercase border-b border-asphalt pb-2 mb-2">
+          <aside className="lg:col-span-3 space-y-3 no-print">
+            <div className="bg-asphalt-2 p-4 border border-asphalt-2">
+              <h3 className="font-mono text-sm text-plate-yellow font-bold uppercase border-b border-asphalt pb-2.5 mb-3 tracking-wider">
                 MANAGEMENT MENU
               </h3>
 
-              <nav className="space-y-1 font-mono text-xs">
+              <nav className="space-y-1.5 font-mono text-sm">
                 {adminNav.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -69,13 +68,13 @@ export default function AdminLayout({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-2 py-2 px-2.5 border-l-2 transition-all text-[11px] ${
+                      className={`flex items-center gap-3 py-3 px-3.5 border-l-3 transition-all ${
                         isActive
-                          ? "bg-asphalt border-ignition-red text-off-white font-bold"
-                          : "border-transparent text-steel hover:text-off-white hover:bg-asphalt/50"
+                          ? "bg-asphalt border-ignition-red text-off-white font-extrabold"
+                          : "border-transparent text-steel hover:text-off-white hover:bg-asphalt/50 font-semibold"
                       }`}
                     >
-                      <Icon className={`w-3.5 h-3.5 ${isActive ? "text-ignition-red" : "text-steel"}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-ignition-red" : "text-steel"}`} />
                       <span className="truncate">{item.label}</span>
                     </Link>
                   );
@@ -85,15 +84,12 @@ export default function AdminLayout({
           </aside>
 
           {/* Admin Content View */}
-          <div className="lg:col-span-10 bg-asphalt-2 p-3 sm:p-4 border border-asphalt-2">
+          <div className="lg:col-span-9 bg-asphalt-2 p-3 sm:p-5 border border-asphalt-2">
             {children}
           </div>
         </div>
       </main>
-
-      <div className="no-print">
-        <Footer />
-      </div>
     </div>
   );
 }
+

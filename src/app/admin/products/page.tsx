@@ -110,6 +110,7 @@ export default function AdminProductsPage() {
   const [newBrand, setNewBrand] = useState("");
   const [newPrice, setNewPrice] = useState(0);
   const [newComparePrice, setNewComparePrice] = useState<number | "">("");
+  const [newDiscountPercent, setNewDiscountPercent] = useState<number | "">("");
   const [newStockQty, setNewStockQty] = useState(10);
   const [newStockStatus, setNewStockStatus] = useState<"in-stock" | "out-of-stock">("in-stock");
   const [newCategory, setNewCategory] = useState<DBProduct["category"]>("riding-gear");
@@ -120,6 +121,35 @@ export default function AdminProductsPage() {
   const [imageSourceMode, setImageSourceMode] = useState<"url" | "file">("url");
   const [imageUrl, setImageUrl] = useState("");
 
+  const handlePriceChange = (priceVal: number) => {
+    setNewPrice(priceVal);
+    if (newComparePrice && typeof newComparePrice === "number" && newComparePrice > priceVal) {
+      const pct = Math.round(((newComparePrice - priceVal) / newComparePrice) * 100);
+      setNewDiscountPercent(pct > 0 ? pct : "");
+    }
+  };
+
+  const handleComparePriceChange = (compVal: number | "") => {
+    setNewComparePrice(compVal);
+    if (compVal && typeof compVal === "number") {
+      if (newDiscountPercent && typeof newDiscountPercent === "number") {
+        const calculatedPrice = Math.round(compVal * (1 - newDiscountPercent / 100));
+        setNewPrice(calculatedPrice);
+      } else if (newPrice > 0 && compVal > newPrice) {
+        const pct = Math.round(((compVal - newPrice) / compVal) * 100);
+        setNewDiscountPercent(pct > 0 ? pct : "");
+      }
+    }
+  };
+
+  const handleDiscountPercentChange = (pctVal: number | "") => {
+    setNewDiscountPercent(pctVal);
+    if (pctVal !== "" && typeof pctVal === "number" && newComparePrice && typeof newComparePrice === "number") {
+      const calculatedPrice = Math.round(newComparePrice * (1 - pctVal / 100));
+      setNewPrice(calculatedPrice);
+    }
+  };
+
   const handleOpenAddModal = () => {
     setEditingProduct(null);
     setNewName("");
@@ -127,6 +157,7 @@ export default function AdminProductsPage() {
     setNewSku("");
     setNewPrice(0);
     setNewComparePrice("");
+    setNewDiscountPercent("");
     setNewStockQty(10);
     setNewStockStatus("in-stock");
     setNewCategory(dbCategoriesList[0]?.slug || "riding-gear");
@@ -146,6 +177,11 @@ export default function AdminProductsPage() {
     setNewSku(p.sku);
     setNewPrice(p.price);
     setNewComparePrice(p.originalPrice || "");
+    if (p.originalPrice && p.originalPrice > p.price) {
+      setNewDiscountPercent(Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100));
+    } else {
+      setNewDiscountPercent("");
+    }
     setNewStockQty(p.stockQty);
     setNewStockStatus(p.stockStatus === "out-of-stock" || p.stockQty <= 0 ? "out-of-stock" : "in-stock");
     setNewCategory(p.category || "riding-gear");
@@ -335,15 +371,13 @@ export default function AdminProductsPage() {
               <th className="p-3">Category</th>
               <th className="p-3">Price</th>
               <th className="p-3">Stock Status</th>
-              <th className="p-3">Warranty</th>
-              <th className="p-3">Certification</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-asphalt-2">
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-steel font-mono">
+                <td colSpan={6} className="p-8 text-center text-steel font-mono">
                   No products found matching your filter criteria.
                 </td>
               </tr>
@@ -386,12 +420,6 @@ export default function AdminProductsPage() {
                       ? "Out of Stock"
                       : `In Stock (${product.stockQty})`}
                   </span>
-                </td>
-                <td className="p-3 font-mono text-steel">
-                  {product.warranty || "No Warranty"}
-                </td>
-                <td className="p-3 font-mono text-steel">
-                  {product.certification || "Standard"}
                 </td>
                 <td className="p-3 text-right">
                   <button
@@ -539,29 +567,41 @@ export default function AdminProductsPage() {
               {/* Pricing & Stock Management */}
               <div className="space-y-4 bg-asphalt p-4 border border-asphalt-2">
                 <h3 className="text-plate-yellow font-bold uppercase tracking-wider text-xs border-b border-asphalt-2 pb-1.5">
-                  2. Pricing, Inventory & Warranty
+                  2. Pricing, Inventory & Discount
                 </h3>
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                  <div>
+                    <label className="text-steel block font-bold">Regular Price (BDT)</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 10500"
+                      value={newComparePrice}
+                      onChange={(e) => handleComparePriceChange(e.target.value === "" ? "" : Number(e.target.value))}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white placeholder-steel/50 font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-plate-yellow block font-bold">Discount (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="e.g. 15"
+                      value={newDiscountPercent}
+                      onChange={(e) => handleDiscountPercentChange(e.target.value === "" ? "" : Number(e.target.value))}
+                      className="w-full bg-asphalt-2 border border-plate-yellow/40 p-2.5 text-plate-yellow placeholder-steel/50 font-bold"
+                    />
+                  </div>
                   <div>
                     <label className="text-steel block font-bold">Selling Price (BDT) *</label>
                     <input
                       type="number"
                       required
-                      placeholder="e.g. 9800"
+                      placeholder="e.g. 8925"
                       value={newPrice}
-                      onChange={(e) => setNewPrice(Number(e.target.value))}
+                      onChange={(e) => handlePriceChange(Number(e.target.value))}
                       className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-steel block font-bold">Regular Price (BDT)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 10500 (For Strikethrough)"
-                      value={newComparePrice}
-                      onChange={(e) => setNewComparePrice(e.target.value === "" ? "" : Number(e.target.value))}
-                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white placeholder-steel/50"
                     />
                   </div>
                   <div>

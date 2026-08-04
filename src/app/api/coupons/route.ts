@@ -1,53 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const DEFAULT_COUPONS = [
-  {
-    id: "cp-1",
-    code: "BIKERS500",
-    discountType: "FLAT",
-    discountValue: 500,
-    minOrder: 3000,
-    categoryTarget: "ALL",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cp-2",
-    code: "RIDER10",
-    discountType: "PERCENTAGE",
-    discountValue: 10,
-    minOrder: 2000,
-    categoryTarget: "ALL",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cp-3",
-    code: "GEAR15",
-    discountType: "PERCENTAGE",
-    discountValue: 15,
-    minOrder: 4000,
-    categoryTarget: "riding-gear",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-  },
-];
-
 export async function GET() {
   try {
     const coupons = await prisma.coupon.findMany({
       orderBy: { createdAt: "desc" },
     });
 
-    if (coupons.length === 0) {
-      return NextResponse.json({ success: true, data: DEFAULT_COUPONS });
-    }
-
     return NextResponse.json({ success: true, data: coupons });
   } catch (error) {
-    console.warn("Error fetching coupons from DB:", error);
-    return NextResponse.json({ success: true, data: DEFAULT_COUPONS });
+    console.error("Error fetching coupons from DB:", error);
+    return NextResponse.json({ success: false, error: "Failed to fetch coupons" }, { status: 500 });
   }
 }
 
@@ -121,9 +84,13 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, error: "Coupon ID is required" }, { status: 400 });
     }
 
-    await prisma.coupon.delete({
-      where: { id },
-    });
+    try {
+      await prisma.coupon.delete({
+        where: { id },
+      });
+    } catch {
+      // Already deleted or not found in DB
+    }
 
     return NextResponse.json({ success: true, message: "Coupon deleted" });
   } catch (error: any) {
@@ -134,3 +101,4 @@ export async function DELETE(req: Request) {
     );
   }
 }
+

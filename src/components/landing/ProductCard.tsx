@@ -238,10 +238,15 @@ export default function ProductCard({
             <span className="display-font text-xl font-extrabold text-off-white">
               {product.price.toLocaleString("en-BD")}
             </span>
-            {product.originalPrice && (
-              <span className="text-xs text-steel line-through ml-1.5">
-                Tk {product.originalPrice.toLocaleString("en-BD")}
-              </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <>
+                <span className="text-xs text-steel line-through ml-1.5">
+                  Tk {product.originalPrice.toLocaleString("en-BD")}
+                </span>
+                <span className="ml-1.5 text-[10px] font-mono font-extrabold bg-ignition-red text-asphalt px-1 py-0.5">
+                  -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                </span>
+              </>
             )}
           </div>
 
