@@ -29,7 +29,10 @@ type StockFilter = "all" | "in-stock" | "low-stock";
 
 const CATEGORIES = [
   { id: "all", label: "All Categories" },
+  { id: "helmets", label: "Helmets" },
   { id: "riding-gear", label: "Riding Gear" },
+  { id: "parts", label: "Parts" },
+  { id: "accessories", label: "Accessories" },
   { id: "parts-mods", label: "Parts & Mods" },
   { id: "electronics", label: "Electronics" },
   { id: "additives", label: "Additives & Oils" },

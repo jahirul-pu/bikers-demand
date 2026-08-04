@@ -59,12 +59,19 @@ export default function Navigation({
       { title: "Knee & Elbow Guards", href: "/category/riding-gear?sub=protection" },
       { title: "Rain Gear & Base Layers", href: "/category/riding-gear?sub=rain-gear" },
     ],
-    "parts-mods": [
-      { title: "Exhaust Systems & Slip-Ons", href: "/category/parts-mods?sub=exhausts" },
-      { title: "High-Flow Air Filters", href: "/category/parts-mods?sub=filters" },
-      { title: "Brake Pads & Rotors", href: "/category/parts-mods?sub=brakes" },
-      { title: "Chains & Sprocket Kits", href: "/category/parts-mods?sub=drivetrain" },
-      { title: "Handlebars & CNC Levers", href: "/category/parts-mods?sub=controls" },
+    parts: [
+      { title: "Exhaust Systems & Slip-Ons", href: "/category/parts?sub=exhausts" },
+      { title: "High-Flow Air Filters", href: "/category/parts?sub=filters" },
+      { title: "Brake Pads & Rotors", href: "/category/parts?sub=brakes" },
+      { title: "Chains & Sprocket Kits", href: "/category/parts?sub=drivetrain" },
+      { title: "Handlebars & CNC Levers", href: "/category/parts?sub=controls" },
+    ],
+    accessories: [
+      { title: "Mobile Holders & Chargers", href: "/category/accessories?sub=holders" },
+      { title: "Bike Covers & Security Locks", href: "/category/accessories?sub=covers" },
+      { title: "Crash Guards & Frame Sliders", href: "/category/accessories?sub=guards" },
+      { title: "Panniers & Saddlebags", href: "/category/accessories?sub=luggage" },
+      { title: "Decals & Keychains", href: "/category/accessories?sub=decals" },
     ],
     electronics: [
       { title: "Bluetooth Intercoms", href: "/category/electronics?sub=intercoms" },
@@ -85,7 +92,8 @@ export default function Navigation({
   const navItems = [
     { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
     { name: "Helmets", icon: HelmetIcon, id: "helmets", href: "/category/helmets" },
-    { name: "Parts & Mods", icon: Wrench, id: "parts-mods", href: "/category/parts-mods" },
+    { name: "Parts", icon: Wrench, id: "parts", href: "/category/parts" },
+    { name: "Accessories", icon: Shield, id: "accessories", href: "/category/accessories" },
     { name: "Electronics", icon: Zap, id: "electronics", href: "/category/electronics" },
     { name: "Additives & Oils", icon: Droplet, id: "additives", href: "/category/additives" },
     { name: "Riding Gear", icon: Shirt, id: "riding-gear", href: "/category/riding-gear" },

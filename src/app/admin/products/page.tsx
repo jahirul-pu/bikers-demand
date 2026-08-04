@@ -268,6 +268,8 @@ export default function AdminProductsPage() {
             <option value="all">Category: All ({products.length})</option>
             <option value="helmets">Helmets ({products.filter(p => p.category === "helmets").length})</option>
             <option value="riding-gear">Riding Gear ({products.filter(p => p.category === "riding-gear").length})</option>
+            <option value="parts">Parts ({products.filter(p => p.category === "parts").length})</option>
+            <option value="accessories">Accessories ({products.filter(p => p.category === "accessories").length})</option>
             <option value="parts-mods">Parts & Mods ({products.filter(p => p.category === "parts-mods").length})</option>
             <option value="electronics">Electronics ({products.filter(p => p.category === "electronics").length})</option>
             <option value="additives">Additives & Oils ({products.filter(p => p.category === "additives").length})</option>
@@ -446,7 +448,9 @@ export default function AdminProductsPage() {
                     >
                       <option value="helmets">Helmets</option>
                       <option value="riding-gear">Riding Gear</option>
-                      <option value="parts-mods">Parts & Mods</option>
+                      <option value="parts">Parts</option>
+                      <option value="accessories">Accessories</option>
+                      <option value="parts-mods">Parts & Mods (Legacy)</option>
                       <option value="electronics">Electronics</option>
                       <option value="additives">Additives & Oils</option>
                     </select>

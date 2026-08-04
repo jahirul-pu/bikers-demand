@@ -41,13 +41,21 @@ export default function CategoryPage() {
       title: "Riding Gear & Protection",
       desc: "CE Level 1 & Level 2 armored jackets, racing gloves, riding boots & rain suits.",
     },
+    parts: {
+      title: "Motorcycle Parts",
+      desc: "Performance exhausts, high-flow air filters, brake pads, chains & sprocket kits.",
+    },
+    accessories: {
+      title: "Rider & Bike Accessories",
+      desc: "Mobile holders, bike covers, crash guards, frame sliders & pannier bags.",
+    },
     "parts-mods": {
       title: "Parts & Mods",
       desc: "Model-specific exhausts, CNC levers, chain & sprocket kits, brake pads & body fairings.",
     },
     electronics: {
-      title: "Electronics & Accessories",
-      desc: "High power LED fog lights, phone mounts, horns, GPS trackers, and battery chargers.",
+      title: "Electronics & Gadgets",
+      desc: "High power LED fog lights, intercoms, action camera mounts, GPS trackers, and chargers.",
     },
     additives: {
       title: "Additives & Engine Oils",
