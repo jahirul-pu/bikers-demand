@@ -22,6 +22,8 @@ export interface DBProduct {
   warranty?: string;
   description?: string;
   sizes?: string[];
+  specs?: Record<string, any>;
+  bikeModelIds?: string[];
   specifications?: string[];
 }
 

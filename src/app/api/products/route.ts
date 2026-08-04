@@ -24,7 +24,14 @@ export async function GET(request: NextRequest) {
 
     const products = await prisma.product.findMany({
       where,
-      include: { category: true },
+      include: {
+        category: true,
+        compatibilities: {
+          include: {
+            bikeModel: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -51,7 +58,25 @@ function mapCert(c?: string): "DOT" | "ECE_2206" | "ECE_2205" | "DOT_AND_ECE" | 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, brand, sku, price, comparePrice, stockQty, stockStatus, category, subCategory, imageUrl, certification, warranty, description, sizes } = body;
+    const {
+      name,
+      brand,
+      sku,
+      price,
+      comparePrice,
+      stockQty,
+      stockStatus,
+      category,
+      subCategory,
+      imageUrl,
+      certification,
+      warranty,
+      description,
+      sizes,
+      specs,
+      isUniversal,
+      bikeModelIds,
+    } = body;
 
     if (!name || !brand || !sku) {
       return NextResponse.json(
@@ -94,12 +119,21 @@ export async function POST(req: Request) {
         description: description || `Genuine ${brand} product.`,
         images: imageUrl ? [imageUrl] : [],
         sizes: Array.isArray(sizes) ? sizes : [],
+        specs: specs || null,
         certification: mapCert(certification),
-        isUniversal: true,
+        isUniversal: isUniversal !== undefined ? Boolean(isUniversal) : true,
         warrantyDuration: warranty || "No Warranty",
         warrantyFlag: !!(warranty && warranty !== "No Warranty"),
+        ...(Array.isArray(bikeModelIds) && bikeModelIds.length > 0 && {
+          compatibilities: {
+            create: bikeModelIds.map((bId: string) => ({ bikeModelId: bId })),
+          },
+        }),
       },
-      include: { category: true },
+      include: {
+        category: true,
+        compatibilities: { include: { bikeModel: true } },
+      },
     });
 
     return NextResponse.json({ success: true, data: created });
@@ -115,7 +149,26 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, name, brand, sku, price, comparePrice, stockQty, stockStatus, category, subCategory, imageUrl, certification, warranty, description, sizes } = body;
+    const {
+      id,
+      name,
+      brand,
+      sku,
+      price,
+      comparePrice,
+      stockQty,
+      stockStatus,
+      category,
+      subCategory,
+      imageUrl,
+      certification,
+      warranty,
+      description,
+      sizes,
+      specs,
+      isUniversal,
+      bikeModelIds,
+    } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: "Product ID required" }, { status: 400 });
@@ -145,6 +198,8 @@ export async function PATCH(req: Request) {
       ...(description !== undefined && { description }),
       ...(imageUrl && { images: [imageUrl] }),
       ...(sizes && Array.isArray(sizes) && { sizes }),
+      ...(specs !== undefined && { specs: specs || null }),
+      ...(isUniversal !== undefined && { isUniversal: Boolean(isUniversal) }),
       ...(certification !== undefined && { certification: mapCert(certification) }),
       ...(warranty !== undefined && {
         warrantyDuration: warranty,
@@ -161,8 +216,20 @@ export async function PATCH(req: Request) {
     const updated = await prisma.product.update({
       where: { id },
       data: updatedData,
-      include: { category: true },
+      include: {
+        category: true,
+        compatibilities: { include: { bikeModel: true } },
+      },
     });
+
+    if (Array.isArray(bikeModelIds)) {
+      await prisma.productCompatibility.deleteMany({ where: { productId: id } });
+      if (bikeModelIds.length > 0) {
+        await prisma.productCompatibility.createMany({
+          data: bikeModelIds.map((bId: string) => ({ productId: id, bikeModelId: bId })),
+        });
+      }
+    }
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {

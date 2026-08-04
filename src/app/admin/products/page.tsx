@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check, Trash2, Search, Filter } from "lucide-react";
 import { DBProduct } from "@/types/db";
 import ConfirmModal from "@/components/common/ConfirmModal";
+import { CATEGORY_SPECS, getCategorySpec, SpecFieldDef } from "@/lib/categorySpecs";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<DBProduct[]>([]);
@@ -31,6 +32,9 @@ export default function AdminProductsPage() {
           certification: p.certification !== "NONE" ? p.certification : undefined,
           warranty: p.warrantyDuration || (p.warrantyFlag ? "1 Year Warranty" : "No Warranty"),
           sizes: p.sizes || [],
+          specs: p.specs || {},
+          isUniversal: p.isUniversal ?? true,
+          bikeModelIds: p.compatibilities?.map((c: any) => c.bikeModelId) || [],
           description: p.description,
         }));
         setProducts(mapped);
@@ -44,6 +48,7 @@ export default function AdminProductsPage() {
 
   const [dbCategoriesList, setDbCategoriesList] = useState<{ id: string; name: string; slug: string; children?: { id: string; name: string; slug: string }[] }[]>([]);
   const [dbBrandsList, setDbBrandsList] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [dbBikeModels, setDbBikeModels] = useState<any[]>([]);
   const [newSubCategory, setNewSubCategory] = useState("");
 
   const loadDbCategories = useCallback(() => {
@@ -68,17 +73,31 @@ export default function AdminProductsPage() {
       .catch(() => {});
   }, []);
 
+  const loadDbBikes = useCallback(() => {
+    fetch("/api/bikes")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data?.raw)) {
+          setDbBikeModels(j.data.raw);
+        } else if (j.success && Array.isArray(j.data)) {
+          setDbBikeModels(j.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchProducts();
     loadDbCategories();
     loadDbBrands();
+    loadDbBikes();
     window.addEventListener("category-updated", loadDbCategories);
     window.addEventListener("brand-updated", loadDbBrands);
     return () => {
       window.removeEventListener("category-updated", loadDbCategories);
       window.removeEventListener("brand-updated", loadDbBrands);
     };
-  }, [loadDbCategories, loadDbBrands]);
+  }, [loadDbCategories, loadDbBrands, loadDbBikes]);
 
   const [editingProduct, setEditingProduct] = useState<DBProduct | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -117,6 +136,9 @@ export default function AdminProductsPage() {
   const [newCertification, setNewCertification] = useState("ECE 22.06 / DOT");
   const [newWarranty, setNewWarranty] = useState("1 Year Warranty");
   const [newSizes, setNewSizes] = useState<string[]>(["M", "L", "XL"]);
+  const [newSpecs, setNewSpecs] = useState<Record<string, any>>({});
+  const [newIsUniversal, setNewIsUniversal] = useState<boolean>(true);
+  const [newBikeModelIds, setNewBikeModelIds] = useState<string[]>([]);
   const [newCustomSpecs, setNewCustomSpecs] = useState("");
   const [imageSourceMode, setImageSourceMode] = useState<"url" | "file">("url");
   const [imageUrl, setImageUrl] = useState("");
@@ -160,11 +182,15 @@ export default function AdminProductsPage() {
     setNewDiscountPercent("");
     setNewStockQty(10);
     setNewStockStatus("in-stock");
-    setNewCategory(dbCategoriesList[0]?.slug || "riding-gear");
+    const firstCat = dbCategoriesList[0]?.slug || "riding-gear";
+    setNewCategory(firstCat);
     setNewSubCategory("");
     setNewCertification("ECE 22.06 / DOT");
     setNewWarranty("1 Year Warranty");
     setNewSizes(["M", "L", "XL"]);
+    setNewSpecs({});
+    setNewIsUniversal(true);
+    setNewBikeModelIds([]);
     setNewCustomSpecs("");
     setImageUrl("");
     setShowAddModal(true);
@@ -189,6 +215,9 @@ export default function AdminProductsPage() {
     setNewCertification(p.certification || "ECE 22.06 / DOT");
     setNewWarranty(p.warranty || "No Warranty");
     setNewSizes(p.sizes || ["M", "L", "XL"]);
+    setNewSpecs(p.specs || {});
+    setNewIsUniversal(p.isUniversal ?? true);
+    setNewBikeModelIds(p.bikeModelIds || []);
     setNewCustomSpecs(p.description || "");
     setImageUrl(p.imageUrl || "");
     setShowAddModal(true);
@@ -245,7 +274,10 @@ export default function AdminProductsPage() {
       certification: newCertification,
       warranty: newWarranty,
       sizes: newSizes,
-      description: newCustomSpecs || `Genuine ${newBrand} motorcycle accessory. Certified for quality and performance.`,
+      specs: newSpecs,
+      isUniversal: newIsUniversal,
+      bikeModelIds: newIsUniversal ? [] : newBikeModelIds,
+      description: newCustomSpecs || `Genuine ${newBrand} motorcycle product. Certified for quality and performance.`,
     };
 
     try {
@@ -263,7 +295,15 @@ export default function AdminProductsPage() {
           body: JSON.stringify(prodPayload),
         });
       }
-      const data = await res.json();
+      let data: any = {};
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        data = { success: false, error: text || res.statusText };
+      }
+
       if (!res.ok || !data.success) {
         alert("Failed to save product: " + (data.error || "Unknown error"));
         return;
@@ -647,52 +687,165 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              {/* Helmet & Gear Specific Options */}
-              {(newCategory === "riding-gear" || newCategory === "helmets") && (
-                <div className="space-y-4 bg-asphalt p-4 border border-ignition-red/40">
-                  <h3 className="text-ignition-red font-bold uppercase tracking-wider text-xs border-b border-asphalt-2 pb-1.5">
-                    3. Safety Rating & Size Options
-                  </h3>
+              {/* Category-Specific Specifications */}
+              {(() => {
+                const activeSpec = getCategorySpec(newCategory);
+                if (!activeSpec) return null;
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-ignition-red font-bold block">
-                        Safety Certification Rating
-                      </label>
-                      <select
-                        value={newCertification}
-                        onChange={(e) => setNewCertification(e.target.value)}
-                        className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
-                      >
-                        <option value="ECE 22.06">ECE 22.06 (EU Standard)</option>
-                        <option value="DOT">DOT (US Standard)</option>
-                        <option value="ECE / DOT">ECE + DOT Dual Certified</option>
-                        <option value="CE Level 2">CE Level 2 Armor Rating</option>
-                        <option value="CE Level 1">CE Level 1 Armor Rating</option>
-                      </select>
+                return (
+                  <div className="space-y-4 bg-asphalt p-4 border border-plate-yellow/40">
+                    <h3 className="text-plate-yellow font-bold uppercase tracking-wider text-xs border-b border-asphalt-2 pb-1.5 flex items-center justify-between">
+                      <span>3. Category Specifications ({activeSpec.categoryName})</span>
+                      <span className="text-[10px] text-steel font-mono">Dynamic Category Specs</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {activeSpec.fields.map((field: SpecFieldDef) => {
+                        if (field.type === "multiselect") {
+                          const selectedValues: string[] = Array.isArray(newSpecs[field.key])
+                            ? newSpecs[field.key]
+                            : field.key === "sizes"
+                            ? newSizes
+                            : [];
+                          return (
+                            <div key={field.key} className="space-y-1.5 sm:col-span-2">
+                              <label className="text-plate-yellow font-bold block">{field.label}</label>
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {field.options?.map((opt: string) => {
+                                  const isChecked = selectedValues.includes(opt);
+                                  return (
+                                    <label
+                                      key={opt}
+                                      className={`flex items-center gap-1.5 text-off-white cursor-pointer select-none border px-2.5 py-1 text-xs font-mono transition-colors ${
+                                        isChecked
+                                          ? "bg-plate-yellow/20 border-plate-yellow text-plate-yellow font-bold"
+                                          : "bg-asphalt-2 border-steel/30 text-steel hover:text-off-white"
+                                      }`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => {
+                                          const updated = isChecked
+                                            ? selectedValues.filter((v) => v !== opt)
+                                            : [...selectedValues, opt];
+                                          setNewSpecs((prev) => ({ ...prev, [field.key]: updated }));
+                                          if (field.key === "sizes") {
+                                            setNewSizes(updated);
+                                          }
+                                        }}
+                                        className="accent-plate-yellow w-3.5 h-3.5"
+                                      />
+                                      <span>{opt}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        if (field.type === "select") {
+                          return (
+                            <div key={field.key} className="space-y-1">
+                              <label className="text-steel font-bold block">{field.label}</label>
+                              <select
+                                value={newSpecs[field.key] || ""}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setNewSpecs((prev) => ({ ...prev, [field.key]: val }));
+                                  if (field.key === "certification") {
+                                    setNewCertification(val);
+                                  }
+                                }}
+                                className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                              >
+                                <option value="">-- Select {field.label} --</option>
+                                {field.options?.map((opt: string) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div key={field.key} className="space-y-1">
+                            <label className="text-steel font-bold block">{field.label}</label>
+                            <input
+                              type="text"
+                              placeholder={field.placeholder || `Enter ${field.label}`}
+                              value={newSpecs[field.key] || ""}
+                              onChange={(e) =>
+                                setNewSpecs((prev) => ({ ...prev, [field.key]: e.target.value }))
+                              }
+                              className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-plate-yellow font-bold block">
-                        Available Sizes (Auto-Displays on Store & Cart)
-                      </label>
-                      <div className="flex gap-4 pt-1">
-                        {["S", "M", "L", "XL", "XXL"].map((sz) => (
-                          <label key={sz} className="flex items-center gap-1.5 text-off-white cursor-pointer select-none">
+                    {/* Bike Compatibility Matrix Selector for Parts, Additives, Electronics */}
+                    {activeSpec.showBikeCompatibility && (
+                      <div className="pt-3 border-t border-asphalt-2 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-plate-yellow font-bold uppercase block text-xs">
+                            Bike Model Compatibility Filter
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-400">
                             <input
                               type="checkbox"
-                              checked={newSizes.includes(sz)}
-                              onChange={() => toggleSize(sz)}
-                              className="accent-ignition-red w-4 h-4"
+                              checked={newIsUniversal}
+                              onChange={(e) => setNewIsUniversal(e.target.checked)}
+                              className="accent-emerald-500 w-4 h-4 cursor-pointer"
                             />
-                            <span className="font-bold text-sm">{sz}</span>
+                            <span>Universal Fit (Fits All Motorcycle Models)</span>
                           </label>
-                        ))}
+                        </div>
+
+                        {!newIsUniversal && (
+                          <div className="bg-asphalt-2 p-3 border border-steel/30 space-y-2">
+                            <span className="text-steel text-[11px] block font-mono">
+                              Select specific motorcycle models compatible with this item:
+                            </span>
+                            <div className="max-h-48 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-1">
+                              {dbBikeModels.map((b: any) => {
+                                const label = `${b.brand} ${b.model}${b.variant ? ` ${b.variant}` : ""}`;
+                                const isChecked = newBikeModelIds.includes(b.id);
+                                return (
+                                  <label
+                                    key={b.id}
+                                    className={`flex items-center gap-2 p-2 border cursor-pointer select-none text-xs font-mono ${
+                                      isChecked
+                                        ? "bg-plate-yellow/20 border-plate-yellow text-plate-yellow font-bold"
+                                        : "bg-asphalt border-steel/20 text-steel hover:text-off-white"
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => {
+                                        setNewBikeModelIds((prev) =>
+                                          isChecked ? prev.filter((id) => id !== b.id) : [...prev, b.id]
+                                        );
+                                      }}
+                                      className="accent-plate-yellow w-3.5 h-3.5"
+                                    />
+                                    <span>{label}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Specifications & Tags */}
               <div className="space-y-2 bg-asphalt p-4 border border-asphalt-2">

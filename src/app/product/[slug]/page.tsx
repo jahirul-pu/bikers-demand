@@ -27,6 +27,8 @@ import {
   Clock,
 } from "lucide-react";
 
+import { CATEGORY_SPECS, getCategorySpec } from "@/lib/categorySpecs";
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -49,6 +51,7 @@ export default function ProductDetailPage() {
     warranty: string;
     returnNote: string;
     description: string;
+    rawSpecs: Record<string, any>;
     specs: { key: string; value: string }[];
     compatibleBikes: string[];
     images: string[];
@@ -83,6 +86,50 @@ export default function ProductDetailPage() {
           const compatBikes = d.compatibilities?.map(
             (c: any) => `${c.bikeModel.brand} ${c.bikeModel.model}${c.bikeModel.variant ? ` ${c.bikeModel.variant}` : ""} (${c.bikeModel.cc}cc)`
           ) || [];
+
+          const catSlug = d.category?.slug || "riding-gear";
+          const catSpecConfig = getCategorySpec(catSlug);
+          const dbSpecs: Record<string, any> = d.specs || {};
+
+          // Build dynamic specs list
+          const formattedSpecs: { key: string; value: string }[] = [
+            { key: "SKU Code", value: d.sku },
+            { key: "Brand", value: d.brand },
+            { key: "Category", value: d.category?.name || "General" },
+          ];
+
+          if (d.subCategory) {
+            formattedSpecs.push({ key: "Subcategory", value: d.subCategory });
+          }
+
+          if (catSpecConfig) {
+            catSpecConfig.fields.forEach((f) => {
+              if (dbSpecs[f.key] !== undefined && dbSpecs[f.key] !== null && dbSpecs[f.key] !== "") {
+                const val = Array.isArray(dbSpecs[f.key]) ? dbSpecs[f.key].join(", ") : String(dbSpecs[f.key]);
+                formattedSpecs.push({ key: f.label, value: val });
+              }
+            });
+          }
+
+          // Add any remaining unmapped specs
+          Object.entries(dbSpecs).forEach(([k, v]) => {
+            if (!catSpecConfig?.fields.some((f) => f.key === k) && v) {
+              const val = Array.isArray(v) ? v.join(", ") : String(v);
+              const label = k.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
+              formattedSpecs.push({ key: label, value: val });
+            }
+          });
+
+          // Resolve sizes from sizes array or specs.sizes
+          const resolvedSizes =
+            Array.isArray(dbSpecs.sizes) && dbSpecs.sizes.length > 0
+              ? dbSpecs.sizes
+              : d.sizes?.length > 0
+              ? d.sizes
+              : (catSlug === "riding-gear" || catSlug === "helmets")
+              ? ["M", "L", "XL"]
+              : [];
+
           setProduct({
             id: d.id,
             sku: d.sku,
@@ -90,27 +137,24 @@ export default function ProductDetailPage() {
             slug: d.slug,
             brand: d.brand,
             category: d.category?.name || "General",
-            categorySlug: d.category?.slug || "riding-gear",
+            categorySlug: catSlug,
             price: d.price,
             originalPrice: d.comparePrice,
             stockQty: d.stockQty,
             stockStatus: d.stockStatus === "OUT_OF_STOCK" ? "out-of-stock" : d.stockStatus === "LOW_STOCK" ? "low-stock" : "in-stock",
             certification: d.certification || "NONE",
             warranty: d.warrantyDuration || (d.warrantyFlag ? "6 Months Warranty" : "No Warranty"),
-            returnNote: d.returnPolicyNote || (d.category?.slug === "parts-mods" ? "Parts & Mods items are non-returnable once opened." : "7-day return policy applies."),
+            returnNote: d.returnPolicyNote || (catSlug === "parts-mods" ? "Parts & Mods items are non-returnable once opened." : "7-day return policy applies."),
             description: d.description || "",
-            specs: [
-              { key: "SKU Code", value: d.sku },
-              { key: "Brand", value: d.brand },
-              { key: "Category", value: d.category?.name || "General" },
-            ],
+            rawSpecs: dbSpecs,
+            specs: formattedSpecs,
             compatibleBikes: compatBikes.length > 0 ? compatBikes : (d.isUniversal ? ["Universal — Fits all bikes"] : []),
             images: d.images?.length > 0 ? d.images : [
               "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80"
             ],
-            sizes: d.sizes?.length > 0 ? d.sizes : (d.category?.slug === "riding-gear" || d.category?.slug === "helmets" ? ["M", "L", "XL"] : []),
+            sizes: resolvedSizes,
           });
-          const resolvedSizes = d.sizes?.length > 0 ? d.sizes : (d.category?.slug === "riding-gear" || d.category?.slug === "helmets" ? ["M", "L", "XL"] : []);
+
           if (resolvedSizes.length > 0) {
             setSelectedSize(resolvedSizes[0]);
           }
@@ -284,6 +328,24 @@ export default function ProductDetailPage() {
               <h1 className="display-font text-3xl sm:text-4xl font-extrabold uppercase text-off-white tracking-wide leading-tight">
                 {product.name}
               </h1>
+
+              {/* Category Spec Highlights / Pills */}
+              {product.rawSpecs && Object.keys(product.rawSpecs).length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {Object.entries(product.rawSpecs).map(([key, val]) => {
+                    if (!val || key === "sizes") return null;
+                    const displayVal = Array.isArray(val) ? val.join(", ") : String(val);
+                    return (
+                      <span
+                        key={key}
+                        className="bg-asphalt-2 border border-steel/30 text-plate-yellow text-[10px] font-bold font-mono px-2 py-0.5 uppercase flex items-center gap-1"
+                      >
+                        <span className="text-steel font-normal">{key}:</span> {displayVal}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="flex items-center gap-3 pt-1">
                 <span className="display-font text-3xl font-extrabold text-plate-yellow">
