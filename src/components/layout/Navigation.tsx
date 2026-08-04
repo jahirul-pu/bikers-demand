@@ -42,6 +42,46 @@ export default function Navigation({
   onOpenBikeModal,
   onClearBike,
 }: NavigationProps) {
+  const [hoveredNav, setHoveredNav] = React.useState<string | null>(null);
+
+  const subCategoriesMap: Record<string, { title: string; href: string }[]> = {
+    helmets: [
+      { title: "Full Face Helmets", href: "/category/helmets?sub=full-face" },
+      { title: "Modular & Flip-Up", href: "/category/helmets?sub=modular" },
+      { title: "Off-Road & Dual Sport", href: "/category/helmets?sub=dual-sport" },
+      { title: "Visors & Pinlock Anti-Fog", href: "/category/helmets?sub=visors" },
+      { title: "Helmet Intercoms & Spares", href: "/category/helmets?sub=accessories" },
+    ],
+    "riding-gear": [
+      { title: "Armored Jackets", href: "/category/riding-gear?sub=jackets" },
+      { title: "Leather & Mesh Gloves", href: "/category/riding-gear?sub=gloves" },
+      { title: "Riding Boots & Shoes", href: "/category/riding-gear?sub=boots" },
+      { title: "Knee & Elbow Guards", href: "/category/riding-gear?sub=protection" },
+      { title: "Rain Gear & Base Layers", href: "/category/riding-gear?sub=rain-gear" },
+    ],
+    "parts-mods": [
+      { title: "Exhaust Systems & Slip-Ons", href: "/category/parts-mods?sub=exhausts" },
+      { title: "High-Flow Air Filters", href: "/category/parts-mods?sub=filters" },
+      { title: "Brake Pads & Rotors", href: "/category/parts-mods?sub=brakes" },
+      { title: "Chains & Sprocket Kits", href: "/category/parts-mods?sub=drivetrain" },
+      { title: "Handlebars & CNC Levers", href: "/category/parts-mods?sub=controls" },
+    ],
+    electronics: [
+      { title: "Bluetooth Intercoms", href: "/category/electronics?sub=intercoms" },
+      { title: "Action Cameras & Mounts", href: "/category/electronics?sub=cameras" },
+      { title: "Mobile Holders & Chargers", href: "/category/electronics?sub=chargers" },
+      { title: "Auxiliary LED Fog Lights", href: "/category/electronics?sub=lights" },
+      { title: "Anti-Theft GPS Trackers", href: "/category/electronics?sub=security" },
+    ],
+    additives: [
+      { title: "Full Synthetic Engine Oils", href: "/category/additives?sub=engine-oils" },
+      { title: "Chain Lubes & Cleaners", href: "/category/additives?sub=chain-care" },
+      { title: "Radiator Coolants", href: "/category/additives?sub=coolants" },
+      { title: "Fuel Additives & Injector Cleaners", href: "/category/additives?sub=fuel-care" },
+      { title: "Helmet & Visor Cleaners", href: "/category/additives?sub=polish" },
+    ],
+  };
+
   const navItems = [
     { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
     { name: "Helmets", icon: HelmetIcon, id: "helmets", href: "/category/helmets" },
@@ -54,26 +94,55 @@ export default function Navigation({
   ];
 
   return (
-    <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2">
+    <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2 relative">
       {/* Row 1: Category links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center space-x-1 lg:space-x-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
+            const subs = subCategoriesMap[item.id];
+            const isHovered = hoveredNav === item.id;
+
             return (
-              <Link
+              <div
                 key={item.id}
-                href={item.href}
-                className={`display-font uppercase text-sm lg:text-base tracking-wider py-4 px-3 lg:px-4 border-b-2 flex items-center gap-2.5 transition-all ${
-                  isActive
-                    ? "border-ignition-red text-ignition-red font-bold bg-asphalt/50"
-                    : "border-transparent text-steel-light hover:text-off-white hover:border-steel hover:bg-asphalt/30"
-                }`}
+                className="relative group"
+                onMouseEnter={() => setHoveredNav(item.id)}
+                onMouseLeave={() => setHoveredNav(null)}
               >
-                <Icon className={`w-5 h-5 ${isActive ? "text-ignition-red" : "text-steel"}`} />
-                <span>{item.name}</span>
-              </Link>
+                <Link
+                  href={item.href}
+                  className={`display-font uppercase text-sm lg:text-base tracking-wider py-4 px-3 lg:px-4 border-b-2 flex items-center gap-2.5 transition-all ${
+                    isActive || isHovered
+                      ? "border-ignition-red text-ignition-red font-bold bg-asphalt/50"
+                      : "border-transparent text-steel-light hover:text-off-white hover:border-steel hover:bg-asphalt/30"
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${isActive || isHovered ? "text-ignition-red" : "text-steel"}`} />
+                  <span>{item.name}</span>
+                </Link>
+
+                {/* Subcategories Hover Mega Dropdown */}
+                {subs && isHovered && (
+                  <div className="absolute top-full left-0 w-64 bg-asphalt-2 border border-steel/30 shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="text-[10px] font-mono font-bold text-plate-yellow uppercase tracking-widest border-b border-steel/20 pb-1.5 mb-2">
+                      Subcategories
+                    </div>
+                    <div className="space-y-1">
+                      {subs.map((sub, idx) => (
+                        <Link
+                          key={idx}
+                          href={sub.href}
+                          className="block text-xs font-mono text-steel-light hover:text-off-white hover:bg-asphalt p-2 transition-colors border-l-2 border-transparent hover:border-plate-yellow"
+                        >
+                          {sub.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
