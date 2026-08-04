@@ -115,8 +115,19 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid rgb(var(--ignition-red-rgb));
-  outline-offset: 2px;
+  outline: 2px solid rgba(var(--plate-yellow-rgb), 0.6);
+  outline-offset: 1px;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
+  border-color: rgb(var(--plate-yellow-rgb)) !important;
+  box-shadow: 0 0 0 1px rgba(var(--plate-yellow-rgb), 0.3) !important;
 }
 
 /* Floor hardcoded tiny pixel sizes — keeps them legible */

@@ -128,7 +128,7 @@ export default function RegisterPage() {
                   placeholder="e.g. Tanvir Ahmed"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                 />
                 <User className="w-4 h-4 text-steel absolute left-3 top-3.5" />
               </div>
@@ -146,7 +146,7 @@ export default function RegisterPage() {
                     placeholder="017xxxxxxxx"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                   />
                   <Phone className="w-4 h-4 text-steel absolute left-3 top-3.5" />
                 </div>
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                     placeholder="tanvir@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                   />
                   <Mail className="w-4 h-4 text-steel absolute left-3 top-3.5" />
                 </div>
@@ -181,7 +181,7 @@ export default function RegisterPage() {
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                 />
                 <Lock className="w-4 h-4 text-steel absolute left-3 top-3.5" />
               </div>

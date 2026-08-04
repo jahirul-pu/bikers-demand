@@ -191,7 +191,7 @@ export default function Header({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.trim().length >= 2 && setShowDropdown(true)}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-ignition-red rounded-none py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none transition-colors"
+                className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-plate-yellow rounded-none py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none transition-colors"
               />
               <button
                 type="submit"
@@ -323,7 +323,7 @@ export default function Header({
             placeholder="Search parts, gear, model..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-ignition-red py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none"
+            className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-plate-yellow py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none"
           />
           <button className="absolute right-0 top-0 bottom-0 px-3 text-steel">
             <Search className="w-4 h-4" />

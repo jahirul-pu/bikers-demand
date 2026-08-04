@@ -355,7 +355,7 @@ function CheckoutContent() {
                     placeholder="e.g. Tanvir Ahmed"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow"
                   />
                 </div>
 
@@ -370,7 +370,7 @@ function CheckoutContent() {
                       placeholder="017xxxxxxxx"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red"
+                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow"
                     />
                   </div>
 
@@ -383,7 +383,7 @@ function CheckoutContent() {
                       placeholder="tanvir@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red"
+                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow"
                     />
                   </div>
                 </div>
@@ -398,7 +398,7 @@ function CheckoutContent() {
                     placeholder="House/Holding #, Road #, Area, District"
                     value={addressLine}
                     onChange={(e) => setAddressLine(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red resize-none"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow resize-none"
                   />
                 </div>
               </div>
