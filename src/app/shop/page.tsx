@@ -99,6 +99,25 @@ function ShopPageInner() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) setDbCategories(j.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const dynamicCategories = useMemo(() => {
+    if (dbCategories.length === 0) return CATEGORIES;
+    return [
+      { id: "all", label: "All Categories" },
+      ...dbCategories.map((c: any) => ({ id: c.slug, label: c.name })),
+    ];
+  }, [dbCategories]);
+
   // Load products from live DB API
   useEffect(() => {
     const fetchLiveProducts = async () => {
@@ -356,7 +375,7 @@ function ShopPageInner() {
       {/* Category */}
       <FilterSection title="Category">
         <div className="space-y-1.5">
-          {CATEGORIES.map((cat) => (
+          {dynamicCategories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}

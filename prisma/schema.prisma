@@ -132,6 +132,7 @@ model Category {
   name        String     // Riding Gear, Parts & Mods, Electronics, Merchandise
   slug        String     @unique
   description String?
+  sortOrder   Int        @default(0)
   parentId    String?
   parent      Category?  @relation("SubCategories", fields: [parentId], references: [id])
   children    Category[] @relation("SubCategories")
@@ -150,8 +151,9 @@ model Product {
   comparePrice     Float?
   stockQty         Int                  @default(0) // Owned inventory
   stockStatus      StockStatus          @default(IN_STOCK)
-  categoryId       String
-  category         Category             @relation(fields: [categoryId], references: [id])
+  categoryId       String?
+  subCategory      String?
+  category         Category?            @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   images           String[]
   sizes            String[]
   isUniversal      Boolean              @default(false)

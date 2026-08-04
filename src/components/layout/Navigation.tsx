@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, Wrench, Zap, Droplet, Shirt, Award, HelpCircle, Bike, CheckCircle2, RefreshCw, XCircle, ArrowRight, LayoutGrid } from "lucide-react";
+import { Shield, Wrench, Zap, Droplet, Shirt, Award, HelpCircle, Bike, CheckCircle2, RefreshCw, XCircle, ArrowRight, LayoutGrid, Package } from "lucide-react";
 
 const HelmetIcon = ({ className }: { className?: string }) => (
   <svg
@@ -35,6 +35,17 @@ interface NavigationProps {
   onClearBike?: () => void;
 }
 
+function getCategoryIcon(slug: string) {
+  const lower = slug.toLowerCase();
+  if (lower.includes("helmet")) return HelmetIcon;
+  if (lower.includes("part")) return Wrench;
+  if (lower.includes("accessor")) return Shield;
+  if (lower.includes("electronic") || lower.includes("light") || lower.includes("gadget")) return Zap;
+  if (lower.includes("oil") || lower.includes("additive") || lower.includes("fluid")) return Droplet;
+  if (lower.includes("gear") || lower.includes("wear") || lower.includes("apparel") || lower.includes("jacket")) return Shirt;
+  return Package;
+}
+
 export default function Navigation({
   activeCategory,
   onSelectCategory,
@@ -43,63 +54,51 @@ export default function Navigation({
   onClearBike,
 }: NavigationProps) {
   const [hoveredNav, setHoveredNav] = React.useState<string | null>(null);
+  const [dbCategories, setDbCategories] = React.useState<any[]>([]);
 
-  const subCategoriesMap: Record<string, { title: string; href: string }[]> = {
-    helmets: [
-      { title: "Full Face Helmets", href: "/category/helmets?sub=full-face" },
-      { title: "Modular & Flip-Up", href: "/category/helmets?sub=modular" },
-      { title: "Off-Road & Dual Sport", href: "/category/helmets?sub=dual-sport" },
-      { title: "Visors & Pinlock Anti-Fog", href: "/category/helmets?sub=visors" },
-      { title: "Helmet Intercoms & Spares", href: "/category/helmets?sub=accessories" },
-    ],
-    "riding-gear": [
-      { title: "Armored Jackets", href: "/category/riding-gear?sub=jackets" },
-      { title: "Leather & Mesh Gloves", href: "/category/riding-gear?sub=gloves" },
-      { title: "Riding Boots & Shoes", href: "/category/riding-gear?sub=boots" },
-      { title: "Knee & Elbow Guards", href: "/category/riding-gear?sub=protection" },
-      { title: "Rain Gear & Base Layers", href: "/category/riding-gear?sub=rain-gear" },
-    ],
-    parts: [
-      { title: "Exhaust Systems & Slip-Ons", href: "/category/parts?sub=exhausts" },
-      { title: "High-Flow Air Filters", href: "/category/parts?sub=filters" },
-      { title: "Brake Pads & Rotors", href: "/category/parts?sub=brakes" },
-      { title: "Chains & Sprocket Kits", href: "/category/parts?sub=drivetrain" },
-      { title: "Handlebars & CNC Levers", href: "/category/parts?sub=controls" },
-    ],
-    accessories: [
-      { title: "Mobile Holders & Chargers", href: "/category/accessories?sub=holders" },
-      { title: "Bike Covers & Security Locks", href: "/category/accessories?sub=covers" },
-      { title: "Crash Guards & Frame Sliders", href: "/category/accessories?sub=guards" },
-      { title: "Panniers & Saddlebags", href: "/category/accessories?sub=luggage" },
-      { title: "Decals & Keychains", href: "/category/accessories?sub=decals" },
-    ],
-    electronics: [
-      { title: "Bluetooth Intercoms", href: "/category/electronics?sub=intercoms" },
-      { title: "Action Cameras & Mounts", href: "/category/electronics?sub=cameras" },
-      { title: "Mobile Holders & Chargers", href: "/category/electronics?sub=chargers" },
-      { title: "Auxiliary LED Fog Lights", href: "/category/electronics?sub=lights" },
-      { title: "Anti-Theft GPS Trackers", href: "/category/electronics?sub=security" },
-    ],
-    additives: [
-      { title: "Full Synthetic Engine Oils", href: "/category/additives?sub=engine-oils" },
-      { title: "Chain Lubes & Cleaners", href: "/category/additives?sub=chain-care" },
-      { title: "Radiator Coolants", href: "/category/additives?sub=coolants" },
-      { title: "Fuel Additives & Injector Cleaners", href: "/category/additives?sub=fuel-care" },
-      { title: "Helmet & Visor Cleaners", href: "/category/additives?sub=polish" },
-    ],
-  };
+  const loadCategories = React.useCallback(() => {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setDbCategories(json.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  const navItems = [
-    { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
-    { name: "Helmets", icon: HelmetIcon, id: "helmets", href: "/category/helmets" },
-    { name: "Parts", icon: Wrench, id: "parts", href: "/category/parts" },
-    { name: "Accessories", icon: Shield, id: "accessories", href: "/category/accessories" },
-    { name: "Electronics", icon: Zap, id: "electronics", href: "/category/electronics" },
-    { name: "Additives & Oils", icon: Droplet, id: "additives", href: "/category/additives" },
-    { name: "Riding Gear", icon: Shirt, id: "riding-gear", href: "/category/riding-gear" },
-    { name: "Brands", icon: Award, id: "brands", href: "/brands" },
-    { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
-  ];
+  React.useEffect(() => {
+    loadCategories();
+    window.addEventListener("category-updated", loadCategories);
+    return () => window.removeEventListener("category-updated", loadCategories);
+  }, [loadCategories]);
+
+  // Build dynamic subcategory lookup strictly from DB categories
+  const dynamicSubMap: Record<string, { title: string; href: string }[]> = {};
+  dbCategories.forEach((cat) => {
+    if (cat.children && cat.children.length > 0) {
+      dynamicSubMap[cat.slug] = cat.children.map((sub: any) => ({
+        title: sub.name,
+        href: `/category/${cat.slug}?sub=${sub.slug}`,
+      }));
+    }
+  });
+
+  const navItems = React.useMemo(() => {
+    const dynamicMain = dbCategories.map((cat) => ({
+      name: cat.name,
+      icon: getCategoryIcon(cat.slug),
+      id: cat.slug,
+      href: `/category/${cat.slug}`,
+    }));
+
+    return [
+      { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
+      ...dynamicMain,
+      { name: "Brands", icon: Award, id: "brands", href: "/brands" },
+      { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
+    ];
+  }, [dbCategories]);
 
   return (
     <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2 relative">
@@ -109,7 +108,7 @@ export default function Navigation({
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
-            const subs = subCategoriesMap[item.id];
+            const subs = dynamicSubMap[item.id];
             const isHovered = hoveredNav === item.id;
 
             return (

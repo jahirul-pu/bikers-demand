@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check, Trash2, Search, Filter } from "lucide-react";
 import { DBProduct } from "@/types/db";
 import ConfirmModal from "@/components/common/ConfirmModal";
@@ -42,9 +42,26 @@ export default function AdminProductsPage() {
     }
   };
 
+  const [dbCategoriesList, setDbCategoriesList] = useState<{ id: string; name: string; slug: string; children?: { id: string; name: string; slug: string }[] }[]>([]);
+  const [newSubCategory, setNewSubCategory] = useState("");
+
+  const loadDbCategories = useCallback(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) {
+          setDbCategoriesList(j.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchProducts();
-  }, []);
+    loadDbCategories();
+    window.addEventListener("category-updated", loadDbCategories);
+    return () => window.removeEventListener("category-updated", loadDbCategories);
+  }, [loadDbCategories]);
 
   const [editingProduct, setEditingProduct] = useState<DBProduct | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -95,7 +112,8 @@ export default function AdminProductsPage() {
     setNewComparePrice("");
     setNewStockQty(10);
     setNewStockStatus("in-stock");
-    setNewCategory("riding-gear");
+    setNewCategory(dbCategoriesList[0]?.slug || "riding-gear");
+    setNewSubCategory("");
     setNewCertification("ECE 22.06 / DOT");
     setNewWarranty("1 Year Warranty");
     setNewSizes(["M", "L", "XL"]);
@@ -114,6 +132,7 @@ export default function AdminProductsPage() {
     setNewStockQty(p.stockQty);
     setNewStockStatus(p.stockStatus === "out-of-stock" || p.stockQty <= 0 ? "out-of-stock" : "in-stock");
     setNewCategory(p.category || "riding-gear");
+    setNewSubCategory(p.subCategory || "");
     setNewCertification(p.certification || "ECE 22.06 / DOT");
     setNewWarranty(p.warranty || "No Warranty");
     setNewSizes(p.sizes || ["M", "L", "XL"]);
@@ -168,6 +187,7 @@ export default function AdminProductsPage() {
       stockQty: newStockQty,
       stockStatus: newStockStatus,
       category: newCategory,
+      subCategory: newSubCategory,
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
       certification: newCertification,
       warranty: newWarranty,
@@ -266,13 +286,11 @@ export default function AdminProductsPage() {
             className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow transition-colors cursor-pointer"
           >
             <option value="all">Category: All ({products.length})</option>
-            <option value="helmets">Helmets ({products.filter(p => p.category === "helmets").length})</option>
-            <option value="riding-gear">Riding Gear ({products.filter(p => p.category === "riding-gear").length})</option>
-            <option value="parts">Parts ({products.filter(p => p.category === "parts").length})</option>
-            <option value="accessories">Accessories ({products.filter(p => p.category === "accessories").length})</option>
-            <option value="parts-mods">Parts & Mods ({products.filter(p => p.category === "parts-mods").length})</option>
-            <option value="electronics">Electronics ({products.filter(p => p.category === "electronics").length})</option>
-            <option value="additives">Additives & Oils ({products.filter(p => p.category === "additives").length})</option>
+            {dbCategoriesList.map((c) => (
+              <option key={c.id} value={c.slug}>
+                {c.name} ({products.filter((p) => p.category === c.slug).length})
+              </option>
+            ))}
           </select>
         </div>
 
@@ -328,7 +346,14 @@ export default function AdminProductsPage() {
                   <div>{product.sku}</div>
                   <div className="text-[10px] text-plate-yellow">{product.brand}</div>
                 </td>
-                <td className="p-3 font-mono uppercase text-steel">{product.category}</td>
+                <td className="p-3 font-mono uppercase text-steel">
+                  <div>{product.category}</div>
+                  {product.subCategory && (
+                    <div className="text-[10px] text-plate-yellow font-bold">
+                      › {product.subCategory}
+                    </div>
+                  )}
+                </td>
                 <td className="p-3 font-mono text-off-white font-bold">
                   ৳{product.price.toLocaleString()}
                 </td>
@@ -404,25 +429,24 @@ export default function AdminProductsPage() {
                   1. Basic Product Information
                 </h3>
                 
-                <div className="space-y-1">
-                  <label className="text-steel block font-bold">Product Title *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. LS2 FF817 Challenger II Helmet"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white text-sm focus:border-plate-yellow transition-colors"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="text-steel block font-bold">Product Title *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. AGV K6 S Flash Helmet"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                    />
+                  </div>
                   <div>
                     <label className="text-steel block font-bold">Brand *</label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. LS2 / MT / Akrapovič"
+                      placeholder="e.g. AGV"
                       value={newBrand}
                       onChange={(e) => setNewBrand(e.target.value)}
                       className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
@@ -440,19 +464,41 @@ export default function AdminProductsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-steel block font-bold">Category *</label>
+                    <label className="text-steel block font-bold">Main Category *</label>
                     <select
                       value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value as any)}
+                      onChange={(e) => {
+                        setNewCategory(e.target.value as any);
+                        setNewSubCategory("");
+                      }}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                    >
+                      {dbCategoriesList.length > 0 ? (
+                        dbCategoriesList.map((c) => (
+                          <option key={c.id} value={c.slug}>
+                            {c.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">-- No Categories Found (Create in Category Manager) --</option>
+                      )}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">Subcategory</label>
+                    <select
+                      value={newSubCategory}
+                      onChange={(e) => setNewSubCategory(e.target.value)}
                       className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
                     >
-                      <option value="helmets">Helmets</option>
-                      <option value="riding-gear">Riding Gear</option>
-                      <option value="parts">Parts</option>
-                      <option value="accessories">Accessories</option>
-                      <option value="parts-mods">Parts & Mods (Legacy)</option>
-                      <option value="electronics">Electronics</option>
-                      <option value="additives">Additives & Oils</option>
+                      <option value="">-- None / Select Subcategory --</option>
+                      {dbCategoriesList
+                        .find((c) => c.slug === newCategory)
+                        ?.children?.map((sub) => (
+                          <option key={sub.id} value={sub.slug}>
+                            {sub.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
                 </div>

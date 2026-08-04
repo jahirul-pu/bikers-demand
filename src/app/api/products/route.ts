@@ -47,7 +47,7 @@ function mapCert(c?: string): "DOT" | "ECE_2206" | "ECE_2205" | "DOT_AND_ECE" | 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, brand, sku, price, comparePrice, stockQty, stockStatus, category, imageUrl, certification, warranty, description, sizes } = body;
+    const { name, brand, sku, price, comparePrice, stockQty, stockStatus, category, subCategory, imageUrl, certification, warranty, description, sizes } = body;
 
     if (!name || !brand || !sku) {
       return NextResponse.json(
@@ -86,6 +86,7 @@ export async function POST(req: Request) {
         stockQty: qty,
         stockStatus: isOut ? "OUT_OF_STOCK" : "IN_STOCK",
         categoryId: catRecord.id,
+        subCategory: subCategory || null,
         description: description || `Genuine ${brand} product.`,
         images: imageUrl ? [imageUrl] : [],
         sizes: Array.isArray(sizes) ? sizes : [],
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, name, brand, sku, price, comparePrice, stockQty, stockStatus, category, imageUrl, certification, warranty, description, sizes } = body;
+    const { id, name, brand, sku, price, comparePrice, stockQty, stockStatus, category, subCategory, imageUrl, certification, warranty, description, sizes } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: "Product ID required" }, { status: 400 });
@@ -136,6 +137,7 @@ export async function PATCH(req: Request) {
       ...(comparePrice !== undefined && { comparePrice: comparePrice ? Number(comparePrice) : null }),
       ...(stockQty !== undefined && { stockQty: Number(stockQty) }),
       ...(categoryId && { categoryId }),
+      ...(subCategory !== undefined && { subCategory: subCategory || null }),
       ...(description !== undefined && { description }),
       ...(imageUrl && { images: [imageUrl] }),
       ...(sizes && Array.isArray(sizes) && { sizes }),
