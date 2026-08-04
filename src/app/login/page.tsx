@@ -88,7 +88,7 @@ export default function LoginPage() {
                   placeholder="017xxxxxxxx or rider@example.com"
                   value={phoneOrEmail}
                   onChange={(e) => setPhoneOrEmail(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                 />
                 <Phone className="w-4 h-4 text-steel absolute left-3 top-3.5" />
               </div>
@@ -110,7 +110,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                 />
                 <Lock className="w-4 h-4 text-steel absolute left-3 top-3.5" />
               </div>

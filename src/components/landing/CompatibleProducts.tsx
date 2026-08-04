@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ProductCard, { Product } from "./ProductCard";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 
 interface CompatibleProductsProps {
   selectedBike: {
@@ -23,62 +23,43 @@ export default function CompatibleProducts({
     ? `${selectedBike.brand} ${selectedBike.model} ${selectedBike.variant || ""}`.trim()
     : null;
 
-  // Mock compatible products matching bike compatibility PRD specifications
-  const products: Product[] = [
-    {
-      id: "prod-1",
-      name: "Performance Slip-On Racing Exhaust (Black Coated)",
-      brand: "Akrapovič Replica",
-      category: "parts-mods",
-      price: 6500,
-      originalPrice: 7200,
-      imageUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80",
-      fitBadge: bikeName ? `Fits ${bikeName}` : "Select Bike to Check Fit",
-      stockStatus: "in-stock",
-      stockQty: 14,
-      warranty: "No Warranty",
-      returnPolicyNote: "No return if opened",
-    },
-    {
-      id: "prod-2",
-      name: "O-Ring Heavy Duty Chain & Sprocket Set (428H - 132L)",
-      brand: "DID Japan",
-      category: "parts-mods",
-      price: 3450,
-      imageUrl: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500&auto=format&fit=crop&q=80",
-      fitBadge: bikeName ? `Fits ${bikeName}` : "Select Bike to Check Fit",
-      stockStatus: "in-stock",
-      stockQty: 8,
-      warranty: "No Warranty",
-      returnPolicyNote: "No return if opened",
-    },
-    {
-      id: "prod-3",
-      name: "Adjustable 6-Stage CNC Billet Aluminum Brake & Clutch Levers",
-      brand: "Racing Boy (RCB)",
-      category: "parts-mods",
-      price: 2200,
-      originalPrice: 2500,
-      imageUrl: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=80",
-      fitBadge: bikeName ? `Fits ${bikeName}` : "Select Bike to Check Fit",
-      stockStatus: "low-stock",
-      stockQty: 3,
-      warranty: "No Warranty",
-      returnPolicyNote: "No return if opened",
-    },
-    {
-      id: "prod-4",
-      name: "Dual Lens High Power LED Fog Lights with Bracket & Relay Wire",
-      brand: "Future Eye",
-      category: "electronics",
-      price: 2950,
-      imageUrl: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=80",
-      fitBadge: "Universal Fit",
-      stockStatus: "in-stock",
-      stockQty: 22,
-      warranty: "6 Months Replacement",
-    },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/products?category=parts-mods");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped: Product[] = json.data.slice(0, 4).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            brand: p.brand,
+            slug: p.slug,
+            category: p.category?.slug || "parts-mods",
+            price: p.price,
+            originalPrice: p.comparePrice,
+            imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80",
+            fitBadge: p.isUniversal ? "Universal Fit" : bikeName ? `Fits ${bikeName}` : "Select Bike to Check Fit",
+            isUniversal: p.isUniversal ?? false,
+            stockStatus: p.stockStatus === "IN_STOCK" ? "in-stock" : p.stockStatus === "LOW_STOCK" ? "low-stock" : "out-of-stock",
+            stockQty: p.stockQty ?? 0,
+            certification: p.certification !== "NONE" ? p.certification : undefined,
+            warranty: p.warrantyDuration || undefined,
+            returnPolicyNote: p.returnPolicyNote || undefined,
+          }));
+          setProducts(mapped);
+        }
+      } catch (e) {
+        console.error("Error loading compatible products:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [bikeName]);
 
   return (
     <section id="parts-mods" className="py-16 bg-asphalt-2/60 border-b border-asphalt-2">
@@ -127,18 +108,29 @@ export default function CompatibleProducts({
           </div>
         </div>
 
-        {/* 4 Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              selectedBikeName={bikeName || undefined}
-              onAddToCart={onAddToCart}
-              onToggleFav={onToggleFav}
-            />
-          ))}
-        </div>
+        {/* Products Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 text-plate-yellow animate-spin" />
+            <span className="ml-2 text-steel text-sm">Loading products...</span>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-16 text-steel text-sm">
+            No compatible parts found yet. Check back soon!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                selectedBikeName={bikeName || undefined}
+                onAddToCart={onAddToCart}
+                onToggleFav={onToggleFav}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -27,15 +27,6 @@ import {
 type SortOption = "newest" | "price-asc" | "price-desc" | "name-asc";
 type StockFilter = "all" | "in-stock" | "low-stock";
 
-const CATEGORIES = [
-  { id: "all", label: "All Categories" },
-  { id: "riding-gear", label: "Riding Gear" },
-  { id: "parts-mods", label: "Parts & Mods" },
-  { id: "electronics", label: "Electronics" },
-  { id: "additives", label: "Additives & Oils" },
-  { id: "merchandise", label: "Merchandise" },
-];
-
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "newest", label: "Newest First" },
   { value: "price-asc", label: "Price: Low → High" },
@@ -96,6 +87,24 @@ function ShopPageInner() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) setDbCategories(j.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const dynamicCategories = useMemo(() => {
+    return [
+      { id: "all", label: "All Categories" },
+      ...dbCategories.map((c: any) => ({ id: c.slug, label: c.name })),
+    ];
+  }, [dbCategories]);
+
   // Load products from live DB API
   useEffect(() => {
     const fetchLiveProducts = async () => {
@@ -134,22 +143,11 @@ function ShopPageInner() {
       setCartCount(qty);
     } catch {}
 
-    // Resolve selected bike: garage (logged-in) or guest key
-    const user = localStorage.getItem("bikers_demand_user");
-    const loggedIn = !!user;
+    // Resolve selected bike from saved preference
     let bikeToSet: BikeOption | null = null;
-
-    if (loggedIn) {
-      const garage = LocalStorageDB.getUserGarage();
-      if (garage.length > 0) {
-        const primary = garage[0];
-        bikeToSet = { brand: primary.brand, model: primary.model };
-      }
-    } else {
-      const saved = localStorage.getItem("bd_selected_bike");
-      if (saved) {
-        try { bikeToSet = JSON.parse(saved); } catch {}
-      }
+    const saved = localStorage.getItem("bd_selected_bike");
+    if (saved) {
+      try { bikeToSet = JSON.parse(saved); } catch {}
     }
 
     if (bikeToSet) {
@@ -364,7 +362,7 @@ function ShopPageInner() {
       {/* Category */}
       <FilterSection title="Category">
         <div className="space-y-1.5">
-          {CATEGORIES.map((cat) => (
+          {dynamicCategories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
@@ -609,7 +607,7 @@ function ShopPageInner() {
                 {category !== "all" && (
                   <span className="flex items-center gap-1 bg-asphalt border border-ignition-red/50 text-ignition-red text-[11px] font-mono px-2 py-1">
                     <Tag className="w-2.5 h-2.5" />
-                    {CATEGORIES.find((c) => c.id === category)?.label}
+                    {dynamicCategories.find((c: any) => c.id === category)?.label}
                     <button onClick={() => setCategory("all")} className="ml-1 hover:text-off-white"><X className="w-2.5 h-2.5" /></button>
                   </span>
                 )}

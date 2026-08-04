@@ -209,7 +209,7 @@ export default function AdminBikesPage() {
                       setBrand(e.target.value);
                     }
                   }}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-ignition-red focus:outline-none cursor-pointer"
+                  className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none cursor-pointer"
                 >
                   {allBrands.map((b) => (
                     <option key={b} value={b}>
@@ -256,7 +256,7 @@ export default function AdminBikesPage() {
                 placeholder="e.g. Hunter 350 / R15 v4 / FZS v3"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-ignition-red focus:outline-none"
+                className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none"
               />
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function AdminBikesPage() {
                           setEditBrand(e.target.value);
                         }
                       }}
-                      className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-ignition-red focus:outline-none cursor-pointer font-mono"
+                      className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none cursor-pointer font-mono"
                     >
                       {allBrands.map((b) => (
                         <option key={b} value={b}>
@@ -388,7 +388,7 @@ export default function AdminBikesPage() {
                     required
                     value={editModel}
                     onChange={(e) => setEditModel(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-ignition-red focus:outline-none font-mono"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none font-mono"
                   />
                 </div>
               </div>

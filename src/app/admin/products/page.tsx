@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check, Trash2 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Package, Plus, Edit, AlertTriangle, ShieldCheck, Check, Trash2, Search, Filter } from "lucide-react";
 import { DBProduct } from "@/types/db";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
@@ -27,9 +27,10 @@ export default function AdminProductsPage() {
           originalPrice: p.comparePrice,
           imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
           stockStatus: p.stockStatus === "IN_STOCK" ? "in-stock" : "out-of-stock",
-          stockQty: p.stockQty ?? 10,
-          certification: p.certification !== "NONE" ? p.certification : "Standard",
-          warranty: p.warrantyDuration || "1 Year Warranty",
+          stockQty: p.stockQty ?? 0,
+          certification: p.certification !== "NONE" ? p.certification : undefined,
+          warranty: p.warrantyDuration || (p.warrantyFlag ? "1 Year Warranty" : "No Warranty"),
+          sizes: p.sizes || [],
           description: p.description,
         }));
         setProducts(mapped);
@@ -41,17 +42,76 @@ export default function AdminProductsPage() {
     }
   };
 
+  const [dbCategoriesList, setDbCategoriesList] = useState<{ id: string; name: string; slug: string; children?: { id: string; name: string; slug: string }[] }[]>([]);
+  const [dbBrandsList, setDbBrandsList] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [newSubCategory, setNewSubCategory] = useState("");
+
+  const loadDbCategories = useCallback(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) {
+          setDbCategoriesList(j.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const loadDbBrands = useCallback(() => {
+    fetch("/api/brands")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success && Array.isArray(j.data)) {
+          setDbBrandsList(j.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchProducts();
-  }, []);
+    loadDbCategories();
+    loadDbBrands();
+    window.addEventListener("category-updated", loadDbCategories);
+    window.addEventListener("brand-updated", loadDbBrands);
+    return () => {
+      window.removeEventListener("category-updated", loadDbCategories);
+      window.removeEventListener("brand-updated", loadDbBrands);
+    };
+  }, [loadDbCategories, loadDbBrands]);
 
   const [editingProduct, setEditingProduct] = useState<DBProduct | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
+  const [stockFilter, setStockFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const filteredProducts = products.filter((p) => {
+    if (selectedCategoryFilter !== "all" && p.category !== selectedCategoryFilter) {
+      return false;
+    }
+    if (stockFilter === "in-stock" && (p.stockStatus === "out-of-stock" || p.stockQty <= 0)) {
+      return false;
+    }
+    if (stockFilter === "out-of-stock" && p.stockStatus === "in-stock" && p.stockQty > 0) {
+      return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchName = p.name.toLowerCase().includes(q);
+      const matchBrand = p.brand.toLowerCase().includes(q);
+      const matchSku = p.sku.toLowerCase().includes(q);
+      if (!matchName && !matchBrand && !matchSku) return false;
+    }
+    return true;
+  });
   const [newSku, setNewSku] = useState("");
   const [newName, setNewName] = useState("");
   const [newBrand, setNewBrand] = useState("");
   const [newPrice, setNewPrice] = useState(0);
+  const [newComparePrice, setNewComparePrice] = useState<number | "">("");
   const [newStockQty, setNewStockQty] = useState(10);
+  const [newStockStatus, setNewStockStatus] = useState<"in-stock" | "out-of-stock">("in-stock");
   const [newCategory, setNewCategory] = useState<DBProduct["category"]>("riding-gear");
   const [newCertification, setNewCertification] = useState("ECE 22.06 / DOT");
   const [newWarranty, setNewWarranty] = useState("1 Year Warranty");
@@ -66,8 +126,11 @@ export default function AdminProductsPage() {
     setNewBrand("");
     setNewSku("");
     setNewPrice(0);
+    setNewComparePrice("");
     setNewStockQty(10);
-    setNewCategory("riding-gear");
+    setNewStockStatus("in-stock");
+    setNewCategory(dbCategoriesList[0]?.slug || "riding-gear");
+    setNewSubCategory("");
     setNewCertification("ECE 22.06 / DOT");
     setNewWarranty("1 Year Warranty");
     setNewSizes(["M", "L", "XL"]);
@@ -82,10 +145,13 @@ export default function AdminProductsPage() {
     setNewBrand(p.brand);
     setNewSku(p.sku);
     setNewPrice(p.price);
+    setNewComparePrice(p.originalPrice || "");
     setNewStockQty(p.stockQty);
+    setNewStockStatus(p.stockStatus === "out-of-stock" || p.stockQty <= 0 ? "out-of-stock" : "in-stock");
     setNewCategory(p.category || "riding-gear");
+    setNewSubCategory(p.subCategory || "");
     setNewCertification(p.certification || "ECE 22.06 / DOT");
-    setNewWarranty(p.warranty || "1 Year Warranty");
+    setNewWarranty(p.warranty || "No Warranty");
     setNewSizes(p.sizes || ["M", "L", "XL"]);
     setNewCustomSpecs(p.description || "");
     setImageUrl(p.imageUrl || "");
@@ -134,30 +200,42 @@ export default function AdminProductsPage() {
       brand: newBrand,
       sku: newSku,
       price: newPrice,
+      comparePrice: newComparePrice !== "" ? Number(newComparePrice) : null,
       stockQty: newStockQty,
+      stockStatus: newStockStatus,
       category: newCategory,
+      subCategory: newSubCategory,
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
       certification: newCertification,
       warranty: newWarranty,
+      sizes: newSizes,
       description: newCustomSpecs || `Genuine ${newBrand} motorcycle accessory. Certified for quality and performance.`,
     };
 
     try {
+      let res;
       if (editingProduct) {
-        await fetch("/api/products", {
+        res = await fetch("/api/products", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(prodPayload),
         });
       } else {
-        await fetch("/api/products", {
+        res = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(prodPayload),
         });
       }
-    } catch (err) {
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert("Failed to save product: " + (data.error || "Unknown error"));
+        return;
+      }
+    } catch (err: any) {
       console.error("API error saving product:", err);
+      alert("Network error saving product: " + err.message);
+      return;
     }
 
     await fetchProducts();
@@ -202,6 +280,51 @@ export default function AdminProductsPage() {
         </button>
       </div>
 
+      {/* Interactive Filter & Search Control Bar */}
+      <div className="bg-asphalt-2 p-4 border border-asphalt-2 grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+        {/* Search Input */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-steel absolute left-3 top-2.5" />
+          <input
+            type="text"
+            placeholder="Search Title, Brand, or SKU..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-asphalt border border-steel/30 pl-9 pr-3 py-2 text-off-white placeholder-steel/60 focus:border-plate-yellow transition-colors"
+          />
+        </div>
+
+        {/* Category Filter Dropdown */}
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-plate-yellow shrink-0" />
+          <select
+            value={selectedCategoryFilter}
+            onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+            className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow transition-colors cursor-pointer"
+          >
+            <option value="all">Category: All ({products.length})</option>
+            {dbCategoriesList.map((c) => (
+              <option key={c.id} value={c.slug}>
+                {c.name} ({products.filter((p) => p.category === c.slug).length})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Stock Status Filter Dropdown */}
+        <div>
+          <select
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value)}
+            className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow transition-colors cursor-pointer"
+          >
+            <option value="all">Stock: All Statuses</option>
+            <option value="in-stock">In Stock Only</option>
+            <option value="out-of-stock">Out of Stock Only</option>
+          </select>
+        </div>
+      </div>
+
       {/* Product List Table */}
       <div className="bg-asphalt-2 border border-asphalt-2 overflow-x-auto">
         <table className="w-full text-left text-xs">
@@ -211,13 +334,21 @@ export default function AdminProductsPage() {
               <th className="p-3">SKU / Brand</th>
               <th className="p-3">Category</th>
               <th className="p-3">Price</th>
-              <th className="p-3">Stock</th>
+              <th className="p-3">Stock Status</th>
+              <th className="p-3">Warranty</th>
               <th className="p-3">Certification</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-asphalt-2">
-            {products.map((product) => (
+            {filteredProducts.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-steel font-mono">
+                  No products found matching your filter criteria.
+                </td>
+              </tr>
+            ) : (
+              filteredProducts.map((product) => (
               <tr key={product.id} className="hover:bg-asphalt/50">
                 <td className="p-3 font-semibold text-off-white flex items-center gap-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -232,22 +363,32 @@ export default function AdminProductsPage() {
                   <div>{product.sku}</div>
                   <div className="text-[10px] text-plate-yellow">{product.brand}</div>
                 </td>
-                <td className="p-3 font-mono uppercase text-steel">{product.category}</td>
+                <td className="p-3 font-mono uppercase text-steel">
+                  <div>{product.category}</div>
+                  {product.subCategory && (
+                    <div className="text-[10px] text-plate-yellow font-bold">
+                      › {product.subCategory}
+                    </div>
+                  )}
+                </td>
                 <td className="p-3 font-mono text-off-white font-bold">
                   ৳{product.price.toLocaleString()}
                 </td>
                 <td className="p-3 font-mono">
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
-                      product.stockQty > 5
-                        ? "bg-green-500/10 text-green-400 border border-green-500/20"
-                        : product.stockQty > 0
-                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                        : "bg-red-500/10 text-red-400 border border-red-500/20"
+                      product.stockStatus === "out-of-stock" || product.stockQty <= 0
+                        ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                        : "bg-green-500/10 text-green-400 border border-green-500/20"
                     }`}
                   >
-                    {product.stockQty} in stock
+                    {product.stockStatus === "out-of-stock" || product.stockQty <= 0
+                      ? "Out of Stock"
+                      : `In Stock (${product.stockQty})`}
                   </span>
+                </td>
+                <td className="p-3 font-mono text-steel">
+                  {product.warranty || "No Warranty"}
                 </td>
                 <td className="p-3 font-mono text-steel">
                   {product.certification || "Standard"}
@@ -270,7 +411,8 @@ export default function AdminProductsPage() {
                   </button>
                 </td>
               </tr>
-            ))}
+            ))
+          )}
           </tbody>
         </table>
       </div>
@@ -278,156 +420,265 @@ export default function AdminProductsPage() {
       {/* Add Product Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-asphalt-2 border border-asphalt-2 max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="display-font text-xl font-bold text-off-white uppercase border-b border-steel/20 pb-2">
-              {editingProduct ? "Edit Product SKU" : "Add New Product SKU"}
-            </h2>
+          <div className="bg-asphalt-2 border border-steel/40 max-w-4xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl rounded-xs">
+            <div className="flex items-center justify-between border-b border-steel/20 pb-3">
+              <div>
+                <h2 className="display-font text-2xl font-extrabold text-off-white uppercase tracking-wide">
+                  {editingProduct ? "Edit Product SKU" : "Add New Product SKU"}
+                </h2>
+                <p className="text-steel text-xs mt-0.5">
+                  Configure pricing, stock, warranty, sizes, and media for your catalog.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="text-steel hover:text-off-white p-1 text-lg font-mono"
+              >
+                ✕
+              </button>
+            </div>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="text-steel block">Product Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. HJC RPHA 11 Helmet - Venom Edition"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
-                />
+            <form onSubmit={handleSaveProduct} className="space-y-6 text-xs font-mono">
+              {/* Basic Information */}
+              <div className="space-y-4 bg-asphalt p-4 border border-asphalt-2">
+                <h3 className="text-plate-yellow font-bold uppercase tracking-wider text-xs border-b border-asphalt-2 pb-1.5">
+                  1. Basic Product Information
+                </h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="text-steel block font-bold">Product Title *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. AGV K6 S Flash Helmet"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">Brand *</label>
+                    {dbBrandsList.length > 0 ? (
+                      <select
+                        value={newBrand}
+                        onChange={(e) => setNewBrand(e.target.value)}
+                        className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                      >
+                        <option value="">-- Select Brand --</option>
+                        {dbBrandsList.map((b) => (
+                          <option key={b.id} value={b.name}>
+                            {b.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. AGV"
+                        value={newBrand}
+                        onChange={(e) => setNewBrand(e.target.value)}
+                        className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">SKU Code *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. GEAR-HLM-009"
+                      value={newSku}
+                      onChange={(e) => setNewSku(e.target.value)}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">Main Category *</label>
+                    <select
+                      value={newCategory}
+                      onChange={(e) => {
+                        setNewCategory(e.target.value as any);
+                        setNewSubCategory("");
+                      }}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                    >
+                      {dbCategoriesList.length > 0 ? (
+                        dbCategoriesList.map((c) => (
+                          <option key={c.id} value={c.slug}>
+                            {c.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">-- No Categories Found (Create in Category Manager) --</option>
+                      )}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">Subcategory</label>
+                    <select
+                      value={newSubCategory}
+                      onChange={(e) => setNewSubCategory(e.target.value)}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                    >
+                      <option value="">-- None / Select Subcategory --</option>
+                      {dbCategoriesList
+                        .find((c) => c.slug === newCategory)
+                        ?.children?.map((sub) => (
+                          <option key={sub.id} value={sub.slug}>
+                            {sub.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-steel block">Brand</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="HJC"
-                    value={newBrand}
-                    onChange={(e) => setNewBrand(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-steel block">SKU Code</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="GEAR-HLM-009"
-                    value={newSku}
-                    onChange={(e) => setNewSku(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
-                  />
-                </div>
-              </div>
+              {/* Pricing & Stock Management */}
+              <div className="space-y-4 bg-asphalt p-4 border border-asphalt-2">
+                <h3 className="text-plate-yellow font-bold uppercase tracking-wider text-xs border-b border-asphalt-2 pb-1.5">
+                  2. Pricing, Inventory & Warranty
+                </h3>
 
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="text-steel block">Price (BDT)</label>
-                  <input
-                    type="number"
-                    required
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(Number(e.target.value))}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-steel block font-bold">Selling Price (BDT) *</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="e.g. 9800"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(Number(e.target.value))}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">Regular Price (BDT)</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 10500 (For Strikethrough)"
+                      value={newComparePrice}
+                      onChange={(e) => setNewComparePrice(e.target.value === "" ? "" : Number(e.target.value))}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white placeholder-steel/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">Stock Status *</label>
+                    <select
+                      value={newStockStatus}
+                      onChange={(e) => setNewStockStatus(e.target.value as any)}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                    >
+                      <option value="in-stock">In Stock</option>
+                      <option value="out-of-stock">Out of Stock</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-steel block font-bold">Stock Quantity *</label>
+                    <input
+                      type="number"
+                      required
+                      value={newStockQty}
+                      onChange={(e) => setNewStockQty(Number(e.target.value))}
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-steel block">Stock Quantity</label>
-                  <input
-                    type="number"
-                    required
-                    value={newStockQty}
-                    onChange={(e) => setNewStockQty(Number(e.target.value))}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-steel block">Category</label>
+
+                <div className="space-y-1">
+                  <label className="text-plate-yellow font-bold block">
+                    Warranty Coverage Terms
+                  </label>
                   <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as any)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white"
+                    value={newWarranty}
+                    onChange={(e) => setNewWarranty(e.target.value)}
+                    className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
                   >
-                    <option value="helmets">Helmets</option>
-                    <option value="parts-mods">Parts & Mods</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="additives">Additives & Oils</option>
-                    <option value="riding-gear">Riding Gear</option>
+                    <option value="No Warranty">No Warranty</option>
+                    <option value="6 Months Warranty">6 Months Warranty</option>
+                    <option value="6 Months Replacement">6 Months Replacement</option>
+                    <option value="1 Year Warranty">1 Year Warranty</option>
+                    <option value="1 Year Manufacturer Warranty">1 Year Manufacturer Warranty</option>
+                    <option value="2 Years Warranty">2 Years Warranty</option>
+                    <option value="Lifetime Warranty">Lifetime Warranty</option>
                   </select>
                 </div>
               </div>
 
-              {/* Helmet & Riding Gear Certification */}
+              {/* Helmet & Gear Specific Options */}
               {(newCategory === "riding-gear" || newCategory === "helmets") && (
-                <>
-                  <div className="p-3 bg-asphalt border border-ignition-red/40 space-y-1">
-                    <label className="text-ignition-red font-bold block">
-                      Certification / Safety Rating (Auto-Appears in Filter)
-                    </label>
-                    <select
-                      value={newCertification}
-                      onChange={(e) => setNewCertification(e.target.value)}
-                      className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white"
-                    >
-                      <option value="ECE 22.06">ECE 22.06 (EU Standard)</option>
-                      <option value="DOT">DOT (US Standard)</option>
-                      <option value="ECE / DOT">ECE + DOT Dual Certified</option>
-                      <option value="CE Level 2">CE Level 2 Armor Rating</option>
-                      <option value="CE Level 1">CE Level 1 Armor Rating</option>
-                    </select>
-                  </div>
+                <div className="space-y-4 bg-asphalt p-4 border border-ignition-red/40">
+                  <h3 className="text-ignition-red font-bold uppercase tracking-wider text-xs border-b border-asphalt-2 pb-1.5">
+                    3. Safety Rating & Size Options
+                  </h3>
 
-                  {/* Helmet & Gear Available Sizes */}
-                  <div className="p-3 bg-asphalt border border-steel/30 space-y-1.5">
-                    <label className="text-plate-yellow font-bold block">
-                      Available Sizes (Auto-Appears in Filter)
-                    </label>
-                    <div className="flex gap-3">
-                      {["S", "M", "L", "XL", "XXL"].map((sz) => (
-                        <label key={sz} className="flex items-center gap-1 text-off-white cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={newSizes.includes(sz)}
-                            onChange={() => toggleSize(sz)}
-                            className="accent-ignition-red"
-                          />
-                          <span>{sz}</span>
-                        </label>
-                      ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-ignition-red font-bold block">
+                        Safety Certification Rating
+                      </label>
+                      <select
+                        value={newCertification}
+                        onChange={(e) => setNewCertification(e.target.value)}
+                        className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                      >
+                        <option value="ECE 22.06">ECE 22.06 (EU Standard)</option>
+                        <option value="DOT">DOT (US Standard)</option>
+                        <option value="ECE / DOT">ECE + DOT Dual Certified</option>
+                        <option value="CE Level 2">CE Level 2 Armor Rating</option>
+                        <option value="CE Level 1">CE Level 1 Armor Rating</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-plate-yellow font-bold block">
+                        Available Sizes (Auto-Displays on Store & Cart)
+                      </label>
+                      <div className="flex gap-4 pt-1">
+                        {["S", "M", "L", "XL", "XXL"].map((sz) => (
+                          <label key={sz} className="flex items-center gap-1.5 text-off-white cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={newSizes.includes(sz)}
+                              onChange={() => toggleSize(sz)}
+                              className="accent-ignition-red w-4 h-4"
+                            />
+                            <span className="font-bold text-sm">{sz}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </>
+                </div>
               )}
 
-              {/* Custom Product Specifications (Auto-Appears in Filter) */}
-              <div className="space-y-1">
+              {/* Specifications & Tags */}
+              <div className="space-y-2 bg-asphalt p-4 border border-asphalt-2">
                 <label className="text-plate-yellow font-bold block">
-                  Product Specifications / Filter Tags (Comma Separated)
+                  Product Description & Technical Specifications
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Pinlock Visor, ESTER 10W-40, Double D-Ring, Waterproof IP67"
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Constructed with HPFC shell, Pinlock 120 MaxVision included, removable liner..."
                   value={newCustomSpecs}
                   onChange={(e) => setNewCustomSpecs(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-2 text-off-white placeholder-steel/60"
+                  className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white placeholder-steel/50"
                 />
-                <span className="text-[10px] text-steel block">
-                  * All specifications entered here will automatically generate interactive filter checkboxes on the store!
-                </span>
               </div>
 
-              {/* Product Image Selection: Cloud URL vs Local Storage File */}
-              <div className="p-3 bg-asphalt border border-steel/30 space-y-2">
-                <div className="flex justify-between items-center">
+              {/* Product Media */}
+              <div className="space-y-3 bg-asphalt p-4 border border-asphalt-2">
+                <div className="flex justify-between items-center border-b border-asphalt-2 pb-1.5">
                   <label className="text-plate-yellow font-bold block">
-                    Product Image Source
+                    Product Image & Media Source
                   </label>
                   <div className="flex gap-1">
                     <button
                       type="button"
                       onClick={() => setImageSourceMode("url")}
-                      className={`px-2 py-0.5 text-[10px] font-bold uppercase transition-colors ${
+                      className={`px-3 py-1 text-[10px] font-bold uppercase transition-colors ${
                         imageSourceMode === "url"
                           ? "bg-plate-yellow text-asphalt"
                           : "bg-asphalt-2 text-steel hover:text-off-white"
@@ -438,65 +689,61 @@ export default function AdminProductsPage() {
                     <button
                       type="button"
                       onClick={() => setImageSourceMode("file")}
-                      className={`px-2 py-0.5 text-[10px] font-bold uppercase transition-colors ${
+                      className={`px-3 py-1 text-[10px] font-bold uppercase transition-colors ${
                         imageSourceMode === "file"
                           ? "bg-plate-yellow text-asphalt"
                           : "bg-asphalt-2 text-steel hover:text-off-white"
                       }`}
                     >
-                      📁 Local File
+                      📁 Local File Upload
                     </button>
                   </div>
                 </div>
 
                 {imageSourceMode === "url" ? (
-                  <div>
-                    <input
-                      type="url"
-                      placeholder="Paste cloud URL (e.g. https://images.unsplash.com/... or Supabase storage link)"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white placeholder-steel/60 text-xs"
-                    />
-                  </div>
+                  <input
+                    type="url"
+                    placeholder="Paste image URL (e.g. https://images.unsplash.com/... or Supabase storage link)"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                  />
                 ) : (
-                  <div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="w-full bg-asphalt-2 border border-steel/30 p-1.5 text-off-white text-xs file:mr-2 file:py-1 file:px-2 file:border-0 file:text-xs file:font-bold file:bg-ignition-red file:text-asphalt cursor-pointer"
-                    />
-                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="w-full bg-asphalt-2 border border-steel/30 p-2 text-off-white file:mr-4 file:py-1 file:px-3 file:border-0 file:bg-plate-yellow file:text-asphalt file:font-bold file:uppercase cursor-pointer"
+                  />
                 )}
 
-                {/* Live Image Preview Thumbnail */}
                 {imageUrl && (
-                  <div className="flex items-center gap-3 pt-1 border-t border-asphalt-2">
-                    <div className="w-12 h-12 bg-asphalt border border-plate-yellow overflow-hidden shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                    </div>
-                    <span className="text-[10px] text-emerald-400 font-mono">
-                      ✓ Image preview loaded cleanly
-                    </span>
+                  <div className="flex items-center gap-3 pt-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      className="w-14 h-14 object-contain bg-asphalt-2 p-1 border border-steel/30"
+                    />
+                    <span className="text-[11px] text-emerald-400 font-bold">✓ Image preview verified</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-between items-center pt-2">
+              {/* Form Action Buttons */}
+              <div className="flex justify-end gap-3 pt-3 border-t border-steel/20">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="text-steel uppercase text-xs"
+                  className="bg-asphalt hover:bg-asphalt-2 border border-steel/30 text-steel hover:text-off-white px-5 py-2.5 font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase px-6 py-2"
+                  className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold px-6 py-2.5 uppercase tracking-wider transition-colors cursor-pointer shadow-lg"
                 >
-                  Save Product SKU
+                  {editingProduct ? "Save Changes" : "Create Product"}
                 </button>
               </div>
             </form>

@@ -176,6 +176,8 @@ function CheckoutContent() {
     setCartItems(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem("bikers_demand_cart", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     }
   };
 
@@ -184,6 +186,8 @@ function CheckoutContent() {
     setCartItems(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem("bikers_demand_cart", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     }
   };
 
@@ -236,6 +240,8 @@ function CheckoutContent() {
 
       setOrderConfirmed(confirmedData);
       localStorage.removeItem("bikers_demand_cart");
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     } finally {
       setIsSubmitting(false);
     }
@@ -349,7 +355,7 @@ function CheckoutContent() {
                     placeholder="e.g. Tanvir Ahmed"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow"
                   />
                 </div>
 
@@ -364,7 +370,7 @@ function CheckoutContent() {
                       placeholder="017xxxxxxxx"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red"
+                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow"
                     />
                   </div>
 
@@ -377,7 +383,7 @@ function CheckoutContent() {
                       placeholder="tanvir@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red"
+                      className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow"
                     />
                   </div>
                 </div>
@@ -392,7 +398,7 @@ function CheckoutContent() {
                     placeholder="House/Holding #, Road #, Area, District"
                     value={addressLine}
                     onChange={(e) => setAddressLine(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-ignition-red resize-none"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white focus:outline-none focus:border-plate-yellow resize-none"
                   />
                 </div>
               </div>
@@ -435,6 +441,12 @@ function CheckoutContent() {
                       <div>
                         <span className="text-[10px] text-plate-yellow font-bold uppercase block leading-none">{item.brand}</span>
                         <h4 className="text-xs font-semibold text-off-white line-clamp-1">{item.name}</h4>
+                        {item.size && (
+                          <div className="text-[10px] text-plate-yellow font-bold uppercase flex items-center gap-1">
+                            <span>Size:</span>
+                            <span className="bg-asphalt-2 px-1.5 py-0.5 border border-plate-yellow/40 rounded-xs">{item.size}</span>
+                          </div>
+                        )}
                         <div className="text-[10px] text-steel">Tk {item.price.toLocaleString("en-BD")} each</div>
                       </div>
 

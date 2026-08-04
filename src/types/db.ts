@@ -9,7 +9,8 @@ export interface DBProduct {
   name: string;
   slug: string;
   brand: string;
-  category: "helmets" | "parts-mods" | "electronics" | "additives" | "riding-gear";
+  category: string;
+  subCategory?: string;
   price: number;
   originalPrice?: number;
   imageUrl: string;

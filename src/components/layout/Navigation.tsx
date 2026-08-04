@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, Wrench, Zap, Droplet, Shirt, Award, HelpCircle, Bike, CheckCircle2, RefreshCw, XCircle, ArrowRight, LayoutGrid } from "lucide-react";
+import { Shield, Wrench, Zap, Droplet, Shirt, Award, HelpCircle, Bike, CheckCircle2, RefreshCw, XCircle, ArrowRight, LayoutGrid, Package } from "lucide-react";
 
 const HelmetIcon = ({ className }: { className?: string }) => (
   <svg
@@ -35,6 +35,17 @@ interface NavigationProps {
   onClearBike?: () => void;
 }
 
+function getCategoryIcon(slug: string) {
+  const lower = slug.toLowerCase();
+  if (lower.includes("helmet")) return HelmetIcon;
+  if (lower.includes("part")) return Wrench;
+  if (lower.includes("accessor")) return Shield;
+  if (lower.includes("electronic") || lower.includes("light") || lower.includes("gadget")) return Zap;
+  if (lower.includes("oil") || lower.includes("additive") || lower.includes("fluid")) return Droplet;
+  if (lower.includes("gear") || lower.includes("wear") || lower.includes("apparel") || lower.includes("jacket")) return Shirt;
+  return Package;
+}
+
 export default function Navigation({
   activeCategory,
   onSelectCategory,
@@ -42,38 +53,103 @@ export default function Navigation({
   onOpenBikeModal,
   onClearBike,
 }: NavigationProps) {
-  const navItems = [
-    { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
-    { name: "Helmets", icon: HelmetIcon, id: "helmets", href: "/category/helmets" },
-    { name: "Parts & Mods", icon: Wrench, id: "parts-mods", href: "/category/parts-mods" },
-    { name: "Electronics", icon: Zap, id: "electronics", href: "/category/electronics" },
-    { name: "Additives & Oils", icon: Droplet, id: "additives", href: "/category/additives" },
-    { name: "Riding Gear", icon: Shirt, id: "riding-gear", href: "/category/riding-gear" },
-    { name: "Brands", icon: Award, id: "brands", href: "/brands" },
-    { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
-  ];
+  const [hoveredNav, setHoveredNav] = React.useState<string | null>(null);
+  const [dbCategories, setDbCategories] = React.useState<any[]>([]);
+
+  const loadCategories = React.useCallback(() => {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setDbCategories(json.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  React.useEffect(() => {
+    loadCategories();
+    window.addEventListener("category-updated", loadCategories);
+    return () => window.removeEventListener("category-updated", loadCategories);
+  }, [loadCategories]);
+
+  // Build dynamic subcategory lookup strictly from DB categories
+  const dynamicSubMap: Record<string, { title: string; href: string }[]> = {};
+  dbCategories.forEach((cat) => {
+    if (cat.children && cat.children.length > 0) {
+      dynamicSubMap[cat.slug] = cat.children.map((sub: any) => ({
+        title: sub.name,
+        href: `/category/${cat.slug}?sub=${sub.slug}`,
+      }));
+    }
+  });
+
+  const navItems = React.useMemo(() => {
+    const dynamicMain = dbCategories.map((cat) => ({
+      name: cat.name,
+      icon: getCategoryIcon(cat.slug),
+      id: cat.slug,
+      href: `/category/${cat.slug}`,
+    }));
+
+    return [
+      { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
+      ...dynamicMain,
+      { name: "Brands", icon: Award, id: "brands", href: "/brands" },
+      { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
+    ];
+  }, [dbCategories]);
 
   return (
-    <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2">
+    <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2 relative">
       {/* Row 1: Category links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center space-x-1 lg:space-x-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
+            const subs = dynamicSubMap[item.id];
+            const isHovered = hoveredNav === item.id;
+
             return (
-              <Link
+              <div
                 key={item.id}
-                href={item.href}
-                className={`display-font uppercase text-sm lg:text-base tracking-wider py-4 px-3 lg:px-4 border-b-2 flex items-center gap-2.5 transition-all ${
-                  isActive
-                    ? "border-ignition-red text-ignition-red font-bold bg-asphalt/50"
-                    : "border-transparent text-steel-light hover:text-off-white hover:border-steel hover:bg-asphalt/30"
-                }`}
+                className="relative group"
+                onMouseEnter={() => setHoveredNav(item.id)}
+                onMouseLeave={() => setHoveredNav(null)}
               >
-                <Icon className={`w-5 h-5 ${isActive ? "text-ignition-red" : "text-steel"}`} />
-                <span>{item.name}</span>
-              </Link>
+                <Link
+                  href={item.href}
+                  className={`display-font uppercase text-sm lg:text-base tracking-wider py-4 px-3 lg:px-4 border-b-2 flex items-center gap-2.5 transition-all ${
+                    isActive || isHovered
+                      ? "border-ignition-red text-ignition-red font-bold bg-asphalt/50"
+                      : "border-transparent text-steel-light hover:text-off-white hover:border-steel hover:bg-asphalt/30"
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${isActive || isHovered ? "text-ignition-red" : "text-steel"}`} />
+                  <span>{item.name}</span>
+                </Link>
+
+                {/* Subcategories Hover Mega Dropdown */}
+                {subs && isHovered && (
+                  <div className="absolute top-full left-0 w-64 bg-asphalt-2 border border-steel/30 shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="text-[10px] font-mono font-bold text-plate-yellow uppercase tracking-widest border-b border-steel/20 pb-1.5 mb-2">
+                      Subcategories
+                    </div>
+                    <div className="space-y-1">
+                      {subs.map((sub, idx) => (
+                        <Link
+                          key={idx}
+                          href={sub.href}
+                          className="block text-xs font-mono text-steel-light hover:text-off-white hover:bg-asphalt p-2 transition-colors border-l-2 border-transparent hover:border-plate-yellow"
+                        >
+                          {sub.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

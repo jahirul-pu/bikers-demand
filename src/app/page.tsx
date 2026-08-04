@@ -10,6 +10,7 @@ import RidingGearSection from "@/components/landing/RidingGearSection";
 import TrustSection from "@/components/landing/TrustSection";
 import Footer from "@/components/layout/Footer";
 import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
+import { Product } from "@/components/landing/ProductCard";
 
 export default function Home() {
   const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
@@ -88,13 +89,9 @@ export default function Home() {
           onOpenBikeModal={() => setIsBikeModalOpen(true)}
           onClearBike={() => {
             setSelectedBike(null);
-            // Remove from both guest key and garage slot 0
+            // Remove saved bike selection
             try {
               localStorage.removeItem("bd_selected_bike");
-              if (isLoggedIn) {
-                const garage = LocalStorageDB.getUserGarage();
-                LocalStorageDB.saveUserGarage(garage.slice(1));
-              }
             } catch { /* silent */ }
           }}
         />
@@ -145,34 +142,11 @@ export default function Home() {
         onSelectBike={(bike) => {
           setSelectedBike(bike);
 
-          if (isLoggedIn) {
-            // Logged-in: save to garage as primary bike
-            try {
-              const garage = LocalStorageDB.getUserGarage();
-              const slug = `${bike.brand}-${bike.model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-              const cc = parseInt(bike.cc?.replace(/[^0-9]/g, "") || "0", 10);
-              const existingIdx = garage.findIndex(
-                (b) => b.brand === bike.brand && b.model === bike.model
-              );
-              let updated;
-              if (existingIdx > -1) {
-                const [existing] = garage.splice(existingIdx, 1);
-                updated = [existing, ...garage];
-              } else {
-                updated = [
-                  { id: `gb-${Date.now()}`, brand: bike.brand, model: bike.model, displacementCc: cc, yearStart: 2018, yearEnd: 2026, slug },
-                  ...garage,
-                ];
-              }
-              LocalStorageDB.saveUserGarage(updated);
-              window.dispatchEvent(new Event("storage"));
-            } catch { /* silent */ }
-          } else {
-            // Guest: persist selected bike in its own key
-            try {
-              localStorage.setItem("bd_selected_bike", JSON.stringify(bike));
-            } catch { /* silent */ }
-          }
+          // Persist selected bike for both logged-in and guest users
+          try {
+            localStorage.setItem("bd_selected_bike", JSON.stringify(bike));
+            window.dispatchEvent(new Event("storage"));
+          } catch { /* silent */ }
 
           setIsBikeModalOpen(false);
         }}

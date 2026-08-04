@@ -23,13 +23,18 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    LocalStorageDB.init();
-    const bikes = LocalStorageDB.getBikes();
-    setRegisteredBikes(bikes);
-    if (bikes.length > 0) {
-      setBikeBrand(bikes[0].brand);
-      setBikeModel(bikes[0].model);
-    }
+    fetch("/api/bikes")
+      .then((res) => res.json())
+      .then((bikes: DBBike[]) => {
+        setRegisteredBikes(bikes);
+        if (bikes.length > 0) {
+          setBikeBrand(bikes[0].brand);
+          setBikeModel(bikes[0].model);
+        }
+      })
+      .catch(() => {
+        // silent fail
+      });
   }, []);
 
   const availableBrands = Array.from(new Set(registeredBikes.map((b) => b.brand)));
@@ -63,10 +68,13 @@ export default function RegisterPage() {
           })
         );
 
-        // Also add selected registered bike to user's garage
+        // Save selected bike as the user's primary bike preference
         const selected = registeredBikes.find((b) => b.brand === bikeBrand && b.model === bikeModel);
         if (selected) {
-          LocalStorageDB.saveUserGarage([selected]);
+          localStorage.setItem("bd_selected_bike", JSON.stringify({
+            brand: selected.brand,
+            model: selected.model,
+          }));
         }
       } catch (e) {
         console.error(e);
@@ -120,7 +128,7 @@ export default function RegisterPage() {
                   placeholder="e.g. Tanvir Ahmed"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                 />
                 <User className="w-4 h-4 text-steel absolute left-3 top-3.5" />
               </div>
@@ -138,7 +146,7 @@ export default function RegisterPage() {
                     placeholder="017xxxxxxxx"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                   />
                   <Phone className="w-4 h-4 text-steel absolute left-3 top-3.5" />
                 </div>
@@ -154,7 +162,7 @@ export default function RegisterPage() {
                     placeholder="tanvir@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                    className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                   />
                   <Mail className="w-4 h-4 text-steel absolute left-3 top-3.5" />
                 </div>
@@ -173,7 +181,7 @@ export default function RegisterPage() {
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-ignition-red"
+                  className="w-full bg-asphalt border border-steel/30 p-3 text-off-white pl-10 focus:outline-none focus:border-plate-yellow"
                 />
                 <Lock className="w-4 h-4 text-steel absolute left-3 top-3.5" />
               </div>

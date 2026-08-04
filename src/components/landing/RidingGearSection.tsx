@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import ProductCard, { Product } from "./ProductCard";
-import { Shield, ArrowRight } from "lucide-react";
+import { Shield, ArrowRight, Loader2 } from "lucide-react";
 
 interface RidingGearSectionProps {
   onAddToCart?: (product: Product) => void;
@@ -12,59 +12,41 @@ export default function RidingGearSection({
   onAddToCart,
   onToggleFav,
 }: RidingGearSectionProps) {
-  const gearProducts: Product[] = [
-    {
-      id: "gear-1",
-      name: "MT Thunder 4 SV Full Face Helmet (Matt Black)",
-      brand: "MT Helmets",
-      category: "riding-gear",
-      price: 9800,
-      originalPrice: 10500,
-      imageUrl: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
-      isUniversal: true,
-      stockStatus: "in-stock",
-      stockQty: 9,
-      certification: "ECE 22.06 / DOT",
-      warranty: "1 Year Warranty",
-    },
-    {
-      id: "gear-2",
-      name: "All-Weather Mesh Riding Jacket with CE Level 2 Armor",
-      brand: "Komine",
-      category: "riding-gear",
-      price: 12500,
-      imageUrl: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&auto=format&fit=crop&q=80",
-      isUniversal: true,
-      stockStatus: "in-stock",
-      stockQty: 5,
-      warranty: "1 Year Warranty",
-    },
-    {
-      id: "gear-3",
-      name: "Hard Knuckle Carbon Reinforced Leather Riding Gloves",
-      brand: "Scoyco",
-      category: "riding-gear",
-      price: 2450,
-      originalPrice: 2800,
-      imageUrl: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=500&auto=format&fit=crop&q=80",
-      isUniversal: true,
-      stockStatus: "low-stock",
-      stockQty: 2,
-      warranty: "No Warranty",
-    },
-    {
-      id: "gear-4",
-      name: "Waterproof Heavy Duty 2-Piece Monsoon Rain Suit",
-      brand: "Motowolf",
-      category: "riding-gear",
-      price: 3200,
-      imageUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80",
-      isUniversal: true,
-      stockStatus: "in-stock",
-      stockQty: 18,
-      warranty: "No Warranty",
-    },
-  ];
+  const [gearProducts, setGearProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGear = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/products?category=riding-gear");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped: Product[] = json.data.slice(0, 4).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            brand: p.brand,
+            slug: p.slug,
+            category: "riding-gear",
+            price: p.price,
+            originalPrice: p.comparePrice,
+            imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",
+            isUniversal: p.isUniversal ?? true,
+            stockStatus: p.stockStatus === "IN_STOCK" ? "in-stock" : p.stockStatus === "LOW_STOCK" ? "low-stock" : "out-of-stock",
+            stockQty: p.stockQty ?? 0,
+            certification: p.certification !== "NONE" ? p.certification : undefined,
+            warranty: p.warrantyDuration || undefined,
+          }));
+          setGearProducts(mapped);
+        }
+      } catch (e) {
+        console.error("Error loading riding gear:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGear();
+  }, []);
 
   return (
     <section id="riding-gear" className="py-16 bg-asphalt border-b border-asphalt-2">
@@ -95,17 +77,28 @@ export default function RidingGearSection({
           </Link>
         </div>
 
-        {/* 4 Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {gearProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={onAddToCart}
-              onToggleFav={onToggleFav}
-            />
-          ))}
-        </div>
+        {/* Products Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 text-ignition-red animate-spin" />
+            <span className="ml-2 text-steel text-sm">Loading riding gear...</span>
+          </div>
+        ) : gearProducts.length === 0 ? (
+          <div className="text-center py-16 text-steel text-sm">
+            No riding gear products available yet. Check back soon!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {gearProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={onAddToCart}
+                onToggleFav={onToggleFav}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
