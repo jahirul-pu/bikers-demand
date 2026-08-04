@@ -5,11 +5,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const categorySlug = searchParams.get("category");
+    const subCategory = searchParams.get("subCategory") || searchParams.get("sub");
     const brand = searchParams.get("brand");
     const search = searchParams.get("search");
 
     const where: any = { isActive: true };
     if (categorySlug) where.category = { slug: categorySlug };
+    if (subCategory && subCategory !== "all") {
+      where.subCategory = { equals: subCategory, mode: "insensitive" };
+    }
     if (brand && brand !== "all") where.brand = { equals: brand, mode: "insensitive" };
     if (search) {
       where.OR = [

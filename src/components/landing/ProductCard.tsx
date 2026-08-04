@@ -10,7 +10,8 @@ export interface Product {
   name: string;
   brand: string;
   slug?: string;
-  category: "helmets" | "riding-gear" | "parts-mods" | "electronics" | "additives" | "merchandise";
+  category: "helmets" | "riding-gear" | "parts-mods" | "electronics" | "additives" | "merchandise" | string;
+  subCategory?: string;
   price: number;
   originalPrice?: number;
   imageUrl: string;

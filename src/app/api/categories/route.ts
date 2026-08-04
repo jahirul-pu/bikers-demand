@@ -7,17 +7,52 @@ export async function GET() {
       where: { parentId: null },
       include: {
         children: {
-          include: {
-            _count: { select: { products: true } },
-          },
           orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
         },
-        _count: { select: { products: true } },
       },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
 
-    return NextResponse.json({ success: true, data: categories });
+    const categoriesWithCounts = await Promise.all(
+      categories.map(async (cat) => {
+        const childrenWithCounts = await Promise.all(
+          cat.children.map(async (child) => {
+            const count = await prisma.product.count({
+              where: {
+                isActive: true,
+                OR: [
+                  { categoryId: child.id },
+                  { subCategory: { equals: child.slug, mode: "insensitive" } },
+                  { subCategory: { equals: child.name, mode: "insensitive" } },
+                ],
+              },
+            });
+            return {
+              ...child,
+              _count: { products: count },
+            };
+          })
+        );
+
+        const parentCount = await prisma.product.count({
+          where: {
+            isActive: true,
+            OR: [
+              { categoryId: cat.id },
+              { category: { slug: cat.slug } },
+            ],
+          },
+        });
+
+        return {
+          ...cat,
+          children: childrenWithCounts,
+          _count: { products: parentCount },
+        };
+      })
+    );
+
+    return NextResponse.json({ success: true, data: categoriesWithCounts });
   } catch (error: any) {
     console.error("Error fetching categories:", error);
     return NextResponse.json(

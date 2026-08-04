@@ -1,17 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import ProductCard, { Product } from "@/components/landing/ProductCard";
 import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
-import { Filter, SlidersHorizontal, ArrowLeft, Bike } from "lucide-react";
+import { Filter, SlidersHorizontal, ArrowLeft, Bike, FolderTree, Package } from "lucide-react";
 
 export default function CategoryPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const slug = (params.slug as string) || "riding-gear";
+  const activeSubParam = searchParams.get("sub") || "all";
 
   const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
 
@@ -32,7 +36,7 @@ export default function CategoryPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [cartCount, setCartCount] = useState(2);
 
-  const [dbCategories, setDbCategories] = useState<{ id: string; name: string; slug: string; description?: string }[]>([]);
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -44,6 +48,8 @@ export default function CategoryPage() {
   }, []);
 
   const currentCatRecord = dbCategories.find((c) => c.slug === slug);
+  const subCategories: any[] = currentCatRecord?.children || [];
+
   const currentCategoryInfo = {
     title: currentCatRecord ? currentCatRecord.name : slug.replace("-", " ").toUpperCase(),
     desc: currentCatRecord?.description || "Browse our owned inventory of genuine motorcycle accessories.",
@@ -51,12 +57,15 @@ export default function CategoryPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [slug, selectedBrand, inStockOnly]);
+  }, [slug, selectedBrand, inStockOnly, activeSubParam]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       let url = `/api/products?category=${slug}`;
+      if (activeSubParam && activeSubParam !== "all") {
+        url += `&sub=${encodeURIComponent(activeSubParam)}`;
+      }
       if (selectedBrand !== "all") {
         url += `&brand=${encodeURIComponent(selectedBrand)}`;
       }
@@ -69,6 +78,7 @@ export default function CategoryPage() {
           name: p.name,
           brand: p.brand,
           category: slug,
+          subCategory: p.subCategory,
           price: p.price,
           originalPrice: p.comparePrice,
           imageUrl: p.images[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=80",
@@ -188,6 +198,49 @@ export default function CategoryPage() {
         </div>
       </div>
 
+      {/* Dynamic Subcategories Pills Bar */}
+      {subCategories.length > 0 && (
+        <div className="bg-asphalt border-b border-steel/20 py-3 px-4 no-print">
+          <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto font-mono text-xs">
+            <span className="text-steel flex items-center gap-1 shrink-0 font-bold uppercase text-[11px]">
+              <FolderTree className="w-3.5 h-3.5 text-plate-yellow" />
+              Subcategories:
+            </span>
+            <button
+              onClick={() => router.push(`/category/${slug}`)}
+              className={`px-3 py-1 border text-xs whitespace-nowrap transition-colors cursor-pointer ${
+                activeSubParam === "all"
+                  ? "bg-plate-yellow text-asphalt font-extrabold border-plate-yellow"
+                  : "bg-asphalt-2 text-steel hover:text-off-white border-steel/30"
+              }`}
+            >
+              All {currentCategoryInfo.title}
+            </button>
+            {subCategories.map((sub: any) => {
+              const isSelected = activeSubParam === sub.slug || activeSubParam.toLowerCase() === sub.name.toLowerCase();
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => router.push(`/category/${slug}?sub=${sub.slug}`)}
+                  className={`px-3 py-1 border text-xs whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-plate-yellow text-asphalt font-extrabold border-plate-yellow"
+                      : "bg-asphalt-2 text-steel hover:text-off-white border-steel/30"
+                  }`}
+                >
+                  <span>{sub.name}</span>
+                  {sub._count?.products !== undefined && (
+                    <span className={`text-[10px] px-1 py-0.2 font-bold ${isSelected ? "bg-asphalt text-plate-yellow" : "bg-asphalt text-steel"}`}>
+                      {sub._count.products}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Main Browse Body */}
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -199,12 +252,58 @@ export default function CategoryPage() {
                 <span>{currentCategoryInfo.title.split(" ")[0]} Filters</span>
               </div>
               <button
-                onClick={resetAllFilters}
+                onClick={() => {
+                  resetAllFilters();
+                  router.push(`/category/${slug}`);
+                }}
                 className="text-[11px] text-steel hover:text-ignition-red underline font-mono"
               >
                 Reset All
               </button>
             </div>
+
+            {/* DYNAMIC SUBCATEGORY FILTER */}
+            {subCategories.length > 0 && (
+              <div className="space-y-2 pb-3 border-b border-asphalt">
+                <label className="text-xs font-mono text-plate-yellow uppercase tracking-wider block font-bold flex items-center gap-1">
+                  <FolderTree className="w-3.5 h-3.5 text-plate-yellow" />
+                  Subcategories
+                </label>
+                <div className="space-y-1 font-mono text-xs">
+                  <button
+                    onClick={() => router.push(`/category/${slug}`)}
+                    className={`w-full text-left px-2.5 py-1.5 border transition-colors ${
+                      activeSubParam === "all"
+                        ? "bg-plate-yellow text-asphalt font-bold border-plate-yellow"
+                        : "bg-asphalt text-steel hover:text-off-white border-steel/20"
+                    }`}
+                  >
+                    All Subcategories
+                  </button>
+                  {subCategories.map((sub: any) => {
+                    const isSelected = activeSubParam === sub.slug || activeSubParam.toLowerCase() === sub.name.toLowerCase();
+                    return (
+                      <button
+                        key={sub.id}
+                        onClick={() => router.push(`/category/${slug}?sub=${sub.slug}`)}
+                        className={`w-full text-left px-2.5 py-1.5 border transition-colors flex items-center justify-between ${
+                          isSelected
+                            ? "bg-plate-yellow text-asphalt font-bold border-plate-yellow"
+                            : "bg-asphalt text-steel hover:text-off-white border-steel/20"
+                        }`}
+                      >
+                        <span>{sub.name}</span>
+                        {sub._count?.products !== undefined && (
+                          <span className="text-[10px] text-steel font-bold bg-asphalt-2 px-1.5 py-0.5">
+                            {sub._count.products}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* COMMON FILTER: Availability (At the Very Top) */}
             <div className="space-y-2 pb-3 border-b border-asphalt">
@@ -589,14 +688,39 @@ export default function CategoryPage() {
                 Loading genuine products...
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="bg-asphalt-2 border border-asphalt-2 p-12 text-center space-y-3">
-                <p className="text-steel font-mono text-sm">No products found matching active filter criteria.</p>
-                <button
-                  onClick={resetAllFilters}
-                  className="bg-plate-yellow text-asphalt px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider hover:bg-plate-yellow/90 transition-colors"
-                >
-                  Reset All Filters
-                </button>
+              <div className="bg-asphalt-2 border border-steel/20 p-12 text-center space-y-4">
+                <Package className="w-12 h-12 text-steel mx-auto stroke-[1.5]" />
+                <div>
+                  <h3 className="display-font text-2xl font-bold uppercase text-off-white">
+                    {activeSubParam !== "all"
+                      ? `No Products in "${subCategories.find((s: any) => s.slug === activeSubParam)?.name || activeSubParam}"`
+                      : "No Products Found"}
+                  </h3>
+                  <p className="text-steel font-mono text-xs mt-1 max-w-md mx-auto">
+                    {activeSubParam !== "all"
+                      ? `There are currently no products assigned to this subcategory. You can view all products in ${currentCategoryInfo.title} or add new products in the Admin Control Panel.`
+                      : "No products matched your active filter selections."}
+                  </p>
+                </div>
+                <div className="flex justify-center gap-3 font-mono pt-2">
+                  {activeSubParam !== "all" && (
+                    <button
+                      onClick={() => router.push(`/category/${slug}`)}
+                      className="bg-plate-yellow text-asphalt px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-yellow-400 transition-colors cursor-pointer"
+                    >
+                      View All {currentCategoryInfo.title} Products
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      resetAllFilters();
+                      router.push(`/category/${slug}`);
+                    }}
+                    className="bg-asphalt border border-steel/30 text-steel hover:text-off-white px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Reset All Filters
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
