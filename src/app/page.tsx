@@ -44,7 +44,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    LocalStorageDB.init();
     loadPrimaryBike();
     window.addEventListener("storage", loadPrimaryBike);
     window.addEventListener("focus", loadPrimaryBike);

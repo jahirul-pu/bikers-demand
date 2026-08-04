@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
             include: { product: true },
           },
           address: true,
-          claims: true,
         },
       });
 

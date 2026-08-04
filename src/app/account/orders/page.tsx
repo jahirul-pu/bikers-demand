@@ -114,7 +114,7 @@ export default function OrderHistoryPage() {
                 className="bg-asphalt-2 hover:bg-asphalt border border-steel/30 text-off-white px-4 py-2 flex items-center gap-1.5 font-bold uppercase transition-colors"
               >
                 <Eye className="w-3.5 h-3.5 text-plate-yellow" />
-                <span>View Details & Claim</span>
+                <span>View Details</span>
               </Link>
             </div>
           </div>

@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
         user: { select: { name: true, phone: true, email: true } },
         address: true,
         items: { include: { product: true } },
-        claims: true,
       },
       orderBy: { createdAt: "desc" },
     });

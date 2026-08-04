@@ -1,6 +1,6 @@
 /**
  * Bikers Demand — Core Data Models & Types
- * Shared TypeScript interfaces for products, bikes, orders, coupons, and claims.
+ * Shared TypeScript interfaces for products, bikes, orders, and coupons.
  */
 
 export interface DBProduct {
@@ -64,17 +64,5 @@ export interface DBCoupon {
   minOrder: number;
   categoryTarget: "ALL" | "helmets" | "parts-mods" | "electronics" | "additives" | "riding-gear";
   isActive: boolean;
-  createdAt: string;
-}
-
-export interface DBClaim {
-  id: string;
-  claimNumber: string;
-  orderId: string;
-  customerName: string;
-  type: "WRONG_ITEM" | "COUNTERFEIT" | "DAMAGED";
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  reason: string;
-  evidenceFiles: string[];
   createdAt: string;
 }

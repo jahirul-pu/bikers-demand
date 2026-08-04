@@ -2,14 +2,14 @@
 
 import React from "react";
 import Link from "next/link";
-import { DollarSign, ShoppingBag, AlertTriangle, ShieldAlert, ArrowRight, Package } from "lucide-react";
+import { DollarSign, ShoppingBag, AlertTriangle, ArrowRight, Package } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const metrics = [
     { label: "Today's Revenue", value: "Tk 48,500", icon: DollarSign, color: "text-emerald-400" },
     { label: "Active Orders", value: "12 Orders", icon: ShoppingBag, color: "text-plate-yellow" },
     { label: "Low Stock Alerts", value: "3 SKUs", icon: AlertTriangle, color: "text-amber-400" },
-    { label: "Pending Claims Queue", value: "1 Claim", icon: ShieldAlert, color: "text-ignition-red" },
+
   ];
 
   return (
@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {metrics.map((m, idx) => {
           const Icon = m.icon;
           return (
@@ -73,29 +73,7 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
 
-        {/* Evidence Claim Review Queue per PRD Section 4.5 */}
-        <div className="bg-asphalt p-5 border border-ignition-red/40 space-y-3">
-          <div className="flex justify-between items-center text-ignition-red font-bold">
-            <h2 className="display-font text-lg font-extrabold uppercase text-off-white flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-ignition-red" />
-              <span>Evidence Claim Queue</span>
-            </h2>
-            <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 border border-ignition-red/40">1 PENDING</span>
-          </div>
 
-          <div className="text-[11px] space-y-1">
-            <div className="text-off-white font-bold">Order #BD-2026-4155 — Wrong Item Claim</div>
-            <div className="text-steel">Customer uploaded video evidence for exhaust model mismatch.</div>
-          </div>
-
-          <Link
-            href="/admin/claims"
-            className="text-ignition-red hover:underline flex items-center gap-1 text-[11px] pt-1"
-          >
-            <span>Review Evidence & Approve Replacement</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
       </div>
     </div>
   );

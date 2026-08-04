@@ -10,7 +10,6 @@ import {
   Package,
   Bike,
   ShoppingBag,
-  ShieldAlert,
   Tag,
   BarChart2,
   Lock,
@@ -28,7 +27,7 @@ export default function AdminLayout({
     { label: "Products & Inventory", href: "/admin/products", icon: Package },
     { label: "Bike Registry Matrix", href: "/admin/bikes", icon: Bike },
     { label: "Orders & Pipeline", href: "/admin/orders", icon: ShoppingBag },
-    { label: "Evidence Claims Queue", href: "/admin/claims", icon: ShieldAlert },
+
     { label: "Coupons & Discounts", href: "/admin/coupons", icon: Tag },
   ];
 
