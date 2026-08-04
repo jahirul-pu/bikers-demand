@@ -6,5 +6,4 @@ dotenv.config();
 
 export default defineConfig({
   schema: path.join('prisma', 'schema.prisma'),
-  seed: 'npx tsx prisma/seed.ts',
 });

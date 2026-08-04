@@ -20,6 +20,7 @@ export interface Product {
   stockQty: number;
   certification?: string; // DOT / ECE 22.06
   warranty?: string; // e.g. "No Warranty" or "6 Months"
+  sizes?: string[];
   returnPolicyNote?: string;
 }
 
@@ -79,12 +80,14 @@ export default function ProductCard({
           price: product.price,
           originalPrice: product.originalPrice,
           quantity: 1,
-          size: null,
+          size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : null,
           imageUrl: product.imageUrl,
           categorySlug: product.category,
         });
       }
       localStorage.setItem("bikers_demand_cart", JSON.stringify(cartArr));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     } catch (e) {
       console.error("Failed to save cart item to storage:", e);
     }
@@ -206,21 +209,15 @@ export default function ProductCard({
         <div className="space-y-1 pt-2 border-t border-asphalt/80 text-[11px] font-mono">
           <div className="flex items-center justify-between">
             <span className="text-steel">Stock:</span>
-            {product.stockStatus === "in-stock" && (
+            {product.stockStatus === "out-of-stock" || product.stockQty <= 0 ? (
+              <span className="text-red-400 flex items-center gap-1 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                Out of Stock
+              </span>
+            ) : (
               <span className="text-emerald-400 flex items-center gap-1 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 In Stock ({product.stockQty})
-              </span>
-            )}
-            {product.stockStatus === "low-stock" && (
-              <span className="text-plate-yellow flex items-center gap-1 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-plate-yellow animate-ping" />
-                Low Stock ({product.stockQty})
-              </span>
-            )}
-            {product.stockStatus === "out-of-stock" && (
-              <span className="text-steel flex items-center gap-1">
-                Out of Stock
               </span>
             )}
           </div>

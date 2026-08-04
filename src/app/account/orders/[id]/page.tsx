@@ -44,6 +44,7 @@ export default function OrderDetailPage() {
         brand: "Akrapovič Replica",
         price: 6500,
         quantity: 1,
+        size: null,
         returnNote: "Parts & Mods non-returnable if opened unless verified wrong/counterfeit item.",
       },
       {
@@ -52,6 +53,7 @@ export default function OrderDetailPage() {
         brand: "Future Eye",
         price: 2950,
         quantity: 1,
+        size: "Universal",
         returnNote: "Standard return terms apply.",
       },
     ],
@@ -122,6 +124,12 @@ export default function OrderDetailPage() {
               <div>
                 <span className="text-plate-yellow font-bold">{item.brand}</span>
                 <h4 className="text-off-white font-semibold text-sm">{item.name}</h4>
+                {item.size && (
+                  <div className="text-[10px] text-plate-yellow font-bold uppercase flex items-center gap-1 my-0.5">
+                    <span>Size:</span>
+                    <span className="bg-asphalt-2 px-1.5 py-0.5 border border-plate-yellow/40 rounded-xs">{item.size}</span>
+                  </div>
+                )}
                 <div className="text-steel text-[11px]">
                   Qty: {item.quantity} × Tk {item.price.toLocaleString("en-BD")}
                 </div>

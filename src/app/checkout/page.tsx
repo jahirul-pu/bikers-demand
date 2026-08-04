@@ -176,6 +176,8 @@ function CheckoutContent() {
     setCartItems(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem("bikers_demand_cart", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     }
   };
 
@@ -184,6 +186,8 @@ function CheckoutContent() {
     setCartItems(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem("bikers_demand_cart", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     }
   };
 
@@ -236,6 +240,8 @@ function CheckoutContent() {
 
       setOrderConfirmed(confirmedData);
       localStorage.removeItem("bikers_demand_cart");
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     } finally {
       setIsSubmitting(false);
     }
@@ -435,6 +441,12 @@ function CheckoutContent() {
                       <div>
                         <span className="text-[10px] text-plate-yellow font-bold uppercase block leading-none">{item.brand}</span>
                         <h4 className="text-xs font-semibold text-off-white line-clamp-1">{item.name}</h4>
+                        {item.size && (
+                          <div className="text-[10px] text-plate-yellow font-bold uppercase flex items-center gap-1">
+                            <span>Size:</span>
+                            <span className="bg-asphalt-2 px-1.5 py-0.5 border border-plate-yellow/40 rounded-xs">{item.size}</span>
+                          </div>
+                        )}
                         <div className="text-[10px] text-steel">Tk {item.price.toLocaleString("en-BD")} each</div>
                       </div>
 

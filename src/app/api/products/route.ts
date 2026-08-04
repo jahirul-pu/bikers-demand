@@ -34,10 +34,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
+function mapCert(c?: string): "DOT" | "ECE_2206" | "ECE_2205" | "DOT_AND_ECE" | "NONE" {
+  if (!c) return "NONE";
+  const upper = c.toUpperCase();
+  if (upper.includes("22.06") || upper.includes("2206")) return "ECE_2206";
+  if (upper.includes("22.05") || upper.includes("2205")) return "ECE_2205";
+  if (upper.includes("DOT") && upper.includes("ECE")) return "DOT_AND_ECE";
+  if (upper.includes("DOT")) return "DOT";
+  return "NONE";
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, brand, sku, price, stockQty, category, imageUrl, certification, warranty, description, sizes } = body;
+    const { name, brand, sku, price, comparePrice, stockQty, stockStatus, category, imageUrl, certification, warranty, description, sizes } = body;
 
     if (!name || !brand || !sku) {
       return NextResponse.json(
@@ -62,6 +72,8 @@ export async function POST(req: Request) {
     }
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const qty = Number(stockQty) || 0;
+    const isOut = stockStatus === "out-of-stock" || qty <= 0;
 
     const created = await prisma.product.create({
       data: {
@@ -70,14 +82,17 @@ export async function POST(req: Request) {
         brand,
         sku,
         price: Number(price) || 0,
-        stockQty: Number(stockQty) || 0,
+        comparePrice: comparePrice !== undefined && comparePrice !== null && comparePrice !== "" ? Number(comparePrice) : null,
+        stockQty: qty,
+        stockStatus: isOut ? "OUT_OF_STOCK" : "IN_STOCK",
         categoryId: catRecord.id,
         description: description || `Genuine ${brand} product.`,
         images: imageUrl ? [imageUrl] : [],
         sizes: Array.isArray(sizes) ? sizes : [],
+        certification: mapCert(certification),
         isUniversal: true,
-        warrantyDuration: warranty || "1 Year Warranty",
-        warrantyFlag: !!warranty,
+        warrantyDuration: warranty || "No Warranty",
+        warrantyFlag: !!(warranty && warranty !== "No Warranty"),
       },
       include: { category: true },
     });
@@ -95,7 +110,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, name, brand, sku, price, stockQty, category, imageUrl, warranty, description, sizes } = body;
+    const { id, name, brand, sku, price, comparePrice, stockQty, stockStatus, category, imageUrl, certification, warranty, description, sizes } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: "Product ID required" }, { status: 400 });
@@ -113,20 +128,33 @@ export async function PATCH(req: Request) {
       categoryId = catRecord.id;
     }
 
+    const updatedData: any = {
+      ...(name && { name }),
+      ...(brand && { brand }),
+      ...(sku && { sku }),
+      ...(price !== undefined && { price: Number(price) }),
+      ...(comparePrice !== undefined && { comparePrice: comparePrice ? Number(comparePrice) : null }),
+      ...(stockQty !== undefined && { stockQty: Number(stockQty) }),
+      ...(categoryId && { categoryId }),
+      ...(description !== undefined && { description }),
+      ...(imageUrl && { images: [imageUrl] }),
+      ...(sizes && Array.isArray(sizes) && { sizes }),
+      ...(certification !== undefined && { certification: mapCert(certification) }),
+      ...(warranty !== undefined && {
+        warrantyDuration: warranty,
+        warrantyFlag: warranty !== "No Warranty",
+      }),
+    };
+
+    if (stockStatus !== undefined || stockQty !== undefined) {
+      const targetQty = stockQty !== undefined ? Number(stockQty) : undefined;
+      const isOut = stockStatus === "out-of-stock" || (targetQty !== undefined && targetQty <= 0);
+      updatedData.stockStatus = isOut ? "OUT_OF_STOCK" : "IN_STOCK";
+    }
+
     const updated = await prisma.product.update({
       where: { id },
-      data: {
-        ...(name && { name }),
-        ...(brand && { brand }),
-        ...(sku && { sku }),
-        ...(price !== undefined && { price: Number(price) }),
-        ...(stockQty !== undefined && { stockQty: Number(stockQty) }),
-        ...(categoryId && { categoryId }),
-        ...(description && { description }),
-        ...(imageUrl && { images: [imageUrl] }),
-        ...(sizes && Array.isArray(sizes) && { sizes }),
-        ...(warranty && { warrantyDuration: warranty, warrantyFlag: true }),
-      },
+      data: updatedData,
       include: { category: true },
     });
 

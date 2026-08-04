@@ -154,6 +154,8 @@ export default function ProductDetailPage() {
         });
       }
       localStorage.setItem("bikers_demand_cart", JSON.stringify(cartArr));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     } catch (e) {
       console.error("Error saving cart to storage:", e);
     }
@@ -287,12 +289,12 @@ export default function ProductDetailPage() {
                 <span className="display-font text-3xl font-extrabold text-plate-yellow">
                   Tk {product.price.toLocaleString("en-BD")}
                 </span>
-                {product.originalPrice && (
+                {product.originalPrice && product.originalPrice > product.price && (
                   <span className="text-steel line-through text-base">
                     Tk {product.originalPrice.toLocaleString("en-BD")}
                   </span>
                 )}
-                {product.originalPrice && (
+                {product.originalPrice && product.originalPrice > product.price && (
                   <span className="bg-ignition-red text-asphalt font-extrabold text-[10px] px-2 py-0.5 uppercase">
                     SAVE TK {(product.originalPrice - product.price).toLocaleString("en-BD")}
                   </span>
@@ -303,11 +305,18 @@ export default function ProductDetailPage() {
             {/* Stock & Warranty Badges */}
             <div className="grid grid-cols-2 gap-3 p-3 bg-asphalt-2 border border-asphalt-2">
               <div className="space-y-0.5">
-                <span className="text-steel text-[10px] uppercase block">Owned Stock Status:</span>
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  In Stock ({product.stockQty} Units in Dhaka Hub)
-                </span>
+                <span className="text-steel text-[10px] uppercase block">Stock Status:</span>
+                {product.stockStatus === "out-of-stock" || product.stockQty <= 0 ? (
+                  <span className="text-red-400 font-bold flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-red-400" />
+                    Out of Stock
+                  </span>
+                ) : (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    In Stock ({product.stockQty} Available)
+                  </span>
+                )}
               </div>
 
               <div className="space-y-0.5">

@@ -136,9 +136,11 @@ export default function Header({
     syncSession();
     window.addEventListener("storage", syncSession);
     window.addEventListener("focus", syncSession);
+    window.addEventListener("cart-updated", syncSession);
     return () => {
       window.removeEventListener("storage", syncSession);
       window.removeEventListener("focus", syncSession);
+      window.removeEventListener("cart-updated", syncSession);
     };
   }, [cartCount, favCount, isCartOpen]);
 

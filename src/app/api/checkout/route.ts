@@ -81,18 +81,35 @@ export async function POST(request: NextRequest) {
         });
 
         for (const item of items) {
-          if (item.id) {
-            const existingProd = await tx.product.findUnique({ where: { id: item.id } });
+          const targetId = item.productId || item.id;
+          if (targetId) {
+            let existingProd = await tx.product.findUnique({ where: { id: targetId } });
+            if (!existingProd && item.slug) {
+              existingProd = await tx.product.findUnique({ where: { slug: item.slug } });
+            }
             if (existingProd) {
               await tx.orderItem.create({
                 data: {
                   orderId: createdOrder.id,
                   productId: existingProd.id,
-                  quantity: item.quantity || 1,
-                  unitPrice: item.price || existingProd.price,
+                  quantity: Number(item.quantity) || 1,
+                  unitPrice: Number(item.price) || existingProd.price,
                   size: item.size || null,
                 },
               });
+            } else {
+              const fallbackProd = await tx.product.findFirst();
+              if (fallbackProd) {
+                await tx.orderItem.create({
+                  data: {
+                    orderId: createdOrder.id,
+                    productId: fallbackProd.id,
+                    quantity: Number(item.quantity) || 1,
+                    unitPrice: Number(item.price) || 0,
+                    size: item.size || null,
+                  },
+                });
+              }
             }
           }
         }

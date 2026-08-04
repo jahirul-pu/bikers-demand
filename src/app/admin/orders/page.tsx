@@ -36,8 +36,11 @@ export default function AdminOrdersPage() {
           date: o.createdAt ? new Date(o.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
           items: o.items?.map((i: any) => ({
             name: i.product?.name || i.name || "Motorcycle Accessory",
+            brand: i.product?.brand || i.brand || "Bikers Demand",
             price: i.unitPrice || i.price || 0,
             quantity: i.quantity || 1,
+            size: i.size || null,
+            warranty: i.product?.warrantyDuration || (i.product?.warrantyFlag ? "1 Year Warranty" : "No Warranty"),
           })),
         }));
         setOrders(mapped);
@@ -350,7 +353,26 @@ export default function AdminOrdersPage() {
                     {viewingOrder.items && viewingOrder.items.length > 0 ? (
                       viewingOrder.items.map((item: any, idx: number) => (
                         <tr key={idx} className="hover:bg-asphalt/50">
-                          <td className="p-2.5 font-bold text-off-white">{item.name}</td>
+                          <td className="p-2.5 font-bold text-off-white">
+                            {item.brand && (
+                              <span className="text-[10px] text-plate-yellow font-bold uppercase block tracking-wider mb-0.5">
+                                {item.brand}
+                              </span>
+                            )}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span>{item.name}</span>
+                              {item.size && (
+                                <span className="bg-asphalt-2 border border-plate-yellow/40 text-plate-yellow text-[10px] px-1.5 py-0.5 font-mono uppercase inline-block">
+                                  Size: {item.size}
+                                </span>
+                              )}
+                            </div>
+                            {item.warranty && item.warranty !== "No Warranty" && (
+                              <div className="text-[10px] text-emerald-400 font-mono mt-0.5 flex items-center gap-1 font-normal">
+                                <span>🛡 Warranty: {item.warranty}</span>
+                              </div>
+                            )}
+                          </td>
                           <td className="p-2.5 text-center font-bold">{item.quantity || 1}</td>
                           <td className="p-2.5 text-right text-steel">৳{(item.price || 0).toLocaleString("en-BD")}</td>
                           <td className="p-2.5 text-right font-bold text-off-white">

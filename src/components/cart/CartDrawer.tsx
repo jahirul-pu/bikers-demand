@@ -53,6 +53,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     setCartItems(newItems);
     try {
       localStorage.setItem("bikers_demand_cart", JSON.stringify(newItems));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      window.dispatchEvent(new Event("storage"));
     } catch (e) {
       console.error("Error saving cart to storage:", e);
     }
@@ -154,6 +156,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <h4 className="text-xs font-semibold text-off-white line-clamp-1">
                         {item.name}
                       </h4>
+                      {item.size && (
+                        <div className="text-[10px] text-plate-yellow font-bold uppercase flex items-center gap-1">
+                          <span>Size:</span>
+                          <span className="bg-asphalt-2 px-1.5 py-0.5 border border-plate-yellow/40 rounded-xs">{item.size}</span>
+                        </div>
+                      )}
                       <div className="text-[11px] text-steel">
                         Tk {item.price.toLocaleString("en-BD")}
                       </div>
