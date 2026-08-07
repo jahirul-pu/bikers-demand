@@ -182,7 +182,7 @@ export default function GaragePage() {
               >
                 {availableModels.map((b) => (
                   <option key={b.id} value={b.model}>
-                    {b.model} ({b.displacementCc} cc)
+                    {b.model}
                   </option>
                 ))}
               </select>

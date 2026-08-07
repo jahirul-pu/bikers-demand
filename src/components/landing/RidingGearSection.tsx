@@ -19,7 +19,7 @@ export default function RidingGearSection({
     const fetchGear = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/products?category=riding-gear");
+        const res = await fetch("/api/products?category=riding-gear,helmets");
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
           const mapped: Product[] = json.data.slice(0, 4).map((p: any) => ({
@@ -27,7 +27,7 @@ export default function RidingGearSection({
             name: p.name,
             brand: p.brand,
             slug: p.slug,
-            category: "riding-gear",
+            category: p.category?.slug || "riding-gear",
             price: p.price,
             originalPrice: p.comparePrice,
             imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=500&auto=format&fit=crop&q=80",

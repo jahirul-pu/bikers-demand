@@ -10,7 +10,18 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
 
     const where: any = { isActive: true };
-    if (categorySlug) where.category = { slug: categorySlug };
+    if (categorySlug) {
+      const categorySlugs = categorySlug.split(",").map((s) => s.trim()).filter(Boolean);
+      if (categorySlugs.includes("riding-gear") && !categorySlugs.includes("helmets")) {
+        categorySlugs.push("helmets");
+      }
+
+      where.OR = [
+        { category: { slug: { in: categorySlugs } } },
+        { category: { parent: { slug: { in: categorySlugs } } } },
+        { subCategory: { in: categorySlugs, mode: "insensitive" } },
+      ];
+    }
     if (subCategory && subCategory !== "all") {
       where.subCategory = { equals: subCategory, mode: "insensitive" };
     }

@@ -62,6 +62,7 @@ export default function ProductDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFav, setIsFav] = useState(false);
@@ -84,7 +85,7 @@ export default function ProductDetailPage() {
         if (json.success && json.data?.product) {
           const d = json.data.product;
           const compatBikes = d.compatibilities?.map(
-            (c: any) => `${c.bikeModel.brand} ${c.bikeModel.model}${c.bikeModel.variant ? ` ${c.bikeModel.variant}` : ""} (${c.bikeModel.cc}cc)`
+            (c: any) => `${c.bikeModel.brand} ${c.bikeModel.model}${c.bikeModel.variant ? ` ${c.bikeModel.variant}` : ""}`
           ) || [];
 
           const catSlug = d.category?.slug || "riding-gear";
@@ -111,24 +112,41 @@ export default function ProductDetailPage() {
             });
           }
 
-          // Add any remaining unmapped specs
+          // Add any remaining unmapped specs (excluding selectedGrades / grades if handled as variants)
           Object.entries(dbSpecs).forEach(([k, v]) => {
-            if (!catSpecConfig?.fields.some((f) => f.key === k) && v) {
+            if (k !== "selectedGrades" && k !== "grades" && !catSpecConfig?.fields.some((f) => f.key === k) && v) {
               const val = Array.isArray(v) ? v.join(", ") : String(v);
               const label = k.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase());
               formattedSpecs.push({ key: label, value: val });
             }
           });
 
-          // Resolve sizes from sizes array or specs.sizes
-          const resolvedSizes =
+          // Resolve sizes/volumes array
+          const isOilCat = catSlug.includes("oil") || catSlug.includes("additive") || catSlug.includes("lubricant");
+          let resolvedSizes =
             Array.isArray(dbSpecs.sizes) && dbSpecs.sizes.length > 0
               ? dbSpecs.sizes
               : d.sizes?.length > 0
               ? d.sizes
-              : (catSlug === "riding-gear" || catSlug === "helmets")
-              ? ["M", "L", "XL"]
               : [];
+
+          if (isOilCat) {
+            resolvedSizes = resolvedSizes.filter(
+              (s: string) => !["s", "m", "l", "xl", "xxl"].includes(String(s).trim().toLowerCase())
+            );
+          }
+
+          // Resolve grades array
+          let gradeOpts: string[] = [];
+          if (dbSpecs.selectedGrades) {
+            try {
+              gradeOpts = typeof dbSpecs.selectedGrades === "string" ? JSON.parse(dbSpecs.selectedGrades) : dbSpecs.selectedGrades;
+            } catch {
+              gradeOpts = String(dbSpecs.selectedGrades).split(",").map((s) => s.trim());
+            }
+          } else if (dbSpecs.grades) {
+            gradeOpts = String(dbSpecs.grades).split(",").map((s) => s.trim());
+          }
 
           setProduct({
             id: d.id,
@@ -142,7 +160,7 @@ export default function ProductDetailPage() {
             originalPrice: d.comparePrice,
             stockQty: d.stockQty,
             stockStatus: d.stockStatus === "OUT_OF_STOCK" ? "out-of-stock" : d.stockStatus === "LOW_STOCK" ? "low-stock" : "in-stock",
-            certification: d.certification || "NONE",
+            certification: d.certification && d.certification !== "NONE" ? d.certification : "",
             warranty: d.warrantyDuration || (d.warrantyFlag ? "6 Months Warranty" : "No Warranty"),
             returnNote: d.returnPolicyNote || (catSlug === "parts-mods" ? "Parts & Mods items are non-returnable once opened." : "7-day return policy applies."),
             description: d.description || "",
@@ -157,6 +175,9 @@ export default function ProductDetailPage() {
 
           if (resolvedSizes.length > 0) {
             setSelectedSize(resolvedSizes[0]);
+          }
+          if (gradeOpts.length > 0) {
+            setSelectedGrade(gradeOpts[0]);
           }
         } else {
           setNotFound(true);
@@ -180,9 +201,11 @@ export default function ProductDetailPage() {
       if (existing) {
         cartArr = JSON.parse(existing);
       }
+      const selectedVariantLabel = [selectedSize, selectedGrade].filter(Boolean).join(" | ");
       const existingIndex = cartArr.findIndex((i: any) => i.productId === product.id || i.id === product.id);
       if (existingIndex >= 0) {
         cartArr[existingIndex].quantity += quantity;
+        if (selectedVariantLabel) cartArr[existingIndex].size = selectedVariantLabel;
       } else {
         cartArr.push({
           id: `cart-${Date.now()}`,
@@ -192,7 +215,7 @@ export default function ProductDetailPage() {
           price: product.price,
           originalPrice: product.originalPrice,
           quantity: quantity,
-          size: selectedSize,
+          size: selectedVariantLabel || selectedSize,
           imageUrl: product.images[0],
           categorySlug: product.categorySlug,
         });
@@ -282,12 +305,14 @@ export default function ProductDetailPage() {
 
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-1.5">
-                <span className="bg-plate-yellow text-asphalt text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider flex items-center gap-1 shadow">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Model Specific Part</span>
-                </span>
+                {product.compatibleBikes.length > 0 && !product.compatibleBikes.some((b) => b.toLowerCase().includes("universal")) && (
+                  <span className="bg-plate-yellow text-asphalt text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider flex items-center gap-1 shadow">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Model Specific Part</span>
+                  </span>
+                )}
 
-                {product.certification !== "NONE" && (
+                {Boolean(product.certification && product.certification !== "NONE" && product.certification.trim() !== "") && (
                   <span className="bg-ignition-red text-asphalt text-[11px] font-extrabold px-2.5 py-1 uppercase tracking-wider">
                     {product.certification} Certified
                   </span>
@@ -331,9 +356,9 @@ export default function ProductDetailPage() {
 
               {/* Category Spec Highlights / Pills */}
               {product.rawSpecs && Object.keys(product.rawSpecs).length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-col gap-1.5 pt-1 items-start">
                   {Object.entries(product.rawSpecs).map(([key, val]) => {
-                    if (!val || key === "sizes") return null;
+                    if (!val || key === "sizes" || key === "selectedGrades" || key === "grades") return null;
                     const displayVal = Array.isArray(val) ? val.join(", ") : String(val);
                     return (
                       <span
@@ -387,18 +412,22 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Size Selector for Riding Gear */}
+            {/* Selectable Volume / Net Quantity / Size Buttons */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-2">
-                <label className="text-plate-yellow font-bold uppercase block">Select Size:</label>
-                <div className="flex gap-2">
+                <label className="text-plate-yellow font-bold uppercase block text-xs tracking-wider">
+                  {product.categorySlug?.includes("oil") || product.categorySlug?.includes("additive") || product.sizes.some((s) => s.toLowerCase().includes("l") || s.toLowerCase().includes("ml"))
+                    ? "Select Volume / Net Quantity:"
+                    : "Select Size:"}
+                </label>
+                <div className="flex flex-wrap gap-2">
                   {product.sizes.map((s) => (
                     <button
                       key={s}
                       onClick={() => setSelectedSize(s)}
-                      className={`px-4 py-2 border font-bold ${
+                      className={`px-4 py-2 border font-bold text-xs font-mono transition-colors cursor-pointer ${
                         selectedSize === s
-                          ? "bg-plate-yellow text-asphalt border-plate-yellow"
+                          ? "bg-plate-yellow text-asphalt border-plate-yellow shadow-md shadow-plate-yellow/20"
                           : "bg-asphalt text-steel hover:text-off-white border-steel/30"
                       }`}
                     >
@@ -408,6 +437,52 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Selectable Viscosity / Oil Grade Buttons */}
+            {(() => {
+              let gradeOptions: string[] = [];
+              if (product.rawSpecs?.selectedGrades) {
+                try {
+                  gradeOptions = typeof product.rawSpecs.selectedGrades === "string"
+                    ? JSON.parse(product.rawSpecs.selectedGrades)
+                    : product.rawSpecs.selectedGrades;
+                } catch {
+                  gradeOptions = String(product.rawSpecs.selectedGrades).split(",").map((s) => s.trim());
+                }
+              } else if (product.rawSpecs?.grades) {
+                gradeOptions = String(product.rawSpecs.grades).split(",").map((s) => s.trim());
+              } else if (product.rawSpecs?.Viscosity) {
+                const v = String(product.rawSpecs.Viscosity);
+                if (v.includes(",") || v.includes("/")) {
+                  gradeOptions = v.split(/[,/]+/).map((s) => s.trim());
+                }
+              }
+
+              if (!gradeOptions || gradeOptions.length === 0) return null;
+
+              return (
+                <div className="space-y-2 pt-1">
+                  <label className="text-plate-yellow font-bold uppercase block text-xs tracking-wider">
+                    Select Viscosity Grade:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {gradeOptions.map((g) => (
+                      <button
+                        key={g}
+                        onClick={() => setSelectedGrade(g)}
+                        className={`px-4 py-2 border font-bold text-xs font-mono transition-colors cursor-pointer ${
+                          selectedGrade === g
+                            ? "bg-plate-yellow text-asphalt border-plate-yellow shadow-md shadow-plate-yellow/20"
+                            : "bg-asphalt text-steel hover:text-off-white border-steel/30"
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Quantity Stepper & Cart Buttons */}
             <div className="space-y-4 pt-2">

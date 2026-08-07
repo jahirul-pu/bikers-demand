@@ -73,14 +73,54 @@ export default function AdminProductsPage() {
       .catch(() => {});
   }, []);
 
+  const FALLBACK_BIKES_LIST = [
+    { id: "b1", brand: "Yamaha", model: "FZS-Fi", variant: "v3" },
+    { id: "b2", brand: "Yamaha", model: "FZS-Fi", variant: "v2" },
+    { id: "b3", brand: "Yamaha", model: "R15", variant: "v4" },
+    { id: "b4", brand: "Yamaha", model: "R15", variant: "v3" },
+    { id: "b5", brand: "Yamaha", model: "MT-15", variant: "v2" },
+    { id: "b6", brand: "Honda", model: "CB Hornet", variant: "160R ABS" },
+    { id: "b7", brand: "Honda", model: "CBR", variant: "150R" },
+    { id: "b8", brand: "Honda", model: "XBlade", variant: "160" },
+    { id: "b9", brand: "Suzuki", model: "Gixxer", variant: "155 FI" },
+    { id: "b10", brand: "Suzuki", model: "GSX-R150", variant: "Keyless" },
+    { id: "b11", brand: "Bajaj", model: "Pulsar N160", variant: "ABS" },
+    { id: "b12", brand: "Bajaj", model: "Pulsar NS160", variant: "FI" },
+    { id: "b13", brand: "TVS", model: "Apache RTR 160 4V", variant: "Special Edition" },
+    { id: "b14", brand: "TVS", model: "Raider 125", variant: "Disc" },
+  ];
+
   const loadDbBikes = useCallback(() => {
     fetch("/api/bikes")
       .then((r) => r.json())
       .then((j) => {
-        if (j.success && Array.isArray(j.data?.raw)) {
-          setDbBikeModels(j.data.raw);
-        } else if (j.success && Array.isArray(j.data)) {
-          setDbBikeModels(j.data);
+        if (j.success) {
+          if (Array.isArray(j.list) && j.list.length > 0) {
+            setDbBikeModels(j.list);
+          } else if (Array.isArray(j.data?.raw)) {
+            setDbBikeModels(j.data.raw);
+          } else if (Array.isArray(j.data)) {
+            setDbBikeModels(j.data);
+          } else if (j.data && typeof j.data === "object") {
+            const flattened: any[] = [];
+            Object.entries(j.data).forEach(([brand, models]: [string, any]) => {
+              if (Array.isArray(models)) {
+                models.forEach((m: any) => {
+                  if (Array.isArray(m.variants)) {
+                    m.variants.forEach((v: any) => {
+                      flattened.push({
+                        id: v.id,
+                        brand,
+                        model: m.model,
+                        variant: v.variant,
+                      });
+                    });
+                  }
+                });
+              }
+            });
+            setDbBikeModels(flattened);
+          }
         }
       })
       .catch(() => {});
@@ -133,12 +173,29 @@ export default function AdminProductsPage() {
   const [newStockQty, setNewStockQty] = useState(10);
   const [newStockStatus, setNewStockStatus] = useState<"in-stock" | "out-of-stock">("in-stock");
   const [newCategory, setNewCategory] = useState<DBProduct["category"]>("riding-gear");
-  const [newCertification, setNewCertification] = useState("ECE 22.06 / DOT");
+  const [newCertification, setNewCertification] = useState("");
   const [newWarranty, setNewWarranty] = useState("1 Year Warranty");
-  const [newSizes, setNewSizes] = useState<string[]>(["M", "L", "XL"]);
+  const [newSizes, setNewSizes] = useState<string[]>([]);
+  const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
   const [newSpecs, setNewSpecs] = useState<Record<string, any>>({});
+  const [customSpecRows, setCustomSpecRows] = useState<{ key: string; value: string }[]>([
+    { key: "", value: "" },
+  ]);
   const [newIsUniversal, setNewIsUniversal] = useState<boolean>(true);
   const [newBikeModelIds, setNewBikeModelIds] = useState<string[]>([]);
+  const [selectedCompatBrands, setSelectedCompatBrands] = useState<string[]>([]);
+  const [selectedCompatModels, setSelectedCompatModels] = useState<string[]>([]);
+
+  const activeBikeModelsList = React.useMemo(() => {
+    return dbBikeModels.length > 0 ? dbBikeModels : FALLBACK_BIKES_LIST;
+  }, [dbBikeModels]);
+
+  const availableBikeBrands = React.useMemo(() => {
+    const set = new Set<string>();
+    activeBikeModelsList.forEach((b: any) => b.brand && set.add(b.brand));
+    return Array.from(set).sort();
+  }, [activeBikeModelsList]);
+
   const [newCustomSpecs, setNewCustomSpecs] = useState("");
   const [imageSourceMode, setImageSourceMode] = useState<"url" | "file">("url");
   const [imageUrl, setImageUrl] = useState("");
@@ -172,25 +229,36 @@ export default function AdminProductsPage() {
     }
   };
 
+  const generateAutoSku = (catSlug?: string, brandName?: string) => {
+    const catCode = (catSlug || "PRD").replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() || "PRD";
+    const brandCode = (brandName || "GEN").replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() || "GEN";
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return `${catCode}-${brandCode}-${randomNum}`;
+  };
+
   const handleOpenAddModal = () => {
     setEditingProduct(null);
     setNewName("");
     setNewBrand("");
-    setNewSku("");
+    const firstCat = dbCategoriesList[0]?.slug || "riding-gear";
+    setNewCategory(firstCat);
+    setNewSubCategory("");
+    setNewSku(generateAutoSku(firstCat, "BD"));
     setNewPrice(0);
     setNewComparePrice("");
     setNewDiscountPercent("");
     setNewStockQty(10);
     setNewStockStatus("in-stock");
-    const firstCat = dbCategoriesList[0]?.slug || "riding-gear";
-    setNewCategory(firstCat);
-    setNewSubCategory("");
-    setNewCertification("ECE 22.06 / DOT");
+    setNewCertification("");
     setNewWarranty("1 Year Warranty");
-    setNewSizes(["M", "L", "XL"]);
+    setNewSizes([]);
+    setSelectedGrades([]);
     setNewSpecs({});
+    setCustomSpecRows([{ key: "", value: "" }]);
     setNewIsUniversal(true);
     setNewBikeModelIds([]);
+    setSelectedCompatBrands([]);
+    setSelectedCompatModels([]);
     setNewCustomSpecs("");
     setImageUrl("");
     setShowAddModal(true);
@@ -200,7 +268,7 @@ export default function AdminProductsPage() {
     setEditingProduct(p);
     setNewName(p.name);
     setNewBrand(p.brand);
-    setNewSku(p.sku);
+    setNewSku(p.sku || generateAutoSku(typeof p.category === "string" ? p.category : (p as any).category?.slug, p.brand));
     setNewPrice(p.price);
     setNewComparePrice(p.originalPrice || "");
     if (p.originalPrice && p.originalPrice > p.price) {
@@ -210,14 +278,65 @@ export default function AdminProductsPage() {
     }
     setNewStockQty(p.stockQty);
     setNewStockStatus(p.stockStatus === "out-of-stock" || p.stockQty <= 0 ? "out-of-stock" : "in-stock");
-    setNewCategory(p.category || "riding-gear");
-    setNewSubCategory(p.subCategory || "");
-    setNewCertification(p.certification || "ECE 22.06 / DOT");
+
+    // Robust category & subcategory slug resolution
+    const catSlug = typeof p.category === "string" ? p.category : (p as any).category?.slug || "riding-gear";
+    const targetCat = dbCategoriesList.find(
+      (c) => c.slug === catSlug || c.id === catSlug || c.name.toLowerCase() === catSlug.toLowerCase()
+    );
+    const resolvedCatSlug = targetCat?.slug || catSlug;
+    setNewCategory(resolvedCatSlug);
+
+    let resolvedSubSlug = p.subCategory || "";
+    if (targetCat?.children && p.subCategory) {
+      const matchSub = targetCat.children.find(
+        (s: any) =>
+          s.slug === p.subCategory ||
+          s.name.toLowerCase() === p.subCategory?.toLowerCase() ||
+          s.id === p.subCategory
+      );
+      if (matchSub) {
+        resolvedSubSlug = matchSub.slug;
+      }
+    }
+    setNewSubCategory(resolvedSubSlug);
+
+    setNewCertification(p.certification || "");
     setNewWarranty(p.warranty || "No Warranty");
-    setNewSizes(p.sizes || ["M", "L", "XL"]);
+    setNewSizes(p.sizes || []);
+
+    if (p.specs && typeof p.specs === "object") {
+      let g: string[] = [];
+      if ((p.specs as any).selectedGrades) {
+        try {
+          g = typeof (p.specs as any).selectedGrades === "string" ? JSON.parse((p.specs as any).selectedGrades) : (p.specs as any).selectedGrades;
+        } catch {
+          g = String((p.specs as any).selectedGrades).split(",").map((s) => s.trim());
+        }
+      } else if ((p.specs as any).grades) {
+        g = String((p.specs as any).grades).split(",").map((s) => s.trim());
+      }
+      setSelectedGrades(g);
+    } else {
+      setSelectedGrades([]);
+    }
+
     setNewSpecs(p.specs || {});
+    if (p.specs && typeof p.specs === "object" && Object.keys(p.specs).length > 0) {
+      const rows = Object.entries(p.specs)
+        .filter(([key]) => key !== "selectedGrades" && key !== "grades")
+        .map(([key, value]) => ({
+          key,
+          value: Array.isArray(value) ? value.join(", ") : String(value || ""),
+        }));
+      setCustomSpecRows(rows.length > 0 ? rows : [{ key: "", value: "" }]);
+    } else {
+      setCustomSpecRows([{ key: "", value: "" }]);
+    }
     setNewIsUniversal(p.isUniversal ?? true);
     setNewBikeModelIds(p.bikeModelIds || []);
+    setSelectedCompatBrands([]);
+    setSelectedCompatModels(p.bikeModelIds || []);
     setNewCustomSpecs(p.description || "");
     setImageUrl(p.imageUrl || "");
     setShowAddModal(true);
@@ -259,6 +378,31 @@ export default function AdminProductsPage() {
       return;
     }
 
+    const specsObj: Record<string, string> = {};
+    customSpecRows.forEach((row) => {
+      if (row.key.trim() && row.value.trim()) {
+        specsObj[row.key.trim()] = row.value.trim();
+      }
+    });
+    if (selectedGrades.length > 0) {
+      specsObj["selectedGrades"] = JSON.stringify(selectedGrades);
+      specsObj["grades"] = selectedGrades.join(", ");
+    }
+
+    let finalBikeModelIds: string[] = [];
+    if (!newIsUniversal) {
+      const set = new Set<string>();
+      if (selectedCompatBrands.length > 0) {
+        activeBikeModelsList.forEach((b: any) => {
+          if (selectedCompatBrands.includes(b.brand)) {
+            set.add(b.id);
+          }
+        });
+      }
+      selectedCompatModels.forEach((id) => set.add(id));
+      finalBikeModelIds = Array.from(set);
+    }
+
     const prodPayload = {
       ...(editingProduct && { id: editingProduct.id }),
       name: newName,
@@ -271,12 +415,12 @@ export default function AdminProductsPage() {
       category: newCategory,
       subCategory: newSubCategory,
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
-      certification: newCertification,
+      certification: (newCategory.includes("helmet") || newCategory.includes("gear") || newCategory.includes("wear")) ? newCertification : "",
       warranty: newWarranty,
       sizes: newSizes,
-      specs: newSpecs,
+      specs: specsObj,
       isUniversal: newIsUniversal,
-      bikeModelIds: newIsUniversal ? [] : newBikeModelIds,
+      bikeModelIds: newIsUniversal ? [] : finalBikeModelIds,
       description: newCustomSpecs || `Genuine ${newBrand} motorcycle product. Certified for quality and performance.`,
     };
 
@@ -553,14 +697,24 @@ export default function AdminProductsPage() {
                     )}
                   </div>
                   <div>
-                    <label className="text-steel block font-bold">SKU Code *</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-steel block font-bold">SKU Code *</label>
+                      <button
+                        type="button"
+                        onClick={() => setNewSku(generateAutoSku(newCategory, newBrand))}
+                        className="text-[9px] px-1.5 py-0.5 border border-plate-yellow/40 bg-plate-yellow/10 text-plate-yellow hover:bg-plate-yellow hover:text-asphalt transition-colors font-mono font-bold uppercase cursor-pointer"
+                        title="Click to auto-generate a fresh SKU"
+                      >
+                        ⚡ Auto
+                      </button>
+                    </div>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. GEAR-HLM-009"
+                      placeholder="e.g. HLM-MT-9301"
                       value={newSku}
                       onChange={(e) => setNewSku(e.target.value)}
-                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
+                      className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -685,167 +839,324 @@ export default function AdminProductsPage() {
                     <option value="Lifetime Warranty">Lifetime Warranty</option>
                   </select>
                 </div>
-              </div>
 
-              {/* Category-Specific Specifications */}
-              {(() => {
-                const activeSpec = getCategorySpec(newCategory);
-                if (!activeSpec) return null;
-
-                return (
-                  <div className="space-y-4 bg-asphalt p-4 border border-plate-yellow/40">
-                    <h3 className="text-plate-yellow font-bold uppercase tracking-wider text-xs border-b border-asphalt-2 pb-1.5 flex items-center justify-between">
-                      <span>3. Category Specifications ({activeSpec.categoryName})</span>
-                      <span className="text-[10px] text-steel font-mono">Dynamic Category Specs</span>
-                    </h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {activeSpec.fields.map((field: SpecFieldDef) => {
-                        if (field.type === "multiselect") {
-                          const selectedValues: string[] = Array.isArray(newSpecs[field.key])
-                            ? newSpecs[field.key]
-                            : field.key === "sizes"
-                            ? newSizes
-                            : [];
-                          return (
-                            <div key={field.key} className="space-y-1.5 sm:col-span-2">
-                              <label className="text-plate-yellow font-bold block">{field.label}</label>
-                              <div className="flex flex-wrap gap-2 pt-1">
-                                {field.options?.map((opt: string) => {
-                                  const isChecked = selectedValues.includes(opt);
-                                  return (
-                                    <label
-                                      key={opt}
-                                      className={`flex items-center gap-1.5 text-off-white cursor-pointer select-none border px-2.5 py-1 text-xs font-mono transition-colors ${
-                                        isChecked
-                                          ? "bg-plate-yellow/20 border-plate-yellow text-plate-yellow font-bold"
-                                          : "bg-asphalt-2 border-steel/30 text-steel hover:text-off-white"
-                                      }`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isChecked}
-                                        onChange={() => {
-                                          const updated = isChecked
-                                            ? selectedValues.filter((v) => v !== opt)
-                                            : [...selectedValues, opt];
-                                          setNewSpecs((prev) => ({ ...prev, [field.key]: updated }));
-                                          if (field.key === "sizes") {
-                                            setNewSizes(updated);
-                                          }
-                                        }}
-                                        className="accent-plate-yellow w-3.5 h-3.5"
-                                      />
-                                      <span>{opt}</span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        if (field.type === "select") {
-                          return (
-                            <div key={field.key} className="space-y-1">
-                              <label className="text-steel font-bold block">{field.label}</label>
-                              <select
-                                value={newSpecs[field.key] || ""}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setNewSpecs((prev) => ({ ...prev, [field.key]: val }));
-                                  if (field.key === "certification") {
-                                    setNewCertification(val);
-                                  }
-                                }}
-                                className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
-                              >
-                                <option value="">-- Select {field.label} --</option>
-                                {field.options?.map((opt: string) => (
-                                  <option key={opt} value={opt}>
-                                    {opt}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div key={field.key} className="space-y-1">
-                            <label className="text-steel font-bold block">{field.label}</label>
-                            <input
-                              type="text"
-                              placeholder={field.placeholder || `Enter ${field.label}`}
-                              value={newSpecs[field.key] || ""}
-                              onChange={(e) =>
-                                setNewSpecs((prev) => ({ ...prev, [field.key]: e.target.value }))
-                              }
-                              className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white font-bold"
-                            />
-                          </div>
-                        );
-                      })}
+                {/* Safety Certification (Only shown for Helmets & Riding Gear) */}
+                {(newCategory.includes("helmet") || newCategory.includes("gear") || newCategory.includes("wear")) && (
+                    <div className="space-y-1 pt-1 border-t border-asphalt-2">
+                      <label className="text-plate-yellow font-bold block text-xs uppercase">
+                        Safety Certification Rating (Helmets &amp; Riding Gear Only)
+                      </label>
+                      <select
+                        value={newCertification}
+                        onChange={(e) => setNewCertification(e.target.value)}
+                        className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white text-xs font-mono"
+                      >
+                        <option value="">-- None / Select Safety Certification --</option>
+                        <option value="ECE 22.06">ECE 22.06 (EU Standard)</option>
+                        <option value="DOT">DOT (US Standard)</option>
+                        <option value="ECE 22.06 / DOT">ECE 22.06 / DOT Dual Certified</option>
+                        <option value="ECE 22.05">ECE 22.05</option>
+                        <option value="SNELL M2020">SNELL M2020</option>
+                        <option value="CE Level 2">CE Level 2 Approved (Gear)</option>
+                        <option value="CE Level 1">CE Level 1 Approved (Gear)</option>
+                      </select>
                     </div>
+                  )}
+                </div>
 
-                    {/* Bike Compatibility Matrix Selector for Parts, Additives, Electronics */}
-                    {activeSpec.showBikeCompatibility && (
-                      <div className="pt-3 border-t border-asphalt-2 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-plate-yellow font-bold uppercase block text-xs">
-                            Bike Model Compatibility Filter
-                          </label>
-                          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-400">
-                            <input
-                              type="checkbox"
-                              checked={newIsUniversal}
-                              onChange={(e) => setNewIsUniversal(e.target.checked)}
-                              className="accent-emerald-500 w-4 h-4 cursor-pointer"
-                            />
-                            <span>Universal Fit (Fits All Motorcycle Models)</span>
-                          </label>
+              {/* Universal Custom Technical Specifications & Selectable Variants */}
+              <div className="space-y-4 bg-asphalt p-4 border border-plate-yellow/40">
+                <div className="flex items-center justify-between border-b border-asphalt-2 pb-1.5">
+                  <h3 className="text-plate-yellow font-bold uppercase tracking-wider text-xs flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-plate-yellow" />
+                    <span>3. Customer Selectable Product Options &amp; Specifications</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomSpecRows((prev) => [...prev, { key: "", value: "" }]);
+                    }}
+                    className="bg-plate-yellow/20 border border-plate-yellow text-plate-yellow hover:bg-plate-yellow hover:text-asphalt px-2.5 py-1 text-[11px] font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Custom Spec Field</span>
+                  </button>
+                </div>
+
+                {/* 3A & 3B. Category-Smart Selectable Variant Options */}
+                {(() => {
+                  const catLower = (newCategory || "").toLowerCase();
+                  const isOilCategory = catLower.includes("oil") || catLower.includes("additive") || catLower.includes("lubricant");
+                  const presetChips = isOilCategory
+                    ? ["1L", "1.2L", "1.5L", "4L", "800ml", "250ml"]
+                    : ["S", "M", "L", "XL", "XXL"];
+
+                  return (
+                    <>
+                      {/* Selectable Volume / Size Options */}
+                      <div className="space-y-2 bg-asphalt-2 p-3 border border-steel/30">
+                        <label className="text-plate-yellow font-bold uppercase block text-xs flex items-center justify-between">
+                          <span>{isOilCategory ? "A. Selectable Fluid Volumes / Net Capacities" : "A. Selectable Sizes / Capacities"}</span>
+                          <span className="text-steel font-mono text-[10px]">Storefront Selectable Buttons</span>
+                        </label>
+                        <p className="text-steel text-[11px]">
+                          {isOilCategory
+                            ? "Select fluid volume options (e.g. 1L, 1.2L, 4L) for buyers to select on the product page."
+                            : "Select size options (e.g. S, M, L, XL) for buyers to select on the product page."}
+                        </p>
+
+                        <div className="flex flex-wrap gap-1.5 pt-1 font-mono text-xs">
+                          {presetChips.map((opt) => {
+                            const isSelected = newSizes.includes(opt);
+                            return (
+                              <button
+                                type="button"
+                                key={opt}
+                                onClick={() => toggleSize(opt)}
+                                className={`px-2.5 py-1 text-xs border font-bold transition-colors cursor-pointer ${
+                                  isSelected
+                                    ? "bg-plate-yellow text-asphalt border-plate-yellow"
+                                    : "bg-asphalt border-steel/30 text-steel hover:text-off-white"
+                                }`}
+                              >
+                                {isSelected ? `✓ ${opt}` : `+ ${opt}`}
+                              </button>
+                            );
+                          })}
                         </div>
 
-                        {!newIsUniversal && (
-                          <div className="bg-asphalt-2 p-3 border border-steel/30 space-y-2">
-                            <span className="text-steel text-[11px] block font-mono">
-                              Select specific motorcycle models compatible with this item:
-                            </span>
-                            <div className="max-h-48 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-1">
-                              {dbBikeModels.map((b: any) => {
-                                const label = `${b.brand} ${b.model}${b.variant ? ` ${b.variant}` : ""}`;
-                                const isChecked = newBikeModelIds.includes(b.id);
-                                return (
-                                  <label
-                                    key={b.id}
-                                    className={`flex items-center gap-2 p-2 border cursor-pointer select-none text-xs font-mono ${
-                                      isChecked
-                                        ? "bg-plate-yellow/20 border-plate-yellow text-plate-yellow font-bold"
-                                        : "bg-asphalt border-steel/20 text-steel hover:text-off-white"
-                                    }`}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={isChecked}
-                                      onChange={() => {
-                                        setNewBikeModelIds((prev) =>
-                                          isChecked ? prev.filter((id) => id !== b.id) : [...prev, b.id]
-                                        );
-                                      }}
-                                      className="accent-plate-yellow w-3.5 h-3.5"
-                                    />
-                                    <span>{label}</span>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
+                        <input
+                          type="text"
+                          placeholder={isOilCategory ? "Add Custom Volume (e.g. 5L, 3.5L) and press Enter" : "Add Custom Size (e.g. 3XL, EU 46) and press Enter"}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                              e.preventDefault();
+                              const val = e.currentTarget.value.trim();
+                              if (!newSizes.includes(val)) setNewSizes((prev) => [...prev, val]);
+                              e.currentTarget.value = "";
+                            }
+                          }}
+                          className="w-full bg-asphalt border border-steel/30 p-2 text-xs text-off-white font-mono placeholder-steel/50 mt-1"
+                        />
                       </div>
-                    )}
+
+                      {/* Selectable Viscosity / Oil Grades (Shown for Oils & Additives or when grades exist) */}
+                      {(isOilCategory || selectedGrades.length > 0) && (
+                        <div className="space-y-2 bg-asphalt-2 p-3 border border-steel/30">
+                          <label className="text-plate-yellow font-bold uppercase block text-xs flex items-center justify-between">
+                            <span>B. Selectable Viscosity / Oil Grades (Engine Oils &amp; Fluids)</span>
+                            <span className="text-steel font-mono text-[10px]">Storefront Selectable Buttons</span>
+                          </label>
+                          <p className="text-steel text-[11px]">
+                            Select viscosity grades (e.g. 10W-30, 10W-40, 15W-50) for buyers to select on the product page.
+                          </p>
+
+                          <div className="flex flex-wrap gap-1.5 pt-1 font-mono text-xs">
+                            {["10W-30", "10W-40", "15W-50", "20W-50", "10W-50", "5W-40", "75W-90"].map((grd) => {
+                              const isSelected = selectedGrades.includes(grd);
+                              return (
+                                <button
+                                  type="button"
+                                  key={grd}
+                                  onClick={() => {
+                                    setSelectedGrades((prev) =>
+                                      prev.includes(grd) ? prev.filter((g) => g !== grd) : [...prev, grd]
+                                    );
+                                  }}
+                                  className={`px-2.5 py-1 text-xs border font-bold transition-colors cursor-pointer ${
+                                    isSelected
+                                      ? "bg-plate-yellow text-asphalt border-plate-yellow"
+                                      : "bg-asphalt border-steel/30 text-steel hover:text-off-white"
+                                  }`}
+                                >
+                                  {isSelected ? `✓ ${grd}` : `+ ${grd}`}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Add Custom Grade (e.g. 0W-20, 15W-40) and press Enter"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (!selectedGrades.includes(val)) setSelectedGrades((prev) => [...prev, val]);
+                                e.currentTarget.value = "";
+                              }
+                            }}
+                            className="w-full bg-asphalt border border-steel/30 p-2 text-xs text-off-white font-mono placeholder-steel/50 mt-1"
+                          />
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+
+                <p className="text-steel text-[11px] pt-1">
+                  Additional Technical Specifications (Key-Value Pairs):
+                </p>
+
+                <div className="space-y-2">
+                  {customSpecRows.map((row, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Specification Name (e.g. Weight)"
+                        value={row.key}
+                        onChange={(e) => {
+                          const updated = [...customSpecRows];
+                          updated[idx].key = e.target.value;
+                          setCustomSpecRows(updated);
+                        }}
+                        className="w-1/2 bg-asphalt-2 border border-steel/30 p-2 text-off-white font-bold placeholder-steel/50"
+                      />
+                      <span className="text-steel font-bold">:</span>
+                      <input
+                        type="text"
+                        placeholder="Value (e.g. 1350g)"
+                        value={row.value}
+                        onChange={(e) => {
+                          const updated = [...customSpecRows];
+                          updated[idx].value = e.target.value;
+                          setCustomSpecRows(updated);
+                        }}
+                        className="w-1/2 bg-asphalt-2 border border-steel/30 p-2 text-plate-yellow font-bold placeholder-steel/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomSpecRows((prev) => prev.filter((_, i) => i !== idx));
+                        }}
+                        className="text-red-400 hover:text-red-300 p-2 bg-asphalt-2 border border-steel/20 cursor-pointer"
+                        title="Remove field"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bike Compatibility Matrix Selector (Universal Across All Categories) */}
+                <div className="pt-4 border-t border-asphalt-2 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-plate-yellow font-bold uppercase block text-xs">
+                        4. Bike Model Compatibility Matrix
+                      </label>
+                      <span className="text-steel text-[11px]">
+                        Choose Universal Fit, or select compatible motorcycle brands &amp; models.
+                      </span>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-400 bg-asphalt-2 px-3 py-1.5 border border-emerald-500/30">
+                      <input
+                        type="checkbox"
+                        checked={newIsUniversal}
+                        onChange={(e) => setNewIsUniversal(e.target.checked)}
+                        className="accent-emerald-500 w-4 h-4 cursor-pointer"
+                      />
+                      <span>Universal Fit (Fits All Bike Models)</span>
+                    </label>
                   </div>
-                );
-              })()}
+
+                  {!newIsUniversal && (
+                    <div className="space-y-4 bg-asphalt-2 p-4 border border-steel/30">
+                      {/* Field 1: Brand Compatibility */}
+                      <div className="space-y-2">
+                        <label className="text-plate-yellow font-bold block text-xs uppercase flex items-center justify-between">
+                          <span>Field 1: Brand Compatibility (Select Multiple Brands)</span>
+                          <span className="text-steel font-mono text-[10px]">
+                            {selectedCompatBrands.length} Brands Selected
+                          </span>
+                        </label>
+                        <p className="text-steel text-[11px]">
+                          Selecting a motorcycle brand automatically includes all models under that brand.
+                        </p>
+                        <div className="flex flex-wrap gap-2 pt-1 font-mono text-xs">
+                          {availableBikeBrands.map((brandName) => {
+                            const isSelected = selectedCompatBrands.includes(brandName);
+                            return (
+                              <label
+                                key={brandName}
+                                className={`flex items-center gap-1.5 cursor-pointer select-none border px-3 py-1.5 text-xs font-bold transition-colors ${
+                                  isSelected
+                                    ? "bg-plate-yellow/20 border-plate-yellow text-plate-yellow font-bold"
+                                    : "bg-asphalt border-steel/30 text-steel hover:text-off-white"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {
+                                    setSelectedCompatBrands((prev) =>
+                                      isSelected ? prev.filter((b) => b !== brandName) : [...prev, brandName]
+                                    );
+                                  }}
+                                  className="accent-plate-yellow w-3.5 h-3.5"
+                                />
+                                <span>{brandName}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Field 2: Model Compatibility */}
+                      <div className="space-y-2 pt-3 border-t border-asphalt">
+                        <label className="text-plate-yellow font-bold block text-xs uppercase flex items-center justify-between">
+                          <span>Field 2: Model Compatibility (Select Specific Models)</span>
+                          <span className="text-steel font-mono text-[10px]">
+                            {selectedCompatModels.length} Specific Models Selected
+                          </span>
+                        </label>
+                        <p className="text-steel text-[11px]">
+                          Select individual motorcycle models compatible with this item.
+                        </p>
+                        <div className="max-h-56 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-1">
+                          {activeBikeModelsList.map((b: any) => {
+                            const label = `${b.brand} ${b.model}${b.variant ? ` ${b.variant}` : ""}`;
+                            const isChecked = selectedCompatModels.includes(b.id);
+                            const isAutoIncludedByBrand = selectedCompatBrands.includes(b.brand);
+
+                            return (
+                              <label
+                                key={b.id}
+                                className={`flex items-center gap-2 p-2 border cursor-pointer select-none text-xs font-mono transition-colors ${
+                                  isChecked
+                                    ? "bg-plate-yellow/20 border-plate-yellow text-plate-yellow font-bold"
+                                    : isAutoIncludedByBrand
+                                    ? "bg-plate-yellow/10 border-plate-yellow/40 text-plate-yellow/80"
+                                    : "bg-asphalt border-steel/20 text-steel hover:text-off-white"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked || isAutoIncludedByBrand}
+                                  disabled={isAutoIncludedByBrand}
+                                  onChange={() => {
+                                    setSelectedCompatModels((prev) =>
+                                      isChecked ? prev.filter((id) => id !== b.id) : [...prev, b.id]
+                                    );
+                                  }}
+                                  className="accent-plate-yellow w-3.5 h-3.5 cursor-pointer"
+                                />
+                                <span className="truncate">
+                                  {label}
+                                  {isAutoIncludedByBrand && !isChecked && (
+                                    <span className="ml-1 text-[9px] text-plate-yellow opacity-75">(via Brand)</span>
+                                  )}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Specifications & Tags */}
               <div className="space-y-2 bg-asphalt p-4 border border-asphalt-2">

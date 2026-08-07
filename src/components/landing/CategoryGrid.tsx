@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Shield, Wrench, Zap, Droplet, Shirt, ArrowUpRight } from "lucide-react";
+import { Shield, Wrench, Zap, Droplet, Shirt, Package, ArrowUpRight } from "lucide-react";
 
 const HelmetIcon = ({ className }: { className?: string }) => (
   <svg
@@ -18,68 +18,116 @@ const HelmetIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-interface CategoryGridProps {
-  onSelectCategory?: (category: string) => void;
-}
-
-export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
-  const categories = [
-    {
-      id: "helmets",
-      name: "Helmets",
-      tagline: "Full Face, Modular, Off-Road & Visors",
+function getCategoryMeta(slug: string) {
+  const lower = slug.toLowerCase();
+  if (lower.includes("helmet")) {
+    return {
       icon: HelmetIcon,
       badge: "DOT / ECE Certified",
       image: "/images/categories/riding-gear.png",
       borderColor: "group-hover:border-ignition-red",
       iconColor: "text-ignition-red",
-      subcategories: ["Full Face", "Modular", "Visors", "Bluetooth"],
-    },
-    {
-      id: "parts-mods",
-      name: "Parts & Mods",
-      tagline: "Exhausts, Levers, Sprockets & Brakes",
+    };
+  }
+  if (lower.includes("part") || lower.includes("mod")) {
+    return {
       icon: Wrench,
       badge: "Model Specific",
       image: "/images/categories/parts-mods.png",
       borderColor: "group-hover:border-plate-yellow",
       iconColor: "text-plate-yellow",
-      subcategories: ["Exhausts", "Chains", "Levers", "Brakes"],
-    },
-    {
-      id: "electronics",
-      name: "Electronics",
-      tagline: "LED Lighting, Phone Mounts, Horns & Trackers",
+    };
+  }
+  if (lower.includes("electronic") || lower.includes("light") || lower.includes("gadget")) {
+    return {
       icon: Zap,
       badge: "12V Plug & Play",
       image: "/images/categories/electronics.png",
       borderColor: "group-hover:border-blue-500",
       iconColor: "text-blue-400",
-      subcategories: ["LED Lights", "Phone Mounts", "GPS", "Horns"],
-    },
-    {
-      id: "additives",
-      name: "Additives & Oils",
-      tagline: "Synthetic Engine Oils, Coolants & Chain Lube",
+    };
+  }
+  if (lower.includes("oil") || lower.includes("additive") || lower.includes("fluid")) {
+    return {
       icon: Droplet,
       badge: "100% Genuine Fluids",
       image: "/images/categories/additives.png",
       borderColor: "group-hover:border-purple-500",
       iconColor: "text-purple-400",
-      subcategories: ["Synthetic Oil", "Chain Lube", "Coolant"],
-    },
-    {
-      id: "riding-gear",
-      name: "Riding Gear",
-      tagline: "Armored Jackets, Gloves, Boots & Protection",
+    };
+  }
+  if (lower.includes("gear") || lower.includes("wear") || lower.includes("apparel")) {
+    return {
       icon: Shirt,
       badge: "CE Level 2 Armor",
       image: "/images/categories/merchandise.png",
       borderColor: "group-hover:border-emerald-500",
       iconColor: "text-emerald-400",
-      subcategories: ["Jackets", "Gloves", "Boots", "Rain Suits"],
-    },
+    };
+  }
+  return {
+    icon: Package,
+    badge: "Genuine Inventory",
+    image: "/images/categories/merchandise.png",
+    borderColor: "group-hover:border-plate-yellow",
+    iconColor: "text-plate-yellow",
+  };
+}
+
+interface CategoryGridProps {
+  onSelectCategory?: (category: string) => void;
+}
+
+export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
+  const loadCategories = useCallback(() => {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setDbCategories(json.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+    window.addEventListener("category-updated", loadCategories);
+    return () => window.removeEventListener("category-updated", loadCategories);
+  }, [loadCategories]);
+
+  const defaultCategories = [
+    { id: "helmets", name: "Helmets", tagline: "Full Face, Modular, Off-Road & Visors", subcategories: ["Full Face", "Modular", "Visors", "Bluetooth"] },
+    { id: "parts-mods", name: "Parts & Mods", tagline: "Exhausts, Levers, Sprockets & Brakes", subcategories: ["Exhausts", "Chains", "Levers", "Brakes"] },
+    { id: "electronics", name: "Electronics", tagline: "LED Lighting, Phone Mounts, Horns & Trackers", subcategories: ["LED Lights", "Phone Mounts", "GPS", "Horns"] },
+    { id: "additives", name: "Additives & Oils", tagline: "Synthetic Engine Oils, Coolants & Chain Lube", subcategories: ["Synthetic Oil", "Chain Lube", "Coolant"] },
+    { id: "riding-gear", name: "Riding Gear", tagline: "Armored Jackets, Gloves, Boots & Protection", subcategories: ["Jackets", "Gloves", "Boots", "Rain Suits"] },
   ];
+
+  const displayCategories = dbCategories.length > 0
+    ? dbCategories.map((c) => {
+        const meta = getCategoryMeta(c.slug);
+        const subs = c.children && c.children.length > 0
+          ? c.children.map((child: any) => child.name)
+          : [];
+        return {
+          id: c.slug,
+          name: c.name,
+          tagline: c.description || `${c.name} motorcycle accessories & gear`,
+          icon: meta.icon,
+          badge: c._count?.products ? `${c._count.products} Products` : meta.badge,
+          image: meta.image,
+          borderColor: meta.borderColor,
+          iconColor: meta.iconColor,
+          subcategories: subs.length > 0 ? subs : ["All Items"],
+        };
+      })
+    : defaultCategories.map((c) => ({
+        ...c,
+        ...getCategoryMeta(c.id),
+      }));
 
   return (
     <section id="category-grid" className="py-8 sm:py-10 bg-asphalt border-b border-asphalt-2">
@@ -94,7 +142,7 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {categories.map((cat) => {
+          {displayCategories.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
@@ -135,7 +183,7 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
                 {/* Subcategories tags & Action */}
                 <div className="relative z-10 mt-3.5 pt-2.5 border-t border-asphalt-2/80 space-y-2">
                   <div className="flex flex-wrap gap-1">
-                    {cat.subcategories.map((sub) => (
+                    {cat.subcategories.slice(0, 4).map((sub: string) => (
                       <span
                         key={sub}
                         className="text-[9px] bg-asphalt/90 backdrop-blur-sm px-1.5 py-0.5 text-steel-light border border-asphalt-2"
@@ -158,3 +206,4 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
     </section>
   );
 }
+

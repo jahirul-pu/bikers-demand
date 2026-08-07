@@ -27,53 +27,10 @@ export const CATEGORY_SPECS: Record<string, CategorySpecGroup> = {
     showBikeCompatibility: false,
     fields: [
       {
-        key: "certification",
-        label: "Safety Certification Rating",
-        type: "select",
-        options: [
-          "ECE 22.06 (EU Standard)",
-          "DOT (US Standard)",
-          "ECE 22.06 / DOT Dual Certified",
-          "ECE 22.05",
-          "SNELL M2020",
-          "SHARP 5-Star Rated",
-        ],
-      },
-      {
         key: "sizes",
         label: "Available Sizes",
         type: "multiselect",
         options: ["S", "M", "L", "XL", "XXL"],
-      },
-      {
-        key: "visorType",
-        label: "Visor / Shield Type",
-        type: "select",
-        options: [
-          "Clear Visor Included",
-          "Smoke / Tinted Visor Included",
-          "Iridium / Rainbow Mirror Visor",
-          "Pinlock 120 Anti-Fog Ready",
-          "Dual Visor (Inner Sun Shield)",
-        ],
-      },
-      {
-        key: "shellMaterial",
-        label: "Shell Material Construction",
-        type: "select",
-        options: [
-          "Carbon Fiber Composite",
-          "High Performance Fiberglass (HPFC)",
-          "Kevlar-Arimid Hybrid",
-          "Polycarbonate KPA",
-          "ABS Thermoplastic",
-        ],
-      },
-      {
-        key: "weight",
-        label: "Helmet Weight",
-        type: "text",
-        placeholder: "e.g. 1350g ± 50g",
       },
     ],
   },

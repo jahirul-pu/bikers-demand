@@ -155,9 +155,6 @@ export default function BikeSelectorModal({
                         {item.model}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] font-mono text-steel">
-                          {item.displacementCc} cc Engine
-                        </span>
                         {isCurrent && (
                           <span className="text-[10px] font-mono font-bold text-plate-yellow bg-plate-yellow/10 border border-plate-yellow/40 px-1.5 py-0.5 uppercase tracking-wide">
                             Current
