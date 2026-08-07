@@ -24,17 +24,58 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLoading(false);
       try {
-        const derivedName = phoneOrEmail.includes("@")
-          ? phoneOrEmail.split("@")[0]
-          : phoneOrEmail;
-        localStorage.setItem(
-          "bikers_demand_user",
-          JSON.stringify({
+        const input = phoneOrEmail.trim().toLowerCase();
+
+        // Look up registered user profile in registry
+        let registeredUser: any = null;
+        try {
+          const rawReg = localStorage.getItem("bd_registered_users");
+          const regList: any[] = rawReg ? JSON.parse(rawReg) : [];
+          if (Array.isArray(regList)) {
+            registeredUser = regList.find(
+              (acc) =>
+                (acc.phone && acc.phone.toLowerCase() === input) ||
+                (acc.email && acc.email.toLowerCase() === input) ||
+                (acc.phoneOrEmail && acc.phoneOrEmail.toLowerCase() === input) ||
+                (acc.name && acc.name.toLowerCase() === input)
+            );
+          }
+        } catch (e) {
+          console.error("Error reading registered users registry:", e);
+        }
+
+        let userToSave;
+        if (registeredUser) {
+          userToSave = {
+            ...registeredUser,
+            loggedInAt: new Date().toISOString(),
+          };
+        } else {
+          const derivedName = phoneOrEmail.includes("@")
+            ? phoneOrEmail.split("@")[0]
+            : phoneOrEmail;
+          userToSave = {
             name: derivedName,
             phoneOrEmail: phoneOrEmail,
+            phone: phoneOrEmail.includes("@") ? "" : phoneOrEmail,
+            email: phoneOrEmail.includes("@") ? phoneOrEmail : "",
             loggedInAt: new Date().toISOString(),
-          })
-        );
+          };
+
+          // Save to registry so future profile edits persist for this user
+          try {
+            const rawReg = localStorage.getItem("bd_registered_users");
+            let regList: any[] = rawReg ? JSON.parse(rawReg) : [];
+            if (!Array.isArray(regList)) regList = [];
+            regList.push(userToSave);
+            localStorage.setItem("bd_registered_users", JSON.stringify(regList));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        localStorage.setItem("bikers_demand_user", JSON.stringify(userToSave));
+        window.dispatchEvent(new Event("storage"));
       } catch (e) {
         console.error(e);
       }

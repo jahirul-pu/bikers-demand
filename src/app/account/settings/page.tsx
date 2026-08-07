@@ -39,9 +39,38 @@ export default function SettingsPage() {
         name: name.trim(),
         phone: phone.trim(),
         email: email.trim(),
+        phoneOrEmail: phone.trim() || email.trim() || u.phoneOrEmail,
       };
       localStorage.setItem("bikers_demand_user", JSON.stringify(updatedUser));
       
+      // Update in persistent registered users array (bd_registered_users)
+      try {
+        const rawReg = localStorage.getItem("bd_registered_users");
+        let regList: any[] = rawReg ? JSON.parse(rawReg) : [];
+        if (!Array.isArray(regList)) regList = [];
+
+        const currentKey = (u.phone || u.email || u.phoneOrEmail || phone.trim() || email.trim() || "").toLowerCase();
+        const existingIdx = regList.findIndex(
+          (acc) =>
+            (acc.phone && acc.phone.toLowerCase() === currentKey) ||
+            (acc.email && acc.email.toLowerCase() === currentKey) ||
+            (acc.phoneOrEmail && acc.phoneOrEmail.toLowerCase() === currentKey) ||
+            (acc.name && u.name && acc.name.toLowerCase() === u.name.toLowerCase())
+        );
+
+        if (existingIdx >= 0) {
+          regList[existingIdx] = {
+            ...regList[existingIdx],
+            ...updatedUser,
+          };
+        } else {
+          regList.push(updatedUser);
+        }
+        localStorage.setItem("bd_registered_users", JSON.stringify(regList));
+      } catch (e) {
+        console.error("Error updating registered users registry:", e);
+      }
+
       // Dispatch storage event so Header and AccountLayout update in real-time
       window.dispatchEvent(new Event("storage"));
       

@@ -56,17 +56,35 @@ export default function RegisterPage() {
     setTimeout(() => {
       setIsLoading(false);
       try {
-        localStorage.setItem(
-          "bikers_demand_user",
-          JSON.stringify({
-            name: name,
-            phone: phone,
-            email: email,
-            bikeBrand: bikeBrand,
-            bikeModel: bikeModel,
-            registeredAt: new Date().toISOString(),
-          })
-        );
+        const newUser = {
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          phoneOrEmail: phone.trim() || email.trim(),
+          bikeBrand: bikeBrand,
+          bikeModel: bikeModel,
+          registeredAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem("bikers_demand_user", JSON.stringify(newUser));
+
+        // Save to persistent user registry
+        try {
+          const rawReg = localStorage.getItem("bd_registered_users");
+          let regList: any[] = rawReg ? JSON.parse(rawReg) : [];
+          if (!Array.isArray(regList)) regList = [];
+
+          // Remove duplicate if exists
+          regList = regList.filter(
+            (acc) =>
+              !(acc.phone && acc.phone === phone.trim()) &&
+              !(acc.email && email.trim() && acc.email === email.trim())
+          );
+          regList.push(newUser);
+          localStorage.setItem("bd_registered_users", JSON.stringify(regList));
+        } catch (e) {
+          console.error("Error saving registered user to registry:", e);
+        }
 
         // Save selected bike as the user's primary bike preference
         const selected = registeredBikes.find((b) => b.brand === bikeBrand && b.model === bikeModel);
