@@ -24,6 +24,7 @@ export default function AdminProductsPage() {
           slug: p.slug,
           brand: p.brand,
           category: (p.category?.slug as any) || "riding-gear",
+          subCategory: p.subCategory || "",
           price: p.price,
           originalPrice: p.comparePrice,
           imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
