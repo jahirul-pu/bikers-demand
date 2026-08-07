@@ -179,6 +179,17 @@ export default function ProductDetailPage() {
           if (gradeOpts.length > 0) {
             setSelectedGrade(gradeOpts[0]);
           }
+
+          // Check if favorited in localStorage
+          try {
+            const savedFavs = localStorage.getItem("bikers_demand_favs");
+            if (savedFavs) {
+              const favArr = JSON.parse(savedFavs);
+              if (Array.isArray(favArr) && favArr.some((f: any) => f.id === d.id)) {
+                setIsFav(true);
+              }
+            }
+          } catch (e) {}
         } else {
           setNotFound(true);
         }
@@ -232,6 +243,39 @@ export default function ProductDetailPage() {
   const handleBuyNow = () => {
     handleAddToCart();
     router.push("/checkout");
+  };
+
+  const handleToggleFav = () => {
+    if (!product) return;
+    try {
+      const nextFav = !isFav;
+      setIsFav(nextFav);
+      const existing = localStorage.getItem("bikers_demand_favs");
+      let favArr: any[] = existing ? JSON.parse(existing) : [];
+      if (nextFav) {
+        if (!favArr.some((p: any) => p.id === product.id)) {
+          favArr.push({
+            id: product.id,
+            name: product.name,
+            brand: product.brand,
+            price: product.price,
+            originalPrice: product.originalPrice,
+            imageUrl: product.images[0],
+            category: product.categorySlug,
+            sizes: product.sizes,
+            stockStatus: product.stockStatus,
+            stockQty: product.stockQty,
+          });
+        }
+      } else {
+        favArr = favArr.filter((p: any) => p.id !== product.id);
+      }
+      localStorage.setItem("bikers_demand_favs", JSON.stringify(favArr));
+      window.dispatchEvent(new CustomEvent("wishlist-updated"));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {
+      console.error("Wishlist toggle error:", e);
+    }
   };
 
   // Loading state
@@ -504,7 +548,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 <button
-                  onClick={() => setIsFav(!isFav)}
+                  onClick={handleToggleFav}
                   className={`p-3 border transition-colors ${
                     isFav
                       ? "bg-ignition-red text-asphalt border-ignition-red"

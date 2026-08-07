@@ -139,10 +139,12 @@ export default function Header({
     window.addEventListener("storage", syncSession);
     window.addEventListener("focus", syncSession);
     window.addEventListener("cart-updated", syncSession);
+    window.addEventListener("wishlist-updated", syncSession);
     return () => {
       window.removeEventListener("storage", syncSession);
       window.removeEventListener("focus", syncSession);
       window.removeEventListener("cart-updated", syncSession);
+      window.removeEventListener("wishlist-updated", syncSession);
     };
   }, [cartCount, favCount, isCartOpen]);
 

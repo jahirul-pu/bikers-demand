@@ -120,6 +120,8 @@ export default function ProductCard({
         favArr = favArr.filter((p) => p.id !== product.id);
       }
       localStorage.setItem("bikers_demand_favs", JSON.stringify(favArr));
+      window.dispatchEvent(new CustomEvent("wishlist-updated"));
+      window.dispatchEvent(new Event("storage"));
       onToggleFav?.(product);
     } catch (e) {
       console.error("Failed to update favorites in localStorage:", e);

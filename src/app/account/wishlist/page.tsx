@@ -33,6 +33,8 @@ export default function WishlistPage() {
     setFavProducts(updated);
     try {
       localStorage.setItem("bikers_demand_favs", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("wishlist-updated"));
+      window.dispatchEvent(new Event("storage"));
     } catch (e) {
       console.error("Error updating favorites:", e);
     }
@@ -42,6 +44,8 @@ export default function WishlistPage() {
     setFavProducts([]);
     try {
       localStorage.removeItem("bikers_demand_favs");
+      window.dispatchEvent(new CustomEvent("wishlist-updated"));
+      window.dispatchEvent(new Event("storage"));
     } catch (e) {
       console.error(e);
     }
