@@ -140,6 +140,33 @@ export default function AdminProductsPage() {
   }, [loadDbCategories, loadDbBrands, loadDbBikes]);
 
   const [editingProduct, setEditingProduct] = useState<DBProduct | null>(null);
+
+  // Auto-sync subcategory when editingProduct or dbCategoriesList updates
+  useEffect(() => {
+    if (editingProduct && dbCategoriesList.length > 0) {
+      const rawCat = typeof editingProduct.category === "string"
+        ? editingProduct.category
+        : (editingProduct as any).category?.slug || "riding-gear";
+
+      const targetCat = dbCategoriesList.find(
+        (c) => c.slug === rawCat || c.id === rawCat || c.name.toLowerCase() === rawCat.toLowerCase()
+      );
+
+      if (targetCat) {
+        setNewCategory(targetCat.slug);
+        if (editingProduct.subCategory) {
+          const subMatch = targetCat.children?.find(
+            (s) =>
+              s.slug === editingProduct.subCategory ||
+              s.id === editingProduct.subCategory ||
+              s.name.toLowerCase() === editingProduct.subCategory?.toLowerCase() ||
+              s.slug.toLowerCase() === editingProduct.subCategory?.toLowerCase()
+          );
+          setNewSubCategory(subMatch ? subMatch.slug : editingProduct.subCategory);
+        }
+      }
+    }
+  }, [editingProduct, dbCategoriesList]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [stockFilter, setStockFilter] = useState<string>("all");
@@ -746,13 +773,33 @@ export default function AdminProductsPage() {
                       className="w-full bg-asphalt-2 border border-steel/30 p-2.5 text-off-white"
                     >
                       <option value="">-- None / Select Subcategory --</option>
-                      {dbCategoriesList
-                        .find((c) => c.slug === newCategory)
-                        ?.children?.map((sub) => (
-                          <option key={sub.id} value={sub.slug}>
-                            {sub.name}
-                          </option>
-                        ))}
+                      {(() => {
+                        const currentCatObj = dbCategoriesList.find(
+                          (c) =>
+                            c.slug === newCategory ||
+                            c.id === newCategory ||
+                            c.name.toLowerCase() === (newCategory || "").toLowerCase()
+                        );
+                        const children = currentCatObj?.children || [];
+                        const hasCurrent = children.some(
+                          (s) =>
+                            s.slug === newSubCategory ||
+                            s.name.toLowerCase() === (newSubCategory || "").toLowerCase()
+                        );
+
+                        return (
+                          <>
+                            {children.map((sub) => (
+                              <option key={sub.id} value={sub.slug}>
+                                {sub.name}
+                              </option>
+                            ))}
+                            {newSubCategory && !hasCurrent && (
+                              <option value={newSubCategory}>{newSubCategory}</option>
+                            )}
+                          </>
+                        );
+                      })()}
                     </select>
                   </div>
                 </div>
