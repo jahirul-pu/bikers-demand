@@ -192,6 +192,12 @@ model Product {
   cartItems        CartItem[]
   orderItems       OrderItem[]
   wishlists        Wishlist[]
+
+  @@index([isActive, categoryId])
+  @@index([categoryId])
+  @@index([subCategory])
+  @@index([brand])
+  @@index([isActive])
 }
 
 model ProductCompatibility {

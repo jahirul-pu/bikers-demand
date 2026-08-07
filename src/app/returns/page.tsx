@@ -1,10 +1,13 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { RotateCcw, AlertTriangle, ShieldCheck } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Return & Replacement Policy — Bikers Demand",
+  description: "Bikers Demand return policy for Parts & Mods, Riding Gear, Electronics, and Merchandise. Category-specific return rules and counterfeit claim procedures.",
+};
 
 export default function ReturnsPolicyPage() {
   return (

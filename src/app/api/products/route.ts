@@ -33,18 +33,46 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const products = await prisma.product.findMany({
+    const fieldsMode = searchParams.get("fields");
+
+    // Minimal mode: only return fields needed for product cards (listing pages)
+    const queryOptions: any = {
       where,
-      include: {
+      orderBy: { createdAt: "desc" },
+    };
+
+    if (fieldsMode === "minimal") {
+      queryOptions.select = {
+        id: true,
+        name: true,
+        slug: true,
+        brand: true,
+        sku: true,
+        price: true,
+        comparePrice: true,
+        images: true,
+        stockStatus: true,
+        stockQty: true,
+        isUniversal: true,
+        certification: true,
+        warrantyDuration: true,
+        warrantyFlag: true,
+        subCategory: true,
+        sizes: true,
+        category: { select: { slug: true, name: true } },
+      };
+    } else {
+      queryOptions.include = {
         category: true,
         compatibilities: {
           include: {
             bikeModel: true,
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+      };
+    }
+
+    const products = await prisma.product.findMany(queryOptions);
 
     return NextResponse.json({ success: true, count: products.length, data: products });
   } catch (error) {

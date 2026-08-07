@@ -1,9 +1,12 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
+
+export const metadata: Metadata = {
+  title: "Terms of Service — Bikers Demand",
+  description: "Terms of service for Bikers Demand Bangladesh — display pricing, VAT policy, owned inventory, and stock accuracy guarantees.",
+};
 
 export default function TermsPage() {
   return (

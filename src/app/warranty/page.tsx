@@ -1,10 +1,13 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import { ShieldCheck, ShieldAlert } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Warranty Policy — Bikers Demand",
+  description: "Category-by-category warranty terms for Parts & Mods, Engine Oils, Electronics, and Riding Gear at Bikers Demand Bangladesh.",
+};
 
 export default function WarrantyPolicyPage() {
   return (

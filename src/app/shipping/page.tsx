@@ -1,10 +1,13 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
-import { Truck, CheckCircle2 } from "lucide-react";
+import { Truck } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Shipping & Delivery Policy — Bikers Demand",
+  description: "Bikers Demand shipping rates: Tk 60 inside Dhaka, Tk 130 nationwide via Pathao Courier. 24-72 hour delivery with COD fraud prevention.",
+};
 
 export default function ShippingPolicyPage() {
   return (

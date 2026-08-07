@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, ShoppingBag, CheckCircle, ShieldAlert, Check } from "lucide-react";
 import AuthPromptModal from "@/components/auth/AuthPromptModal";
 
@@ -137,10 +138,12 @@ export default function ProductCard({
       {/* Top Media & Badges Overlay */}
       <Link href={`/product/${productSlug}`} className="relative aspect-square bg-asphalt p-4 flex items-center justify-center overflow-hidden block">
         {/* Placeholder / Image */}
-        <img
+        <Image
           src={product.imageUrl}
           alt={product.name}
-          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-contain group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
 

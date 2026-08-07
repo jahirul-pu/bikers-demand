@@ -30,7 +30,7 @@ export default function CompatibleProducts({
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/products?category=parts-mods");
+        const res = await fetch("/api/products?category=parts-mods&fields=minimal");
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
           const mapped: Product[] = json.data.slice(0, 4).map((p: any) => ({

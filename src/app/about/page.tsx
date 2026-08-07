@@ -1,11 +1,14 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import TrustSection from "@/components/landing/TrustSection";
 import { Bike, ShieldCheck, Truck } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "About Us — Bikers Demand | Bangladesh's Bike-Specific Accessories Store",
+  description: "Learn about Bikers Demand — Bangladesh's dedicated motorcycle accessories store with owned inventory, confirmed bike compatibility, and nationwide COD delivery.",
+};
 
 export default function AboutPage() {
   return (

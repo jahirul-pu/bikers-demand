@@ -1,9 +1,12 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy — Bikers Demand",
+  description: "Bikers Demand privacy policy aligned with Bangladesh Personal Data Protection Act (PDPA 2026). Data collection, storage, and security practices.",
+};
 
 export default function PrivacyPolicyPage() {
   return (
