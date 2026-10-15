@@ -187,9 +187,9 @@ export default function AdminCouponsPage() {
 
         <button
           onClick={handleOpenAddModal}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase px-4 py-2 flex items-center gap-1.5 transform -skew-x-6 cursor-pointer text-xs shrink-0"
+          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase px-4 py-2 flex items-center gap-1.5 transform cursor-pointer text-xs shrink-0"
         >
-          <div className="transform skew-x-6 flex items-center gap-1.5">
+          <div className="transform flex items-center gap-1.5">
             <Plus className="w-4 h-4" />
             <span>Create Coupon</span>
           </div>
@@ -451,9 +451,9 @@ export default function AdminCouponsPage() {
 
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase transform -skew-x-6 cursor-pointer"
+                  className="px-5 py-2 bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase transform cursor-pointer"
                 >
-                  <div className="transform skew-x-6">Save Coupon</div>
+                  <div className="transform">Save Coupon</div>
                 </button>
               </div>
             </form>

@@ -2,76 +2,207 @@
 
 @config "../../tailwind.config.ts";
 
+/* ─────────────────────────────────────────────────────────────
+   Modern commerce design tokens
+   Dark + light are treated as equals; both are tuned for contrast.
+   ───────────────────────────────────────────────────────────── */
 :root {
-  --asphalt-rgb: 248 250 252;
-  --asphalt-2-rgb: 255 255 255;
-  --steel-rgb: 71 85 105;
-  --steel-light-rgb: 51 65 85;
-  --off-white-rgb: 15 23 42;
-  --plate-yellow-rgb: 180 92 0;
-  --ignition-red-rgb: 204 28 28;
-  --grid-line-rgb: 203 213 225;
+  --asphalt-rgb: 246 247 249;      /* page background */
+  --asphalt-2-rgb: 255 255 255;    /* raised surfaces / cards */
+  --steel-rgb: 100 116 139;        /* muted text & icons */
+  --steel-light-rgb: 51 65 85;     /* secondary text */
+  --off-white-rgb: 15 23 42;       /* primary text */
+  --plate-yellow-rgb: 180 83 9;    /* secondary accent */
+  --ignition-red-rgb: 220 38 38;   /* brand accent */
+  --grid-line-rgb: 229 231 235;
 
-  --background: #F8FAFC;
+  --background: #F6F7F9;
   --foreground: #0F172A;
+
+  --radius-card: 0.9rem;
+  --radius-control: 0.625rem;
 
   color-scheme: light;
 }
 
 [data-theme="light"] {
-  --asphalt-rgb: 248 250 252;
+  --asphalt-rgb: 246 247 249;
   --asphalt-2-rgb: 255 255 255;
-  --steel-rgb: 71 85 105;
+  --steel-rgb: 100 116 139;
   --steel-light-rgb: 51 65 85;
   --off-white-rgb: 15 23 42;
-  --plate-yellow-rgb: 180 92 0;
-  --ignition-red-rgb: 204 28 28;
-  --grid-line-rgb: 203 213 225;
+  --plate-yellow-rgb: 180 83 9;
+  --ignition-red-rgb: 220 38 38;
+  --grid-line-rgb: 229 231 235;
 
-  --background: #F8FAFC;
+  --background: #F6F7F9;
   --foreground: #0F172A;
 
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --asphalt-rgb: 21 23 26;
-  --asphalt-2-rgb: 30 33 37;
-  --steel-rgb: 138 141 145;
-  --steel-light-rgb: 183 186 190;
-  --off-white-rgb: 242 241 236;
-  --plate-yellow-rgb: 232 185 58;
-  --ignition-red-rgb: 226 52 52;
-  --grid-line-rgb: 46 50 55;
+  --asphalt-rgb: 15 17 21;
+  --asphalt-2-rgb: 23 26 31;
+  --steel-rgb: 148 163 184;
+  --steel-light-rgb: 203 213 225;
+  --off-white-rgb: 244 245 247;
+  --plate-yellow-rgb: 251 191 36;
+  --ignition-red-rgb: 248 113 113;
+  --grid-line-rgb: 38 42 49;
 
-  --background: #15171A;
-  --foreground: #F2F1EC;
+  --background: #0F1115;
+  --foreground: #F4F5F7;
 
   color-scheme: dark;
 }
 
-/* Bump base size so all rem-based Tailwind sizes are larger with Barlow Condensed */
+/* ─────────────────────────────────────────────────────────────
+   Base
+   ───────────────────────────────────────────────────────────── */
 html {
   font-size: 17px;
   background-color: var(--background);
   color: var(--foreground);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-plus-jakarta-sans), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.55;
   overflow-x: hidden;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Light mode specific border & legibility enhancements */
+/* ─────────────────────────────────────────────────────────────
+   Shape language — one unified, modern control style
+   ───────────────────────────────────────────────────────────── */
+
+/* Round every bordered card/panel that uses an all-sides border */
+.border.border-asphalt-2,
+.border.border-asphalt {
+  border-radius: var(--radius-card);
+}
+
+/* Round form controls */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  border-radius: var(--radius-control);
+}
+
+/* One radius for every button (pills keep their full radius) */
+button:not([class*="rounded-full"]),
+[role="button"]:not([class*="rounded-full"]),
+input[type="submit"],
+input[type="button"] {
+  border-radius: var(--radius-control);
+}
+
+/* CTA links share the exact same radius as buttons (pills/panels excluded) */
+a:is(
+  [class~="bg-ignition-red"],
+  [class~="bg-plate-yellow"],
+  [class~="bg-asphalt"],
+  [class~="bg-asphalt-2"],
+  [class~="bg-black"],
+  [class~="bg-white"],
+  [class~="bg-emerald-500"],
+  [class~="bg-green-500"],
+  [class~="bg-red-500"],
+  [class~="bg-blue-500"]
+):not([class*="rounded-full"]):not([class*="rounded-2xl"]) {
+  border-radius: var(--radius-control);
+}
+
+/* Filled buttons + CTA links share a soft drop shadow, one transition,
+   and a gentle lift on hover. Exact-token matching keeps ghost buttons
+   (which only carry hover:bg-*) untouched. */
+:is(button, [role="button"], a):is(
+  [class~="bg-ignition-red"],
+  [class~="bg-plate-yellow"],
+  [class~="bg-asphalt"],
+  [class~="bg-asphalt-2"],
+  [class~="bg-black"],
+  [class~="bg-white"],
+  [class~="bg-emerald-500"],
+  [class~="bg-green-500"],
+  [class~="bg-red-500"],
+  [class~="bg-blue-500"]
+):not([class*="rounded-full"]):not([class*="rounded-2xl"]) {
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 6px 16px -8px rgb(15 23 42 / 0.25);
+  transition: transform 0.18s ease, box-shadow 0.25s ease, background-color 0.2s ease,
+    border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  will-change: transform;
+}
+
+:is(button, [role="button"], a):is(
+  [class~="bg-ignition-red"],
+  [class~="bg-plate-yellow"],
+  [class~="bg-asphalt"],
+  [class~="bg-asphalt-2"],
+  [class~="bg-black"],
+  [class~="bg-white"],
+  [class~="bg-emerald-500"],
+  [class~="bg-green-500"],
+  [class~="bg-red-500"],
+  [class~="bg-blue-500"]
+):not([class*="rounded-full"]):not([class*="rounded-2xl"]):hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -6px rgb(15 23 42 / 0.18), 0 18px 36px -12px rgb(15 23 42 / 0.28);
+}
+
+:is(button, [role="button"], a):is(
+  [class~="bg-ignition-red"],
+  [class~="bg-plate-yellow"],
+  [class~="bg-asphalt"],
+  [class~="bg-asphalt-2"],
+  [class~="bg-black"],
+  [class~="bg-white"],
+  [class~="bg-emerald-500"],
+  [class~="bg-green-500"],
+  [class~="bg-red-500"],
+  [class~="bg-blue-500"]
+):not([class*="rounded-full"]):not([class*="rounded-2xl"]):active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Images & media inside cards read better with a soft crop */
+img {
+  border-radius: 0.5rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Typography — modern, sentence-case instead of ALL-CAPS shouting
+   ───────────────────────────────────────────────────────────── */
+.display-font {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.plate-font {
+  font-family: var(--font-sans), sans-serif;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+/* Neutralise the legacy `uppercase` utility across the UI.
+   Text authored in ALL-CAPS stays as-is; Title/lower-case text renders naturally. */
+[class~="uppercase"] {
+  text-transform: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Light-mode legibility helpers
+   ───────────────────────────────────────────────────────────── */
 [data-theme="light"] .border-asphalt-2,
 :root:not([data-theme="dark"]) .border-asphalt-2 {
-  border-color: #E2E8F0;
+  border-color: #E6E8EC;
 }
 
 [data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
@@ -80,7 +211,7 @@ body {
 :root:not([data-theme="dark"]) select {
   background-color: #FFFFFF;
   color: #0F172A;
-  border-color: #CBD5E1;
+  border-color: #D9DDE3;
 }
 
 [data-theme="light"] input::placeholder,
@@ -88,7 +219,7 @@ body {
   color: #64748B;
 }
 
-/* Light mode: deepen "400"-level accent text so it stays legible on light surfaces.
+/* Deepen "400"-level accent text so it stays legible on light surfaces.
    Dark theme keeps the original bright Tailwind shades. */
 :root:not([data-theme="dark"]) .text-emerald-400 { color: #047857; }
 :root:not([data-theme="dark"]) .text-blue-400   { color: #2563eb; }
@@ -105,29 +236,22 @@ body {
 :root:not([data-theme="dark"]) .text-rose-400   { color: #be123c; }
 :root:not([data-theme="dark"]) .text-red-400    { color: #dc2626; }
 
-/* Light mode: match the small status dots to the deepened green */
 :root:not([data-theme="dark"]) .bg-emerald-400 { background-color: #059669; }
 
-/* Text selection + keyboard focus polish */
+/* Thicken hairline borders so cards hold their shape on white */
+:root:not([data-theme="dark"]) .border-asphalt-2 { border-color: #E6E8EC; }
+
+/* ─────────────────────────────────────────────────────────────
+   Interaction polish
+   ───────────────────────────────────────────────────────────── */
 ::selection {
-  background-color: rgba(220, 38, 38, 0.22);
+  background-color: rgba(220, 38, 38, 0.2);
   color: inherit;
 }
 
 :focus-visible {
-  outline: 2px solid rgba(var(--plate-yellow-rgb), 0.6);
-  outline-offset: 1px;
-}
-
-input:focus,
-select:focus,
-textarea:focus,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: none !important;
-  border-color: rgb(var(--plate-yellow-rgb)) !important;
-  box-shadow: 0 0 0 1px rgba(var(--plate-yellow-rgb), 0.3) !important;
+  outline: 2px solid rgb(var(--ignition-red-rgb));
+  outline-offset: 2px;
 }
 
 /* Floor hardcoded tiny pixel sizes — keeps them legible */
@@ -140,119 +264,45 @@ textarea:focus-visible {
   font-size: 14px !important;
 }
 
-/* Custom Scrollbar */
+/* ─────────────────────────────────────────────────────────────
+   Modern scrollbar
+   ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(138, 141, 145, 0.4);
-  border-radius: 4px;
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(138, 141, 145, 0.7);
+  background: rgba(100, 116, 139, 0.6);
+  background-clip: content-box;
 }
 
-/* Custom Utilities */
-.plate-font {
-  font-family: var(--font-barlow-condensed), sans-serif;
-  letter-spacing: 0.08em;
+/* Utility: soft elevated surface */
+.surface {
+  background-color: rgb(var(--asphalt-2-rgb));
+  border: 1px solid #E6E8EC;
+  border-radius: var(--radius-card);
 }
 
-.display-font {
-  font-family: var(--font-barlow-condensed), sans-serif;
-  letter-spacing: 0.01em;
+[data-theme="dark"] .surface {
+  border-color: #262A31;
 }
 
-.font-mono {
-  font-family: var(--font-plus-jakarta-sans), sans-serif !important;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-/* Print Media Styles for Invoices */
-@media print {
-  @page {
-    size: A5 portrait;
-    margin: 6mm;
-  }
-
-  html, body {
-    background: #ffffff !important;
-    color: #111827 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    font-family: system-ui, -apple-system, sans-serif !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  #printable-invoice-modal {
-    position: static !important;
-    inset: auto !important;
-    background: #ffffff !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: block !important;
-    width: 100% !important;
-  }
-
-  #printable-invoice {
-    background: #ffffff !important;
-    color: #111827 !important;
-    border: 2px solid #111827 !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 14px !important;
-    display: block !important;
-    border-radius: 0 !important;
-    font-size: 11px !important;
-  }
-
-  #printable-invoice button {
-    display: none !important;
-  }
-
-  #printable-invoice .text-off-white,
-  #printable-invoice .text-steel-light {
-    color: #111827 !important;
-  }
-
-  #printable-invoice .text-steel {
-    color: #4b5563 !important;
-  }
-
-  #printable-invoice .text-plate-yellow {
-    color: #b85c00 !important;
-    font-weight: 800 !important;
-  }
-
-  #printable-invoice .bg-asphalt,
-  #printable-invoice .bg-asphalt-2 {
-    background: #f9fafb !important;
-    border-color: #e5e7eb !important;
-  }
-
-  #printable-invoice table th {
-    background: #f3f4f6 !important;
-    color: #111827 !important;
-    border-bottom: 2px solid #d1d5db !important;
-    padding: 6px !important;
-  }
-
-  #printable-invoice table td {
-    border-bottom: 1px solid #e5e7eb !important;
-    color: #111827 !important;
-    padding: 6px !important;
-  }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

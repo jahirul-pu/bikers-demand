@@ -29,13 +29,13 @@ export default function HeroSection({
           {/* Hero Content */}
           <div className="space-y-6 text-center">
             {/* Tagline Badge */}
-            <div className="inline-flex items-center gap-2 bg-asphalt-2 border border-steel/30 px-3 py-1.5 text-xs text-plate-yellow font-mono uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 bg-asphalt-2 border border-asphalt-2 rounded-full px-4 py-1.5 text-xs text-plate-yellow font-medium tracking-wide shadow-sm">
               <span className="w-2 h-2 rounded-full bg-ignition-red animate-pulse" />
-              <span>Bangladesh's 1st Bike-Specific E-Commerce Store</span>
+              <span>Bangladesh&apos;s 1st Bike-Specific E-Commerce Store</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="display-font text-4xl sm:text-6xl lg:text-7xl font-extrabold uppercase text-off-white tracking-tight leading-[0.95]">
+            <h1 className="display-font text-4xl sm:text-6xl lg:text-7xl font-extrabold text-off-white tracking-tight leading-[1.02]">
               Shop by your bike. <br />
               <span className="text-ignition-red">Not by guesswork.</span>
             </h1>
@@ -50,38 +50,34 @@ export default function HeroSection({
               {/* Primary CTA */}
               <button
                 onClick={onOpenBikeModal}
-                className="w-full sm:w-auto bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-sm sm:text-base px-8 py-4 tracking-wider flex items-center justify-center gap-3 transition-all transform hover:-translate-y-0.5 shadow-lg shadow-ignition-red/20 group transform -skew-x-6"
+                className="w-full sm:w-auto bg-ignition-red hover:bg-red-600 text-white font-semibold text-sm sm:text-base px-8 py-4 rounded-xl flex items-center justify-center gap-2.5 transition-all hover:-translate-y-0.5 shadow-lg shadow-ignition-red/25 group"
               >
-                <div className="transform skew-x-6 flex items-center gap-2">
-                  <Bike className="w-5 h-5 stroke-[2.5]" />
-                  <span>{bikeLabel ? "Change Bike" : "Add Your Bike"}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
+                <Bike className="w-5 h-5 stroke-[2.5]" />
+                <span>{bikeLabel ? "Change Bike" : "Add Your Bike"}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               {/* Secondary CTA — changes based on bike selection */}
               {bikeLabel ? (
                 <Link
                   href="/shop?compat=1"
-                  className="w-full sm:w-auto bg-plate-yellow hover:bg-plate-yellow/90 text-asphalt font-extrabold uppercase text-sm sm:text-base px-7 py-4 tracking-wider transition-all transform -skew-x-6 text-center flex items-center justify-center gap-2 shadow-lg shadow-plate-yellow/20"
+                  className="w-full sm:w-auto bg-plate-yellow hover:bg-plate-yellow/90 text-white font-semibold text-sm sm:text-base px-7 py-4 rounded-xl transition-all hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 shadow-lg shadow-plate-yellow/20"
                 >
-                  <span className="transform skew-x-6 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    Browse Compatible Gear
-                  </span>
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Browse Compatible Gear</span>
                 </Link>
               ) : (
                 <Link
                   href="/shop"
-                  className="w-full sm:w-auto bg-asphalt-2 hover:bg-asphalt border border-steel/40 hover:border-steel text-off-white font-bold uppercase text-sm sm:text-base px-7 py-4 tracking-wider transition-all transform -skew-x-6 text-center"
+                  className="w-full sm:w-auto bg-asphalt-2 hover:bg-asphalt border border-asphalt-2 text-off-white font-semibold text-sm sm:text-base px-7 py-4 rounded-xl transition-all hover:-translate-y-0.5 text-center"
                 >
-                  <span className="transform skew-x-6 block">Browse All Gear</span>
+                  <span>Browse All Gear</span>
                 </Link>
               )}
             </div>
 
             {/* Feature Bullets */}
-            <div className="pt-6 border-t border-asphalt-2/80 grid grid-cols-3 gap-2 text-left">
+            <div className="pt-6 border-t border-asphalt-2 grid grid-cols-3 gap-2 text-left">
               <div className="flex items-center gap-2 text-xs text-steel">
                 <CheckCircle className="w-4 h-4 text-ignition-red shrink-0" />
                 <span>Genuine Parts</span>
@@ -92,7 +88,7 @@ export default function HeroSection({
               </div>
               <div className="flex items-center gap-2 text-xs text-steel justify-center">
                 <CheckCircle className="w-4 h-4 text-ignition-red shrink-0" />
-                <span>Home Delivery All Over Bangladesh</span>
+                <span>Delivery All Over Bangladesh</span>
               </div>
             </div>
           </div>

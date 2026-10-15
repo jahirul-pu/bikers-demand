@@ -519,9 +519,9 @@ export default function AdminProductsPage() {
 
         <button
           onClick={handleOpenAddModal}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 flex items-center gap-2 transform -skew-x-6 cursor-pointer"
+          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 flex items-center gap-2 transform cursor-pointer"
         >
-          <div className="transform skew-x-6 flex items-center gap-1.5">
+          <div className="transform flex items-center gap-1.5">
             <Plus className="w-4 h-4" />
             <span>Add New Product</span>
           </div>

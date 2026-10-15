@@ -134,9 +134,9 @@ export default function GaragePage() {
 
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-5 py-2.5 flex items-center gap-2 transition-colors transform -skew-x-6 self-start sm:self-auto cursor-pointer"
+          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-5 py-2.5 flex items-center gap-2 transition-colors transform self-start sm:self-auto cursor-pointer"
         >
-          <div className="transform skew-x-6 flex items-center gap-1.5">
+          <div className="transform flex items-center gap-1.5">
             <Plus className="w-4 h-4" />
             <span>Add Bike to Garage</span>
           </div>
@@ -201,9 +201,9 @@ export default function GaragePage() {
 
           <button
             type="submit"
-            className="bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase px-6 py-2.5 text-xs tracking-wider cursor-pointer transform -skew-x-6"
+            className="bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase px-6 py-2.5 text-xs tracking-wider cursor-pointer transform"
           >
-            <span className="transform skew-x-6">Save Registered Bike to Garage</span>
+            <span className="transform">Save Registered Bike to Garage</span>
           </button>
         </form>
       )}

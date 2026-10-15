@@ -134,7 +134,7 @@ export default function ProductCard({
     selectedBikeName && product.fitBadge?.toLowerCase().includes(selectedBikeName.toLowerCase());
 
   return (
-    <div className="group relative bg-asphalt-2 border border-asphalt-2 hover:border-steel/40 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+    <div className="group relative bg-asphalt-2 border border-asphalt-2 rounded-2xl hover:border-steel/40 hover:shadow-xl hover:shadow-black/5 transition-all duration-200 flex flex-col justify-between overflow-hidden">
       {/* Top Media & Badges Overlay */}
       <Link href={`/product/${productSlug}`} className="relative aspect-square bg-asphalt p-4 flex items-center justify-center overflow-hidden block">
         {/* Placeholder / Image */}
@@ -148,21 +148,21 @@ export default function ProductCard({
         />
 
         {/* Fit Badge Pill */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start z-10">
           {product.isUniversal ? (
-            <span className="bg-asphalt/90 text-steel-light border border-steel/30 text-[10px] font-mono px-2 py-0.5 uppercase tracking-wide">
-              UNIVERSAL FIT
+            <span className="bg-asphalt-2/90 backdrop-blur text-steel-light border border-asphalt-2 text-[10px] font-semibold px-2.5 py-1 rounded-full tracking-wide shadow-sm">
+              Universal Fit
             </span>
           ) : (
-            <span className="bg-plate-yellow text-asphalt text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wide flex items-center gap-1 shadow-sm">
-              <CheckCircle className="w-3 h-3 fill-asphalt text-plate-yellow" />
-              <span>{fitsCurrentBike ? `FITS ${selectedBikeName}` : product.fitBadge || "MODEL SPECIFIC"}</span>
+            <span className="bg-plate-yellow text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+              <CheckCircle className="w-3 h-3" />
+              <span>{fitsCurrentBike ? `Fits ${selectedBikeName}` : product.fitBadge || "Model Specific"}</span>
             </span>
           )}
 
           {/* Helmet Certification Badge */}
           {product.certification && (
-            <span className="bg-ignition-red text-asphalt text-[10px] font-mono font-extrabold px-2 py-0.5 uppercase tracking-wide">
+            <span className="bg-ignition-red text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
               {product.certification}
             </span>
           )}
@@ -174,21 +174,21 @@ export default function ProductCard({
             e.preventDefault();
             handleFav();
           }}
-          className={`absolute top-2 right-2 p-2 rounded-full transition-colors z-10 ${
+          className={`absolute top-2.5 right-2.5 p-2 rounded-full transition-colors z-10 shadow-sm ${
             fav
-              ? "bg-ignition-red text-asphalt"
-              : "bg-asphalt/70 text-steel hover:text-off-white hover:bg-asphalt"
+              ? "bg-ignition-red text-white"
+              : "bg-asphalt-2/90 backdrop-blur text-steel hover:text-ignition-red"
           }`}
           aria-label="Add to favorites"
         >
-          <Heart className={`w-4 h-4 ${fav ? "fill-asphalt" : ""}`} />
+          <Heart className={`w-4 h-4 ${fav ? "fill-white" : ""}`} />
         </button>
 
         {/* Stock Overlay if out of stock */}
         {product.stockStatus === "out-of-stock" && (
           <div className="absolute inset-0 bg-asphalt/80 backdrop-blur-xs flex items-center justify-center z-20">
-            <span className="bg-asphalt border border-steel text-steel text-xs font-mono px-3 py-1 uppercase tracking-widest font-bold">
-              OUT OF STOCK
+            <span className="bg-asphalt-2 border border-asphalt-2 text-steel rounded-full text-xs px-4 py-1.5 tracking-wide font-semibold">
+              Out of Stock
             </span>
           </div>
         )}
@@ -198,9 +198,9 @@ export default function ProductCard({
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div>
           {/* Brand & Category */}
-          <div className="flex items-center justify-between text-xs font-mono text-steel mb-1">
-            <span className="uppercase text-plate-yellow/90 font-semibold">{product.brand}</span>
-            <span className="text-[10px] capitalize text-steel">{product.category.replace("-", " ")}</span>
+          <div className="flex items-center justify-between text-xs text-steel mb-1.5">
+            <span className="text-plate-yellow font-semibold">{product.brand}</span>
+            <span className="text-[10px] capitalize text-steel bg-asphalt px-2 py-0.5 rounded-full">{product.category.replace("-", " ")}</span>
           </div>
 
           {/* Title Link */}
@@ -248,7 +248,7 @@ export default function ProductCard({
                 <span className="text-xs text-steel line-through ml-1.5">
                   Tk {product.originalPrice.toLocaleString("en-BD")}
                 </span>
-                <span className="ml-1.5 text-[10px] font-mono font-extrabold bg-ignition-red text-asphalt px-1 py-0.5">
+                <span className="ml-1.5 text-[10px] font-bold bg-ignition-red text-white px-1.5 py-0.5 rounded-full">
                   -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                 </span>
               </>
@@ -258,27 +258,25 @@ export default function ProductCard({
           <button
             onClick={handleAdd}
             disabled={product.stockStatus === "out-of-stock"}
-            className={`px-3 py-2 text-xs uppercase font-bold tracking-wider flex items-center gap-1.5 transition-all transform -skew-x-6 ${
+            className={`px-3.5 py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all ${
               added
-                ? "bg-emerald-500 text-asphalt"
+                ? "bg-emerald-500 text-white"
                 : product.stockStatus === "out-of-stock"
-                ? "bg-asphalt border border-steel/20 text-steel cursor-not-allowed"
-                : "bg-ignition-red hover:bg-red-600 text-asphalt"
+                ? "bg-asphalt border border-asphalt-2 text-steel cursor-not-allowed"
+                : "bg-ignition-red hover:bg-red-600 text-white shadow-sm shadow-ignition-red/30"
             }`}
           >
-            <div className="transform skew-x-6 flex items-center gap-1">
-              {added ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Added</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Add</span>
-                </>
-              )}
-            </div>
+            {added ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Added</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Add</span>
+              </>
+            )}
           </button>
         </div>
       </div>

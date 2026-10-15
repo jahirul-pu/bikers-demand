@@ -262,10 +262,10 @@ export default function AdminOrdersPage() {
                           {col.key !== "DELIVERED" && (
                             <button
                               onClick={() => handleAdvanceStatus(o.id)}
-                              className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-[10px] uppercase px-2 py-1 flex items-center gap-1 transform -skew-x-6 cursor-pointer shrink-0"
+                              className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-[10px] uppercase px-2 py-1 flex items-center gap-1 transform cursor-pointer shrink-0"
                               title="Move to next stage"
                             >
-                              <div className="transform skew-x-6 flex items-center gap-0.5">
+                              <div className="transform flex items-center gap-0.5">
                                 <span>Next</span>
                                 <ArrowRight className="w-3 h-3" />
                               </div>
@@ -300,9 +300,9 @@ export default function AdminOrdersPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase px-4 py-2 flex items-center gap-1.5 transform -skew-x-6 cursor-pointer"
+                  className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase px-4 py-2 flex items-center gap-1.5 transform cursor-pointer"
                 >
-                  <div className="transform skew-x-6 flex items-center gap-1.5">
+                  <div className="transform flex items-center gap-1.5">
                     <Printer className="w-4 h-4" />
                     <span>Print Invoice</span>
                   </div>

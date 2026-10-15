@@ -11,6 +11,8 @@ export interface BikeOption {
   cc?: string;
 }
 
+type BikeListItem = DBBike & { variant?: string | null };
+
 interface BikeSelectorModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,9 +26,9 @@ export default function BikeSelectorModal({
   onSelectBike,
   currentBike,
 }: BikeSelectorModalProps) {
-  const [bikesList, setBikesList] = useState<DBBike[]>([]);
+  const [bikesList, setBikesList] = useState<BikeListItem[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string>("Yamaha");
-  const [pendingBike, setPendingBike] = useState<DBBike | null>(null);
+  const [pendingBike, setPendingBike] = useState<BikeListItem | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,18 +36,49 @@ export default function BikeSelectorModal({
         try {
           const res = await fetch("/api/bikes");
           const json = await res.json();
-          if (json.success && Array.isArray(json.list)) {
-            setBikesList(json.list);
-            const initialBrand = currentBike?.brand ?? json.list[0]?.brand ?? "Yamaha";
-            setSelectedBrand(initialBrand);
-            if (currentBike) {
-              const match = json.list.find(
-                (b: DBBike) =>
-                  b.brand.toLowerCase() === currentBike.brand.toLowerCase() &&
-                  b.model.toLowerCase() === currentBike.model.toLowerCase()
-              );
-              setPendingBike(match ?? null);
-            }
+          if (!json.success) return;
+
+          let list: BikeListItem[] = Array.isArray(json.list) ? json.list : [];
+
+          // The API can return pre-grouped data (e.g. offline fallback datasets)
+          // without a flat `list`; normalise it into the shape this modal expects.
+          if (list.length === 0 && json.data && typeof json.data === "object") {
+            list = Object.entries(json.data).flatMap(([brand, models]) =>
+              Array.isArray(models)
+                ? (models as any[]).flatMap((m) =>
+                    Array.isArray(m?.variants) && m.variants.length > 0
+                      ? m.variants.map((v: any) => ({
+                          id: v.id,
+                          brand,
+                          model: m.model,
+                          variant: v.variant ?? null,
+                          displacementCc: v.cc,
+                          slug: `${brand}-${m.model}`
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-"),
+                        }))
+                      : []
+                  )
+                : []
+            );
+          }
+
+          if (list.length === 0) return;
+
+          setBikesList(list);
+          const brands = Array.from(new Set(list.map((b) => b.brand)));
+          const wanted = currentBike?.brand;
+          const initialBrand =
+            wanted && brands.includes(wanted) ? wanted : brands[0];
+          setSelectedBrand(initialBrand);
+
+          if (currentBike) {
+            const match = list.find(
+              (b) =>
+                b.brand.toLowerCase() === currentBike.brand.toLowerCase() &&
+                b.model.toLowerCase() === currentBike.model.toLowerCase()
+            );
+            setPendingBike(match ?? null);
           }
         } catch (e) {
           console.error("API error loading bikes:", e);
@@ -65,7 +98,8 @@ export default function BikeSelectorModal({
     onSelectBike({
       brand: pendingBike.brand,
       model: pendingBike.model,
-      cc: `${pendingBike.displacementCc}cc`,
+      variant: pendingBike.variant ?? undefined,
+      cc: pendingBike.displacementCc ? `${pendingBike.displacementCc}cc` : undefined,
     });
   };
 
@@ -150,11 +184,17 @@ export default function BikeSelectorModal({
                         : "border-asphalt-2 bg-asphalt/60 hover:bg-asphalt hover:border-steel/50 text-steel hover:text-off-white"
                     }`}
                   >
-                    <div>
+                    <div className="min-w-0">
                       <div className={`font-bold text-sm ${isSelected ? "text-plate-yellow" : "text-off-white"}`}>
                         {item.model}
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                        {item.variant && (
+                          <span className="text-[10px] text-steel">{item.variant}</span>
+                        )}
+                        {item.displacementCc ? (
+                          <span className="text-[10px] text-steel">• {item.displacementCc}cc</span>
+                        ) : null}
                         {isCurrent && (
                           <span className="text-[10px] font-mono font-bold text-plate-yellow bg-plate-yellow/10 border border-plate-yellow/40 px-1.5 py-0.5 uppercase tracking-wide">
                             Current

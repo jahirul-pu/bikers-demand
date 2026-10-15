@@ -164,13 +164,13 @@ export default function SettingsPage() {
 
         <button
           type="submit"
-          className={`py-3.5 px-6 font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all transform -skew-x-6 cursor-pointer shadow-lg ${
+          className={`py-3.5 px-6 font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all transform cursor-pointer shadow-lg ${
             saved
               ? "bg-emerald-500 text-asphalt"
               : "bg-plate-yellow hover:bg-yellow-500 text-asphalt"
           }`}
         >
-          <div className="transform skew-x-6 flex items-center gap-2">
+          <div className="transform flex items-center gap-2">
             {saved ? <Check className="w-4 h-4" /> : null}
             <span>{saved ? "CHANGES SAVED LOCALLY" : "SAVE PROFILE CHANGES"}</span>
           </div>

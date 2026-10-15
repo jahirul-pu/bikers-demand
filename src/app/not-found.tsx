@@ -40,9 +40,9 @@ export default function NotFound() {
           <div className="pt-4 flex flex-col sm:flex-row justify-center gap-4 text-xs font-bold uppercase">
             <Link
               href="/"
-              className="bg-ignition-red hover:bg-red-600 text-asphalt px-6 py-3 tracking-wider flex items-center justify-center gap-2 transform -skew-x-6 transition-colors shadow-lg"
+              className="bg-ignition-red hover:bg-red-600 text-asphalt px-6 py-3 tracking-wider flex items-center justify-center gap-2 transform transition-colors shadow-lg"
             >
-              <div className="transform skew-x-6 flex items-center gap-2">
+              <div className="transform flex items-center gap-2">
                 <Home className="w-4 h-4" />
                 <span>Return to Storefront</span>
               </div>

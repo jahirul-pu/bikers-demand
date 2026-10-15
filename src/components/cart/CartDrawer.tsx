@@ -94,7 +94,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
       {/* Slide-over Right Drawer Container */}
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-asphalt-2 border-l border-steel/30 text-off-white shadow-2xl flex flex-col justify-between transform transition-transform animate-slide-left">
+        <div className="w-screen max-w-md bg-asphalt-2 border-l border-asphalt-2 text-off-white shadow-2xl flex flex-col justify-between transform transition-transform animate-slide-left rounded-l-3xl overflow-hidden">
           
           {/* Drawer Header */}
           <div className="p-5 bg-asphalt border-b border-asphalt-2 flex items-center justify-between">
@@ -125,9 +125,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   <Link
                     href="/shop"
                     onClick={onClose}
-                    className="inline-flex items-center gap-2 bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-6 py-3 tracking-wider transition-colors transform -skew-x-6 shadow-md cursor-pointer"
+                    className="inline-flex items-center gap-2 bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-6 py-3 tracking-wider transition-colors transform shadow-md cursor-pointer"
                   >
-                    <span className="transform skew-x-6 flex items-center gap-2">
+                    <span className="transform flex items-center gap-2">
                       <span>Shop Now</span>
                       <ArrowRight className="w-4 h-4" />
                     </span>
@@ -217,12 +217,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <Link
                 href="/checkout"
                 onClick={onClose}
-                className="w-full bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs py-3.5 text-center tracking-wider block transition-all transform -skew-x-6 shadow-lg"
+                className="w-full bg-ignition-red hover:bg-red-600 text-white font-semibold uppercase text-xs py-3.5 text-center tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-ignition-red/25"
               >
-                <span className="transform skew-x-6 flex items-center justify-center gap-2">
-                  <span>PROCEED TO CHECKOUT</span>
-                  <ArrowRight className="w-4 h-4" />
-                </span>
+                <span>PROCEED TO CHECKOUT</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           )}

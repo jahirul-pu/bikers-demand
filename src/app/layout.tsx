@@ -1,26 +1,18 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
+import { Manrope, Outfit } from "next/font/google";
 import "./globals.css";
 
-const barlowCondensed = Barlow_Condensed({
+const manrope = Manrope({
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-barlow-condensed",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans",
   display: "swap",
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-plus-jakarta-sans",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-jetbrains-mono",
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -39,13 +31,12 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="light"
-      className={`${barlowCondensed.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable}`}
+      className={`${manrope.variable} ${outfit.variable}`}
       suppressHydrationWarning
     >
       <head>
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
+        <script
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("bd_theme")||"light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
           }}

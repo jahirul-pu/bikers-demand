@@ -90,17 +90,17 @@ export default function LoginPage() {
       <Navigation />
 
       <main className="flex-grow flex items-center justify-center max-w-md mx-auto px-4 py-16 w-full">
-        <div className="bg-asphalt-2 p-8 border border-steel/30 space-y-6 w-full shadow-2xl">
+        <div className="bg-asphalt-2 p-8 border border-asphalt-2 rounded-3xl space-y-6 w-full shadow-xl">
           
           {/* Header */}
           <div className="space-y-2 text-center border-b border-asphalt pb-4">
-            <div className="w-12 h-12 bg-ignition-red flex items-center justify-center rounded transform -skew-x-12 mx-auto text-asphalt mb-2">
-              <Bike className="w-7 h-7 transform skew-x-12 stroke-[2.5]" />
+            <div className="w-12 h-12 bg-ignition-red flex items-center justify-center rounded-xl mx-auto text-white mb-2 shadow-sm shadow-ignition-red/30">
+              <Bike className="w-6 h-6 stroke-[2.5]" />
             </div>
-            <span className="text-plate-yellow font-bold uppercase tracking-widest text-[10px] block">
-              RIDER AUTHENTICATION
+            <span className="text-plate-yellow font-semibold tracking-widest text-[10px] uppercase block">
+              Rider Authentication
             </span>
-            <h1 className="display-font text-3xl font-extrabold uppercase text-off-white">
+            <h1 className="display-font text-3xl font-extrabold text-off-white">
               Sign In to Bikers Demand
             </h1>
             <p className="text-steel text-xs font-light">
@@ -160,12 +160,10 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs py-3.5 text-center tracking-wider block transition-all transform -skew-x-6 shadow-lg cursor-pointer mt-2"
+              className="w-full bg-ignition-red hover:bg-red-600 text-white font-semibold text-sm py-3.5 text-center rounded-xl transition-all shadow-lg shadow-ignition-red/25 flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
-              <span className="transform skew-x-6 flex items-center justify-center gap-2">
-                <span>{isLoading ? "AUTHENTICATING..." : "SIGN IN TO MY ACCOUNT"}</span>
-                <ArrowRight className="w-4 h-4" />
-              </span>
+              <span>{isLoading ? "Authenticating..." : "Sign In to My Account"}</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 

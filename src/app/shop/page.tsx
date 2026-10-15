@@ -786,9 +786,9 @@ function ShopPageInner() {
                             } catch {}
                           }}
                           disabled={product.stockStatus === "out-of-stock"}
-                          className="bg-ignition-red hover:bg-red-600 text-asphalt text-xs font-bold uppercase px-4 py-2 transition-colors transform -skew-x-6 disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="bg-ignition-red hover:bg-red-600 text-asphalt text-xs font-bold uppercase px-4 py-2 transition-colors transform disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          <span className="transform skew-x-6 inline-block">Add to Cart</span>
+                          <span className="transform inline-block">Add to Cart</span>
                         </button>
                       </div>
                     </div>

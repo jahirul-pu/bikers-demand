@@ -563,13 +563,13 @@ export default function ProductDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={handleAddToCart}
-                  className={`py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transform -skew-x-6 transition-all shadow-lg ${
+                  className={`py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transform transition-all shadow-lg ${
                     addedToCart
                       ? "bg-emerald-500 text-asphalt"
                       : "bg-asphalt-2 hover:bg-asphalt border border-plate-yellow text-plate-yellow"
                   }`}
                 >
-                  <div className="transform skew-x-6 flex items-center gap-2">
+                  <div className="transform flex items-center gap-2">
                     {addedToCart ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
                     <span>{addedToCart ? "ADDED TO CART" : "ADD TO CART"}</span>
                   </div>
@@ -577,9 +577,9 @@ export default function ProductDetailPage() {
 
                 <button
                   onClick={handleBuyNow}
-                  className="bg-ignition-red hover:bg-red-600 text-asphalt py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transform -skew-x-6 transition-colors shadow-xl"
+                  className="bg-ignition-red hover:bg-red-600 text-asphalt py-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transform transition-colors shadow-xl"
                 >
-                  <div className="transform skew-x-6 flex items-center gap-2">
+                  <div className="transform flex items-center gap-2">
                     <span>BUY NOW</span>
                     <ArrowRight className="w-4 h-4" />
                   </div>

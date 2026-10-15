@@ -11,10 +11,10 @@ export default function Footer() {
           {/* Brand & About */}
           <div className="space-y-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-7 h-7 bg-ignition-red flex items-center justify-center rounded transform -skew-x-12 group-hover:bg-red-600 transition-colors">
-                <Bike className="w-5 h-5 text-asphalt transform skew-x-12 stroke-[2.5]" />
+              <div className="w-8 h-8 bg-ignition-red flex items-center justify-center rounded-lg group-hover:bg-red-600 transition-colors shadow-sm shadow-ignition-red/30">
+                <Bike className="w-5 h-5 text-white stroke-[2.5]" />
               </div>
-              <span className="display-font text-xl font-extrabold tracking-wider text-off-white group-hover:text-ignition-red transition-colors">
+              <span className="display-font text-xl font-extrabold text-off-white group-hover:text-ignition-red transition-colors">
                 BIKERS<span className="text-ignition-red group-hover:text-off-white transition-colors">DEMAND</span>
               </span>
             </Link>
@@ -126,23 +126,23 @@ export default function Footer() {
 
             {/* Payment Icons */}
             <div className="pt-2">
-              <span className="text-[10px] font-mono text-steel block mb-1.5 uppercase">
+              <span className="text-[10px] text-steel block mb-1.5 uppercase tracking-wide">
                 Accepted Payment Methods:
               </span>
               <div className="flex flex-wrap gap-1.5">
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-plate-yellow border border-asphalt-2">
+                <span className="bg-plate-yellow/10 px-2.5 py-1 text-[10px] font-semibold text-plate-yellow rounded-full">
                   COD
                 </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-pink-400 border border-asphalt-2">
+                <span className="bg-pink-500/10 px-2.5 py-1 text-[10px] font-semibold text-pink-600 rounded-full">
                   bKash
                 </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-orange-400 border border-asphalt-2">
+                <span className="bg-orange-500/10 px-2.5 py-1 text-[10px] font-semibold text-orange-600 rounded-full">
                   Nagad
                 </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-purple-400 border border-asphalt-2">
+                <span className="bg-purple-500/10 px-2.5 py-1 text-[10px] font-semibold text-purple-600 rounded-full">
                   Rocket
                 </span>
-                <span className="bg-asphalt px-2 py-1 text-[10px] font-mono text-emerald-400 border border-asphalt-2">
+                <span className="bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-600 rounded-full">
                   BanglaQR
                 </span>
               </div>

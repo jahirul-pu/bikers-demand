@@ -130,73 +130,53 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
       }));
 
   return (
-    <section id="category-grid" className="py-8 sm:py-10 bg-asphalt border-b border-asphalt-2">
+    <section id="category-grid" className="py-10 sm:py-12 bg-asphalt border-b border-asphalt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-6">
-          <span className="text-[11px] font-mono text-plate-yellow uppercase tracking-widest block mb-0.5">
-            EXPLORE CATALOG
+        <div className="text-center mb-7">
+          <span className="text-[11px] font-semibold text-ignition-red uppercase tracking-[0.18em] block mb-1">
+            Explore Catalog
           </span>
-          <h2 className="display-font text-2xl sm:text-3xl font-extrabold uppercase text-off-white tracking-wide">
-            Shop By Category
+          <h2 className="display-font text-2xl sm:text-3xl font-extrabold text-off-white tracking-tight">
+            Shop by Category
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {displayCategories.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
                 key={cat.id}
                 href={`/category/${cat.id}`}
-                className={`group relative overflow-hidden bg-asphalt-2 border border-asphalt-2 ${cat.borderColor} p-3.5 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 shadow-lg min-w-0 min-h-[200px]`}
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-asphalt-2 bg-asphalt-2 transition-all duration-300 hover:-translate-y-1.5 hover:border-ignition-red/30 hover:shadow-xl hover:shadow-black/10"
               >
-                {/* Background Image with Vibrant Visibility */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-90"
-                  style={{ backgroundImage: `url(${cat.image})` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-asphalt via-asphalt/70 to-asphalt/30 group-hover:via-asphalt/55 transition-colors duration-300" />
-
-                {/* Card Content */}
-                <div className="relative z-10 space-y-2.5">
-                  <div className="flex justify-between items-center">
-                    <div className={`p-2 bg-asphalt/90 backdrop-blur-sm border border-asphalt-2 ${cat.iconColor}`}>
-                      <Icon className="w-4 h-4 stroke-[2]" />
-                    </div>
-                    <span className="text-[9px] font-mono uppercase bg-asphalt/90 backdrop-blur-sm text-steel px-1.5 py-0.5 border border-steel/20">
-                      {cat.badge}
-                    </span>
-                  </div>
-
-                  {/* Title & Tagline */}
-                  <div>
-                    <h3 className="display-font text-lg sm:text-xl font-bold uppercase text-off-white group-hover:text-off-white flex items-center justify-between">
-                      <span>{cat.name}</span>
-                      <ArrowUpRight className="w-4 h-4 text-steel group-hover:text-off-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0 ml-1" />
-                    </h3>
-                    <p className="text-[11px] text-steel mt-0.5 font-light leading-snug line-clamp-2">
-                      {cat.tagline}
-                    </p>
-                  </div>
+                <div className="relative h-32 sm:h-36 w-full overflow-hidden">
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
+                    style={{ backgroundImage: `url(${cat.image})` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-asphalt-2 via-asphalt-2/10 to-transparent" />
+                  <span className="absolute right-2.5 top-2.5 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+                    {cat.badge}
+                  </span>
                 </div>
 
-                {/* Subcategories tags & Action */}
-                <div className="relative z-10 mt-3.5 pt-2.5 border-t border-asphalt-2/80 space-y-2">
-                  <div className="flex flex-wrap gap-1">
-                    {cat.subcategories.slice(0, 4).map((sub: string) => (
-                      <span
-                        key={sub}
-                        className="text-[9px] bg-asphalt/90 backdrop-blur-sm px-1.5 py-0.5 text-steel-light border border-asphalt-2"
-                      >
-                        {sub}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex justify-end items-center text-[11px] font-mono text-steel">
-                    <span className="group-hover:text-off-white transition-colors text-[10px]">
-                      Browse →
-                    </span>
-                  </div>
+                <div className="relative -mt-6 flex flex-1 flex-col px-3.5 pb-3.5">
+                  <span
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border border-asphalt-2 bg-asphalt-2 shadow-sm ${cat.iconColor}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="display-font mt-2.5 text-base font-bold text-off-white">
+                    {cat.name}
+                  </h3>
+                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-steel">
+                    {cat.tagline}
+                  </p>
+                  <span className="mt-auto inline-flex items-center gap-1 pt-3 text-[11px] font-semibold text-ignition-red">
+                    Shop now
+                    <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </span>
                 </div>
               </Link>
             );

@@ -149,9 +149,9 @@ export default function AddressesPage() {
               resetForm();
               setShowForm(true);
             }}
-            className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-5 py-2.5 flex items-center gap-2 transition-colors transform -skew-x-6 self-start sm:self-auto cursor-pointer"
+            className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-5 py-2.5 flex items-center gap-2 transition-colors transform self-start sm:self-auto cursor-pointer"
           >
-            <div className="transform skew-x-6 flex items-center gap-1.5">
+            <div className="transform flex items-center gap-1.5">
               <Plus className="w-4 h-4" />
               <span>Add New Address</span>
             </div>
@@ -244,9 +244,9 @@ export default function AddressesPage() {
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase px-6 py-2.5 tracking-wider cursor-pointer transform -skew-x-6"
+              className="bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase px-6 py-2.5 tracking-wider cursor-pointer transform"
             >
-              <span className="transform skew-x-6">
+              <span className="transform">
                 {editingId ? "Save Address Changes" : "Save New Address"}
               </span>
             </button>

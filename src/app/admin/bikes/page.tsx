@@ -178,9 +178,9 @@ export default function AdminBikesPage() {
 
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-6 py-3 flex items-center gap-2 transition-colors transform -skew-x-6 self-start sm:self-auto cursor-pointer shadow-md"
+          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-6 py-3 flex items-center gap-2 transition-colors transform self-start sm:self-auto cursor-pointer shadow-md"
         >
-          <div className="transform skew-x-6 flex items-center gap-2">
+          <div className="transform flex items-center gap-2">
             <Plus className="w-4 h-4" />
             <span>Add Bike Model</span>
           </div>

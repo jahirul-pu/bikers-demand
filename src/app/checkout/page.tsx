@@ -576,9 +576,9 @@ function CheckoutContent() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-sm py-4 text-center tracking-wider block transition-all transform -skew-x-6 shadow-xl cursor-pointer"
+                className="w-full bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-sm py-4 text-center tracking-wider block transition-all transform shadow-xl cursor-pointer"
               >
-                <span className="transform skew-x-6 flex items-center justify-center gap-2">
+                <span className="transform flex items-center justify-center gap-2">
                   <span>{isSubmitting ? "PLACING ORDER..." : "CONFIRM & PLACE COD ORDER"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </span>

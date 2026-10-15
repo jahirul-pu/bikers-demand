@@ -55,7 +55,7 @@ export default function BikeSelectionStrip({
         {/* Left: Number Plate + Compatibility Message */}
         <div className="flex items-center gap-4">
           {/* Styled Motorcycle Plate */}
-          <div className="bg-plate-yellow text-asphalt px-3 py-1 border-2 border-asphalt flex flex-col items-center justify-center font-mono font-extrabold shadow-md transform -skew-x-3">
+          <div className="bg-plate-yellow text-asphalt px-3 py-1 border-2 border-asphalt flex flex-col items-center justify-center font-mono font-extrabold shadow-md transform">
             <span className="text-[9px] uppercase tracking-widest text-asphalt/80 border-b border-asphalt/20 pb-0.5 leading-none">
               BIKERS DEMAND • BD
             </span>

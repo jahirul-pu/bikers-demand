@@ -104,7 +104,7 @@ export default function Navigation({
     <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2 relative">
       {/* Row 1: Category links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center space-x-1 lg:space-x-4">
+        <div className="flex items-center justify-center gap-1 lg:gap-2 py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
@@ -120,10 +120,10 @@ export default function Navigation({
               >
                 <Link
                   href={item.href}
-                  className={`display-font uppercase text-sm lg:text-base tracking-wider py-4 px-3 lg:px-4 border-b-2 flex items-center gap-2.5 transition-all ${
+                  className={`display-font text-sm lg:text-base py-2 px-3 lg:px-4 rounded-xl flex items-center gap-2.5 transition-all ${
                     isActive || isHovered
-                      ? "border-ignition-red text-ignition-red font-bold bg-asphalt/50"
-                      : "border-transparent text-steel-light hover:text-off-white hover:border-steel hover:bg-asphalt/30"
+                      ? "bg-ignition-red/10 text-ignition-red font-semibold"
+                      : "text-steel-light hover:text-off-white hover:bg-asphalt"
                   }`}
                 >
                   <Icon className={`w-5 h-5 ${isActive || isHovered ? "text-ignition-red" : "text-steel"}`} />
@@ -132,8 +132,8 @@ export default function Navigation({
 
                 {/* Subcategories Hover Mega Dropdown */}
                 {subs && isHovered && (
-                  <div className="absolute top-full left-0 w-64 bg-asphalt-2 border border-steel/30 shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <div className="text-[10px] font-mono font-bold text-plate-yellow uppercase tracking-widest border-b border-steel/20 pb-1.5 mb-2">
+                  <div className="absolute top-full left-0 w-64 bg-asphalt-2 border border-steel/30 rounded-2xl shadow-xl p-3 mt-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="text-[10px] font-semibold text-plate-yellow uppercase tracking-widest border-b border-steel/20 pb-1.5 mb-2">
                       Subcategories
                     </div>
                     <div className="space-y-1">
@@ -141,7 +141,7 @@ export default function Navigation({
                         <Link
                           key={idx}
                           href={sub.href}
-                          className="block text-xs font-mono text-steel-light hover:text-off-white hover:bg-asphalt p-2 transition-colors border-l-2 border-transparent hover:border-plate-yellow"
+                          className="block text-xs text-steel-light hover:text-off-white hover:bg-asphalt rounded-lg p-2 transition-colors"
                         >
                           {sub.title}
                         </Link>
@@ -162,21 +162,21 @@ export default function Navigation({
             {selectedBike ? (
               <>
                 {/* Plate */}
-                <div className="bg-plate-yellow text-asphalt px-3 py-1 border border-asphalt flex items-center gap-2 font-mono font-extrabold shadow transform -skew-x-3 shrink-0">
+                <div className="bg-plate-yellow text-asphalt px-3.5 py-1.5 rounded-lg flex items-center gap-2 font-bold shadow-sm shrink-0">
                   <Bike className="w-4 h-4" />
-                  <span className="text-sm uppercase tracking-wide">
+                  <span className="text-sm tracking-wide">
                     {selectedBike.brand} {selectedBike.model}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 text-plate-yellow text-sm font-medium">
-                  <CheckCircle2 className="w-4 h-4 fill-plate-yellow text-asphalt shrink-0" />
-                  <span>COMPATIBILITY FILTER ACTIVE</span>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Compatibility filter active</span>
                 </div>
 
                 <button
                   onClick={onOpenBikeModal}
-                  className="flex items-center gap-1.5 text-sm text-steel hover:text-off-white border border-steel/30 hover:border-steel px-3 py-1.5 transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-steel hover:text-off-white border border-steel/30 hover:border-steel rounded-lg px-3 py-1.5 transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Change</span>
@@ -198,7 +198,7 @@ export default function Navigation({
                 </div>
                 <button
                   onClick={onOpenBikeModal}
-                  className="flex items-center gap-2 bg-plate-yellow text-asphalt hover:bg-plate-yellow/90 px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition-colors shrink-0"
+                  className="flex items-center gap-2 bg-plate-yellow text-asphalt hover:bg-plate-yellow/90 rounded-lg px-4 py-2 text-sm font-semibold transition-colors shrink-0"
                 >
                   <span>Select My Bike</span>
                   <ArrowRight className="w-4 h-4" />

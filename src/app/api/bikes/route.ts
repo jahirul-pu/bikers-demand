@@ -29,6 +29,23 @@ const FALLBACK_BIKES: Record<
   ],
 };
 
+function buildFallbackList() {
+  return Object.entries(FALLBACK_BIKES).flatMap(([brand, models]) =>
+    models.flatMap((m) =>
+      m.variants.map((v) => ({
+        id: v.id,
+        brand,
+        model: m.model,
+        variant: v.variant,
+        displacementCc: v.cc,
+        slug: `${brand}-${m.model}`
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-"),
+      }))
+    )
+  );
+}
+
 export async function GET() {
   try {
     const bikeModels = await prisma.bikeModel.findMany({
@@ -70,7 +87,11 @@ export async function GET() {
     });
   } catch (error) {
     console.warn("DB query failed, returning fallback:", error);
-    return NextResponse.json({ success: true, data: FALLBACK_BIKES, list: [] });
+    return NextResponse.json({
+      success: true,
+      data: FALLBACK_BIKES,
+      list: buildFallbackList(),
+    });
   }
 }
 

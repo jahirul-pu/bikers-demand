@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   Lock,
   FolderTree,
   Award,
+  LogOut,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -22,6 +23,22 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      /* ignore */
+    }
+    router.replace("/admin/login");
+    router.refresh();
+  };
+
+  // The login screen renders on its own, without the admin chrome.
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
 
   const adminNav = [
     { label: "Dashboard Overview", href: "/admin", icon: LayoutDashboard },
@@ -47,7 +64,17 @@ export default function AdminLayout({
             <Lock className="w-4 h-4 text-ignition-red" />
             <span className="text-off-white font-bold uppercase">Bikers Demand Admin Control Panel</span>
           </div>
-          <span className="text-plate-yellow">Role: ADMIN</span>
+          <div className="flex items-center gap-3">
+            <span className="text-plate-yellow">Role: ADMIN</span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 text-steel hover:text-ignition-red font-semibold uppercase transition-colors cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
 

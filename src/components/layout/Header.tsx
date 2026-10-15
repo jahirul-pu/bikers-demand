@@ -169,15 +169,15 @@ export default function Header({
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 bg-ignition-red flex items-center justify-center rounded transform -skew-x-12 group-hover:bg-red-600 transition-colors">
-              <Bike className="w-6 h-6 text-asphalt transform skew-x-12 stroke-[2.5]" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 bg-ignition-red flex items-center justify-center rounded-xl group-hover:bg-red-600 transition-colors shadow-sm shadow-ignition-red/30">
+              <Bike className="w-5 h-5 text-white stroke-[2.5]" />
             </div>
             <div className="flex flex-col">
-              <span className="display-font text-2xl font-extrabold tracking-wider leading-none text-off-white group-hover:text-ignition-red transition-colors">
+              <span className="display-font text-2xl font-extrabold leading-none text-off-white group-hover:text-ignition-red transition-colors">
                 BIKERS<span className="text-ignition-red group-hover:text-off-white transition-colors">DEMAND</span>
               </span>
-              <span className="text-[9px] font-mono text-steel tracking-widest uppercase">
+              <span className="text-[10px] font-medium text-steel tracking-widest uppercase">
                 Motorcycle Parts & Gear
               </span>
             </div>
@@ -196,11 +196,12 @@ export default function Header({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => searchQuery.trim().length >= 2 && setShowDropdown(true)}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-plate-yellow rounded-none py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none transition-colors"
+                  className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-ignition-red rounded-full py-2.5 pl-5 pr-12 text-sm text-off-white placeholder-steel focus:outline-none focus:ring-4 focus:ring-ignition-red/10 transition-all"
                 />
                 <button
                   type="submit"
-                  className="absolute right-0 top-0 bottom-0 px-3 bg-asphalt-2 text-steel hover:text-ignition-red flex items-center justify-center transition-colors"
+                  aria-label="Search"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-ignition-red text-white hover:bg-red-600 flex items-center justify-center transition-colors"
                 >
                   <Search className="w-4 h-4" />
                 </button>
@@ -308,18 +309,16 @@ export default function Header({
           {!isAdmin && (
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative bg-ignition-red text-asphalt px-3 py-1.5 flex items-center gap-2 font-semibold text-xs tracking-wider uppercase hover:bg-red-600 transition-colors transform -skew-x-6 cursor-pointer"
+              className="relative bg-ignition-red text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-semibold text-sm hover:bg-red-600 transition-colors shadow-sm shadow-ignition-red/30 cursor-pointer"
               title="Open Cart"
             >
-              <div className="transform skew-x-6 flex items-center gap-1.5">
-                <ShoppingBag className="w-4 h-4" />
-                <span className="hidden sm:inline">Cart</span>
-                {liveCartCount > 0 && (
-                  <span className="bg-asphalt text-off-white px-1.5 py-0.5 text-[10px] font-mono">
-                    {liveCartCount}
-                  </span>
-                )}
-              </div>
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline">Cart</span>
+              {liveCartCount > 0 && (
+                <span className="bg-white/25 text-white rounded-full px-1.5 py-0.5 text-[11px] font-bold min-w-[20px] text-center">
+                  {liveCartCount}
+                </span>
+              )}
             </button>
           )}
         </div>
@@ -334,7 +333,7 @@ export default function Header({
               placeholder="Search parts, gear, model..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-plate-yellow py-2 pl-4 pr-10 text-sm text-off-white placeholder-steel focus:outline-none"
+              className="w-full bg-asphalt-2 border border-asphalt-2 focus:border-ignition-red rounded-full py-2.5 pl-5 pr-11 text-sm text-off-white placeholder-steel focus:outline-none transition-all"
             />
             <button className="absolute right-0 top-0 bottom-0 px-3 text-steel">
               <Search className="w-4 h-4" />
