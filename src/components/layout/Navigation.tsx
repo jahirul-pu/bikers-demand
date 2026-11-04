@@ -104,7 +104,7 @@ export default function Navigation({
     <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2 relative">
       {/* Row 1: Category links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center gap-1 lg:gap-2 py-2">
+        <div className="flex items-center justify-center gap-1 lg:gap-2 py-2 overflow-x-auto no-scrollbar whitespace-nowrap">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
@@ -114,7 +114,7 @@ export default function Navigation({
             return (
               <div
                 key={item.id}
-                className="relative group"
+                className="relative group shrink-0"
                 onMouseEnter={() => setHoveredNav(item.id)}
                 onMouseLeave={() => setHoveredNav(null)}
               >

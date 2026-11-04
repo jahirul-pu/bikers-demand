@@ -22,6 +22,8 @@ export async function GET() {
                 isActive: true,
                 OR: [
                   { categoryId: child.id },
+                  { category: { id: child.id } },
+                  { category: { slug: child.slug } },
                   { subCategory: { equals: child.slug, mode: "insensitive" } },
                   { subCategory: { equals: child.name, mode: "insensitive" } },
                 ],
@@ -40,6 +42,8 @@ export async function GET() {
             OR: [
               { categoryId: cat.id },
               { category: { slug: cat.slug } },
+              { category: { parentId: cat.id } },
+              { category: { parent: { parentId: cat.id } } },
             ],
           },
         });

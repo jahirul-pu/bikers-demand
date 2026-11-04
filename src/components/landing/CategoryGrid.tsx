@@ -56,10 +56,19 @@ function getCategoryMeta(slug: string) {
       iconColor: "text-purple-400",
     };
   }
-  if (lower.includes("gear") || lower.includes("wear") || lower.includes("apparel")) {
+  if (lower.includes("gear") || lower.includes("wear") || lower.includes("apparel") || lower.includes("jacket")) {
     return {
       icon: Shirt,
-      badge: "CE Level 2 Armor",
+      badge: "CE Armor & Helmets",
+      image: "/images/categories/riding-gear.png",
+      borderColor: "group-hover:border-ignition-red",
+      iconColor: "text-ignition-red",
+    };
+  }
+  if (lower.includes("merchandise") || lower.includes("merch")) {
+    return {
+      icon: Package,
+      badge: "Apparel & Accessories",
       image: "/images/categories/merchandise.png",
       borderColor: "group-hover:border-emerald-500",
       iconColor: "text-emerald-400",
@@ -99,11 +108,11 @@ export default function CategoryGrid({ onSelectCategory }: CategoryGridProps) {
   }, [loadCategories]);
 
   const defaultCategories = [
-    { id: "helmets", name: "Helmets", tagline: "Full Face, Modular, Off-Road & Visors", subcategories: ["Full Face", "Modular", "Visors", "Bluetooth"] },
+    { id: "riding-gear", name: "Riding Gear", tagline: "Armored Jackets, Helmets, Gloves & Protection", subcategories: ["Helmets", "Jackets", "Gloves", "Boots"] },
     { id: "parts-mods", name: "Parts & Mods", tagline: "Exhausts, Levers, Sprockets & Brakes", subcategories: ["Exhausts", "Chains", "Levers", "Brakes"] },
     { id: "electronics", name: "Electronics", tagline: "LED Lighting, Phone Mounts, Horns & Trackers", subcategories: ["LED Lights", "Phone Mounts", "GPS", "Horns"] },
-    { id: "additives", name: "Additives & Oils", tagline: "Synthetic Engine Oils, Coolants & Chain Lube", subcategories: ["Synthetic Oil", "Chain Lube", "Coolant"] },
-    { id: "riding-gear", name: "Riding Gear", tagline: "Armored Jackets, Gloves, Boots & Protection", subcategories: ["Jackets", "Gloves", "Boots", "Rain Suits"] },
+    { id: "oils-additives", name: "Oils & Additives", tagline: "Synthetic Engine Oils, Coolants & Chain Lube", subcategories: ["Synthetic Oil", "Chain Lube", "Coolant"] },
+    { id: "merchandise", name: "Merchandise", tagline: "Apparel, Riding Backpacks, Keychains & Accessories", subcategories: ["T-Shirts", "Backpacks", "Keychains"] },
   ];
 
   const displayCategories = dbCategories.length > 0

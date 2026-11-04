@@ -45,63 +45,70 @@ async function main() {
   console.log("✓ Users seeded");
 
   // 2. Create Categories
+  const ridingGearCat = await prisma.category.upsert({
+    where: { slug: "riding-gear" },
+    update: { sortOrder: 0, parentId: null },
+    create: {
+      name: "Riding Gear",
+      slug: "riding-gear",
+      description: "Armored jackets, gloves, boots, helmets and protection gear.",
+      sortOrder: 0,
+    },
+  });
+
   const helmetsCat = await prisma.category.upsert({
     where: { slug: "helmets" },
-    update: {},
+    update: { parentId: ridingGearCat.id, sortOrder: 0 },
     create: {
       name: "Helmets",
       slug: "helmets",
       description: "Full face, modular, off-road, dual sport helmets & visors.",
-    },
-  });
-
-  const ridingGearCat = await prisma.category.upsert({
-    where: { slug: "riding-gear" },
-    update: {},
-    create: {
-      name: "Riding Gear",
-      slug: "riding-gear",
-      description: "Armored jackets, gloves, boots, and protection gear.",
+      parentId: ridingGearCat.id,
+      sortOrder: 0,
     },
   });
 
   const partsModsCat = await prisma.category.upsert({
     where: { slug: "parts-mods" },
-    update: {},
+    update: { sortOrder: 1, parentId: null },
     create: {
       name: "Parts & Mods",
       slug: "parts-mods",
       description: "Exhausts, levers, brake pads, chain kits, and body mods.",
+      sortOrder: 1,
     },
   });
 
   const electronicsCat = await prisma.category.upsert({
     where: { slug: "electronics" },
-    update: {},
+    update: { sortOrder: 2, parentId: null },
     create: {
       name: "Electronics",
       slug: "electronics",
       description: "LED fog lights, phone mounts, GPS trackers, and horns.",
+      sortOrder: 2,
     },
   });
 
-  const additivesCat = await prisma.category.upsert({
-    where: { slug: "additives" },
-    update: {},
+  const oilsCat = await prisma.category.upsert({
+    where: { slug: "oils-additives" },
+    update: { sortOrder: 3, parentId: null, name: "Oils & Additives" },
     create: {
-      name: "Additives & Oils",
-      slug: "additives",
+      name: "Oils & Additives",
+      slug: "oils-additives",
       description: "Synthetic engine oils, coolants, chain lubes, and engine additives.",
+      sortOrder: 3,
     },
   });
 
   const merchandiseCat = await prisma.category.upsert({
     where: { slug: "merchandise" },
-    update: {},
+    update: { sortOrder: 4, parentId: null },
     create: {
       name: "Merchandise",
       slug: "merchandise",
       description: "Apparel, riding backpacks, keychains, and accessories.",
+      sortOrder: 4,
     },
   });
 

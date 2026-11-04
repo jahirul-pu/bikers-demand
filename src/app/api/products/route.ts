@@ -16,6 +16,12 @@ export async function GET(request: NextRequest) {
       if (categorySlugs.includes("riding-gear") && !categorySlugs.includes("helmets")) {
         categorySlugs.push("helmets");
       }
+      if (categorySlugs.includes("additives") && !categorySlugs.includes("oils-additives")) {
+        categorySlugs.push("oils-additives");
+      }
+      if (categorySlugs.includes("oils-additives") && !categorySlugs.includes("additives")) {
+        categorySlugs.push("additives");
+      }
 
       andConditions.push({
         OR: [
@@ -27,7 +33,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (subCategory && subCategory !== "all") {
-      andConditions.push({ subCategory: { equals: subCategory, mode: "insensitive" } });
+      andConditions.push({
+        OR: [
+          { subCategory: { equals: subCategory, mode: "insensitive" } },
+          { category: { slug: { equals: subCategory, mode: "insensitive" } } },
+        ],
+      });
     }
 
     if (brand && brand !== "all") {
