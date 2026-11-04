@@ -134,7 +134,7 @@ export default function ProductCard({
     selectedBikeName && product.fitBadge?.toLowerCase().includes(selectedBikeName.toLowerCase());
 
   return (
-    <div className="group relative bg-asphalt-2 border border-asphalt-2 rounded-2xl hover:border-steel/40 hover:shadow-xl hover:shadow-black/5 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+    <div className="group relative bg-asphalt-2 border border-asphalt-2 rounded-2xl hover:border-steel/40 hover:shadow-xl hover:shadow-black/5 transition-all duration-200 flex flex-col justify-between overflow-hidden h-full">
       {/* Top Media & Badges Overlay */}
       <Link href={`/product/${productSlug}`} className="relative aspect-square bg-asphalt p-4 flex items-center justify-center overflow-hidden block">
         {/* Placeholder / Image */}
@@ -161,9 +161,9 @@ export default function ProductCard({
           )}
 
           {/* Helmet Certification Badge */}
-          {product.certification && (
+          {product.certification && product.certification !== "NONE" && (
             <span className="bg-ignition-red text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-              {product.certification}
+              {product.certification.replace(/_/g, " ")}
             </span>
           )}
         </div>
@@ -205,7 +205,7 @@ export default function ProductCard({
 
           {/* Title Link */}
           <Link href={`/product/${productSlug}`}>
-            <h4 className="text-sm font-semibold text-off-white group-hover:text-ignition-red transition-colors line-clamp-2 leading-snug">
+            <h4 className="text-sm font-semibold text-off-white group-hover:text-ignition-red transition-colors line-clamp-2 leading-snug min-h-[2.5rem]">
               {product.name}
             </h4>
           </Link>
@@ -237,28 +237,32 @@ export default function ProductCard({
         </div>
 
         {/* Pricing & Add to Cart Action */}
-        <div className="pt-2 flex items-center justify-between gap-2">
-          <div>
-            <span className="text-xs font-mono text-steel">Tk </span>
-            <span className="display-font text-xl font-extrabold text-off-white">
-              {product.price.toLocaleString("en-BD")}
-            </span>
-            {product.originalPrice && product.originalPrice > product.price && (
-              <>
-                <span className="text-xs text-steel line-through ml-1.5">
+        <div className="pt-2 flex items-end justify-between gap-2">
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-baseline gap-1">
+              <span className="text-xs font-mono text-steel">Tk</span>
+              <span className="display-font text-xl font-extrabold text-off-white tracking-tight">
+                {product.price.toLocaleString("en-BD")}
+              </span>
+            </div>
+            {product.originalPrice && product.originalPrice > product.price ? (
+              <div className="flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
+                <span className="text-xs text-steel line-through font-mono">
                   Tk {product.originalPrice.toLocaleString("en-BD")}
                 </span>
-                <span className="ml-1.5 text-[10px] font-bold bg-ignition-red text-white px-1.5 py-0.5 rounded-full">
+                <span className="whitespace-nowrap inline-flex items-center text-[10px] font-bold bg-ignition-red text-white px-1.5 py-0.5 rounded-full leading-none shrink-0">
                   -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                 </span>
-              </>
+              </div>
+            ) : (
+              <div className="h-4" aria-hidden="true" />
             )}
           </div>
 
           <button
             onClick={handleAdd}
             disabled={product.stockStatus === "out-of-stock"}
-            className={`px-3.5 py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all ${
+            className={`px-3.5 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 shrink-0 transition-all ${
               added
                 ? "bg-emerald-500 text-white"
                 : product.stockStatus === "out-of-stock"
