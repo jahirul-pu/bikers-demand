@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ShoppingBag, CheckCircle, ShieldAlert, Check } from "lucide-react";
+import { Heart, ShoppingBag, CheckCircle, ShieldAlert, Check, XCircle } from "lucide-react";
 import AuthPromptModal from "@/components/auth/AuthPromptModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 export interface Product {
   id: string;
@@ -44,8 +45,23 @@ export default function ProductCard({
   const [added, setAdded] = useState(false);
   const [fav, setFav] = useState(isFav);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showIncompatModal, setShowIncompatModal] = useState(false);
 
   const productSlug = product.slug || product.id;
+
+  const isUniversal = Boolean(
+    product.isUniversal ||
+    product.category === "riding-gear" ||
+    product.category === "helmets" ||
+    product.category === "merchandise"
+  );
+
+  const fitsCurrentBike = Boolean(
+    isUniversal ||
+    (selectedBikeName && product.fitBadge?.toLowerCase().includes(selectedBikeName.toLowerCase()))
+  );
+
+  const isIncompatible = Boolean(selectedBikeName && !isUniversal && !fitsCurrentBike);
 
   // Check if favorited in localStorage
   React.useEffect(() => {
@@ -63,6 +79,14 @@ export default function ProductCard({
   }, [product.id]);
 
   const handleAdd = () => {
+    if (isIncompatible) {
+      setShowIncompatModal(true);
+      return;
+    }
+    proceedAdd();
+  };
+
+  const proceedAdd = () => {
     setAdded(true);
     try {
       const existing = localStorage.getItem("bikers_demand_cart");
@@ -85,6 +109,8 @@ export default function ProductCard({
           size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : null,
           imageUrl: product.imageUrl,
           categorySlug: product.category,
+          fitBadge: product.fitBadge,
+          isUniversal: isUniversal,
         });
       }
       localStorage.setItem("bikers_demand_cart", JSON.stringify(cartArr));
@@ -129,12 +155,10 @@ export default function ProductCard({
     }
   };
 
-  // Determine fit display
-  const fitsCurrentBike =
-    selectedBikeName && product.fitBadge?.toLowerCase().includes(selectedBikeName.toLowerCase());
-
   return (
-    <div className="group relative bg-asphalt-2 border border-asphalt-2 rounded-2xl hover:border-steel/40 hover:shadow-xl hover:shadow-black/5 transition-all duration-200 flex flex-col justify-between overflow-hidden h-full">
+    <div className={`group relative bg-asphalt-2 border border-asphalt-2 rounded-2xl hover:border-steel/40 hover:shadow-xl hover:shadow-black/5 transition-all duration-200 flex flex-col justify-between overflow-hidden h-full ${
+      isIncompatible ? "opacity-90 hover:opacity-100" : ""
+    }`}>
       {/* Top Media & Badges Overlay */}
       <Link href={`/product/${productSlug}`} className="relative aspect-square bg-asphalt p-4 flex items-center justify-center overflow-hidden block">
         {/* Placeholder / Image */}
@@ -149,14 +173,24 @@ export default function ProductCard({
 
         {/* Fit Badge Pill */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start z-10">
-          {product.isUniversal ? (
+          {isUniversal ? (
             <span className="bg-asphalt-2/90 backdrop-blur text-steel-light border border-asphalt-2 text-[10px] font-semibold px-2.5 py-1 rounded-full tracking-wide shadow-sm">
               Universal Fit
+            </span>
+          ) : isIncompatible ? (
+            <span className="bg-ignition-red text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+              <XCircle className="w-3 h-3" />
+              <span>Does Not Fit</span>
+            </span>
+          ) : selectedBikeName && fitsCurrentBike ? (
+            <span className="bg-plate-yellow text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+              <CheckCircle className="w-3 h-3" />
+              <span>Fits {selectedBikeName}</span>
             </span>
           ) : (
             <span className="bg-plate-yellow text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
               <CheckCircle className="w-3 h-3" />
-              <span>{fitsCurrentBike ? `Fits ${selectedBikeName}` : product.fitBadge || "Model Specific"}</span>
+              <span>{product.fitBadge || "Model Specific"}</span>
             </span>
           )}
 
@@ -290,6 +324,19 @@ export default function ProductCard({
         onClose={() => setShowAuthModal(false)}
         title="Rider Authentication Required"
         subtitle="Please sign in or create a rider account to save items to your favorites wishlist."
+      />
+
+      <ConfirmModal
+        isOpen={showIncompatModal}
+        title="Compatibility Warning"
+        message={`This model-specific part is not verified to fit your saved bike (${selectedBikeName}). In accordance with store policy, motorcycle parts cannot be returned once packaging is opened. Are you purchasing this for a different motorcycle?`}
+        confirmText="Add Anyway"
+        cancelText="Cancel"
+        onConfirm={() => {
+          setShowIncompatModal(false);
+          proceedAdd();
+        }}
+        onCancel={() => setShowIncompatModal(false)}
       />
     </div>
   );

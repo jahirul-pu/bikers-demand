@@ -16,6 +16,7 @@ import {
   Minus,
   Plus,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 
 function CheckoutContent() {
@@ -46,9 +47,14 @@ function CheckoutContent() {
   // Checkout submission states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState<any | null>(null);
+  const [selectedBike, setSelectedBike] = useState<{ brand: string; model: string; variant?: string } | null>(null);
 
   useEffect(() => {
     try {
+      const savedBike = localStorage.getItem("bd_selected_bike");
+      if (savedBike) {
+        setSelectedBike(JSON.parse(savedBike));
+      }
       const savedCart = localStorage.getItem("bikers_demand_cart");
       if (savedCart) {
         const parsed = JSON.parse(savedCart);
@@ -57,9 +63,29 @@ function CheckoutContent() {
         }
       }
     } catch (e) {
-      console.error("Error reading cart from storage:", e);
+      console.error("Error reading cart/bike from storage:", e);
     }
   }, []);
+
+  const checkCheckoutItemFit = (item: any) => {
+    if (!selectedBike) return null;
+    const isUniv = Boolean(
+      item.isUniversal ||
+      item.categorySlug === "riding-gear" ||
+      item.categorySlug === "helmets" ||
+      item.categorySlug === "merchandise"
+    );
+    if (isUniv) return { status: "universal" as const, label: "Universal Fit" };
+    if (item.fitBadge && item.fitBadge.toLowerCase().includes(selectedBike.model.toLowerCase())) {
+      return { status: "fits" as const, label: `Fits ${selectedBike.model}` };
+    }
+    return { status: "incompatible" as const, label: `Does not fit ${selectedBike.model}` };
+  };
+
+  const hasIncompatibleItems = cartItems.some((item) => {
+    const fit = checkCheckoutItemFit(item);
+    return fit?.status === "incompatible";
+  });
 
   const CATEGORY_MAP: Record<string, { label: string; href: string }> = {
     "helmets": { label: "Helmets", href: "/category/helmets" },
@@ -387,6 +413,25 @@ function CheckoutContent() {
                             <span className="bg-asphalt-2 px-1.5 py-0.5 border border-plate-yellow/40 rounded-xs">{item.size}</span>
                           </div>
                         )}
+
+                        {/* Compatibility Pill */}
+                        {(() => {
+                          const fit = checkCheckoutItemFit(item);
+                          if (!fit || fit.status === "universal") return null;
+                          if (fit.status === "fits") {
+                            return (
+                              <span className="text-[10px] text-emerald-400 font-bold block">
+                                ✓ {fit.label}
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="text-[10px] text-ignition-red font-bold block">
+                              ✕ {fit.label}
+                            </span>
+                          );
+                        })()}
+
                         <div className="text-[10px] text-steel">Tk {item.price.toLocaleString("en-BD")} each</div>
                       </div>
 
@@ -431,6 +476,18 @@ function CheckoutContent() {
                   </div>
                 ))}
               </div>
+
+              {hasIncompatibleItems && selectedBike && (
+                <div className="bg-ignition-red/15 border border-ignition-red/40 p-3 rounded-xl flex items-start gap-2.5 text-ignition-red">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-xs uppercase block">Compatibility Notice</span>
+                    <span className="text-[11px] text-steel-light leading-snug block">
+                      1 or more parts in this order do not fit your saved bike ({selectedBike.brand} {selectedBike.model}). In accordance with store policy, motorcycle parts cannot be returned once packaging is opened.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2 pt-2 border-t border-asphalt">
                 <label className="text-xs text-plate-yellow uppercase font-bold block">

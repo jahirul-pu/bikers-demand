@@ -9,6 +9,9 @@ import {
   Plus,
   Minus,
   ArrowRight,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 export interface CartItem {
@@ -22,6 +25,8 @@ export interface CartItem {
   size?: string | null;
   imageUrl: string;
   categorySlug?: string;
+  fitBadge?: string;
+  isUniversal?: boolean;
 }
 
 interface CartDrawerProps {
@@ -31,16 +36,25 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [selectedBike, setSelectedBike] = useState<{ brand: string; model: string; variant?: string } | null>(null);
 
   // Sync with localStorage on drawer open
   useEffect(() => {
     if (isOpen) {
       try {
+        const savedBike = localStorage.getItem("bd_selected_bike");
+        if (savedBike) {
+          setSelectedBike(JSON.parse(savedBike));
+        } else {
+          setSelectedBike(null);
+        }
         const savedCart = localStorage.getItem("bikers_demand_cart");
         if (savedCart) {
           const parsed = JSON.parse(savedCart);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setCartItems(parsed);
+          } else {
+            setCartItems([]);
           }
         }
       } catch (e) {
@@ -48,6 +62,26 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       }
     }
   }, [isOpen]);
+
+  const checkItemFit = (item: CartItem) => {
+    if (!selectedBike) return null;
+    const isUniv = Boolean(
+      item.isUniversal ||
+      item.categorySlug === "riding-gear" ||
+      item.categorySlug === "helmets" ||
+      item.categorySlug === "merchandise"
+    );
+    if (isUniv) return { status: "universal" as const, label: "Universal Fit" };
+    if (item.fitBadge && item.fitBadge.toLowerCase().includes(selectedBike.model.toLowerCase())) {
+      return { status: "fits" as const, label: `Fits ${selectedBike.model}` };
+    }
+    return { status: "incompatible" as const, label: `Does not fit ${selectedBike.model}` };
+  };
+
+  const hasIncompatibleItems = cartItems.some((item) => {
+    const fit = checkItemFit(item);
+    return fit?.status === "incompatible";
+  });
 
   const saveCartToStorage = (newItems: CartItem[]) => {
     setCartItems(newItems);
@@ -162,6 +196,27 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           <span className="bg-asphalt-2 px-1.5 py-0.5 border border-plate-yellow/40 rounded-xs">{item.size}</span>
                         </div>
                       )}
+
+                      {/* Compatibility Tag */}
+                      {(() => {
+                        const fit = checkItemFit(item);
+                        if (!fit || fit.status === "universal") return null;
+                        if (fit.status === "fits") {
+                          return (
+                            <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 shrink-0" />
+                              <span>{fit.label}</span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="text-[10px] text-ignition-red font-bold flex items-center gap-1">
+                            <XCircle className="w-3 h-3 shrink-0" />
+                            <span>{fit.label}</span>
+                          </div>
+                        );
+                      })()}
+
                       <div className="text-[11px] text-steel">
                         Tk {item.price.toLocaleString("en-BD")}
                       </div>
@@ -207,6 +262,18 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           {/* Drawer Footer & Proceed to Checkout CTA */}
           {cartItems.length > 0 && (
             <div className="p-5 bg-asphalt border-t border-asphalt-2 space-y-4">
+              {hasIncompatibleItems && selectedBike && (
+                <div className="bg-ignition-red/15 border border-ignition-red/40 p-3 rounded-xl flex items-start gap-2.5 text-ignition-red">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-xs uppercase block">Compatibility Notice</span>
+                    <span className="text-[11px] text-steel-light leading-snug block">
+                      1 or more parts in your cart do not fit your saved {selectedBike.brand} {selectedBike.model}. Parts cannot be returned once packaging is opened.
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between text-sm font-extrabold text-off-white items-baseline">
                 <span>Subtotal:</span>
                 <span className="text-plate-yellow display-font text-2xl font-extrabold">

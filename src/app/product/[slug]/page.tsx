@@ -8,6 +8,8 @@ import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 import TrustSection from "@/components/landing/TrustSection";
 import ProductCard, { Product } from "@/components/landing/ProductCard";
+import BikeSelectorModal, { BikeOption } from "@/components/landing/BikeSelectorModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -25,6 +27,7 @@ import {
   ArrowRight,
   Shield,
   Clock,
+  XCircle,
 } from "lucide-react";
 
 import { CATEGORY_SPECS, getCategorySpec } from "@/lib/categorySpecs";
@@ -56,6 +59,7 @@ export default function ProductDetailPage() {
     compatibleBikes: string[];
     images: string[];
     sizes: string[];
+    isUniversal?: boolean;
   } | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -67,6 +71,32 @@ export default function ProductDetailPage() {
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFav, setIsFav] = useState(false);
   const [activeTab, setActiveTab] = useState<"specs" | "compatibility" | "policy">("compatibility");
+  const [selectedBike, setSelectedBike] = useState<BikeOption | null>(null);
+  const [isBikeModalOpen, setIsBikeModalOpen] = useState(false);
+  const [showIncompatConfirm, setShowIncompatConfirm] = useState<"cart" | "buy" | null>(null);
+
+  // Sync selected bike from localStorage
+  useEffect(() => {
+    const loadBike = () => {
+      try {
+        const saved = localStorage.getItem("bd_selected_bike");
+        if (saved) {
+          setSelectedBike(JSON.parse(saved));
+        } else {
+          setSelectedBike(null);
+        }
+      } catch {
+        setSelectedBike(null);
+      }
+    };
+    loadBike();
+    window.addEventListener("storage", loadBike);
+    window.addEventListener("focus", loadBike);
+    return () => {
+      window.removeEventListener("storage", loadBike);
+      window.removeEventListener("focus", loadBike);
+    };
+  }, []);
 
   // Fetch product from API
   useEffect(() => {
@@ -171,6 +201,7 @@ export default function ProductDetailPage() {
               "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80"
             ],
             sizes: resolvedSizes,
+            isUniversal: Boolean(d.isUniversal),
           });
 
           if (resolvedSizes.length > 0) {
@@ -203,7 +234,35 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [slug]);
 
+  const isUniversal = Boolean(
+    product?.isUniversal ||
+    product?.categorySlug === "riding-gear" ||
+    product?.categorySlug === "helmets" ||
+    product?.categorySlug === "merchandise"
+  );
+
+  const isBikeCompatible = Boolean(
+    isUniversal ||
+    (selectedBike && product?.compatibleBikes?.some((b) => {
+      const lowerB = b.toLowerCase();
+      const brandMatch = lowerB.includes(selectedBike.brand.toLowerCase());
+      const modelMatch = lowerB.includes(selectedBike.model.toLowerCase());
+      return brandMatch && modelMatch;
+    }))
+  );
+
+  const isIncompatible = Boolean(selectedBike && !isUniversal && !isBikeCompatible);
+
   const handleAddToCart = () => {
+    if (!product) return;
+    if (isIncompatible) {
+      setShowIncompatConfirm("cart");
+      return;
+    }
+    proceedAddToCart();
+  };
+
+  const proceedAddToCart = () => {
     if (!product) return;
     setAddedToCart(true);
     try {
@@ -229,6 +288,8 @@ export default function ProductDetailPage() {
           size: selectedVariantLabel || selectedSize,
           imageUrl: product.images[0],
           categorySlug: product.categorySlug,
+          fitBadge: product.compatibleBikes?.join(", "),
+          isUniversal: isUniversal,
         });
       }
       localStorage.setItem("bikers_demand_cart", JSON.stringify(cartArr));
@@ -241,7 +302,12 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = () => {
-    handleAddToCart();
+    if (!product) return;
+    if (isIncompatible) {
+      setShowIncompatConfirm("buy");
+      return;
+    }
+    proceedAddToCart();
     router.push("/checkout");
   };
 
@@ -315,10 +381,25 @@ export default function ProductDetailPage() {
     );
   }
 
+  const bikeDisplayName = selectedBike
+    ? `${selectedBike.brand} ${selectedBike.model}${selectedBike.variant ? ` ${selectedBike.variant}` : ""}`.trim()
+    : null;
+
   return (
     <div className="min-h-screen flex flex-col bg-asphalt text-off-white font-mono text-xs">
-      <Header />
-      <Navigation />
+      <Header selectedBike={bikeDisplayName} />
+      <Navigation
+        selectedBike={selectedBike}
+        onOpenBikeModal={() => setIsBikeModalOpen(true)}
+        onClearBike={() => {
+          setSelectedBike(null);
+          try {
+            localStorage.removeItem("bd_selected_bike");
+            window.dispatchEvent(new CustomEvent("bike-selected", { detail: null }));
+            window.dispatchEvent(new Event("storage"));
+          } catch {}
+        }}
+      />
 
       {/* Breadcrumb Bar */}
       <div className="bg-asphalt-2 border-b border-asphalt-2 py-3 px-4 text-steel">
@@ -348,8 +429,22 @@ export default function ProductDetailPage() {
               />
 
               {/* Badges */}
-              <div className="absolute top-4 left-4 flex flex-col gap-1.5">
-                {product.compatibleBikes.length > 0 && !product.compatibleBikes.some((b) => b.toLowerCase().includes("universal")) && (
+              <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
+                {isUniversal ? (
+                  <span className="bg-asphalt-2/90 backdrop-blur text-steel-light border border-asphalt-2 text-[11px] font-semibold px-2.5 py-1 tracking-wider shadow">
+                    Universal Fit
+                  </span>
+                ) : isIncompatible ? (
+                  <span className="bg-ignition-red text-white text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider flex items-center gap-1 shadow">
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Does Not Fit Your Bike</span>
+                  </span>
+                ) : selectedBike && isBikeCompatible ? (
+                  <span className="bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider flex items-center gap-1 shadow">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Fits {selectedBike.model}</span>
+                  </span>
+                ) : (
                   <span className="bg-plate-yellow text-asphalt text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider flex items-center gap-1 shadow">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Model Specific Part</span>
@@ -357,8 +452,8 @@ export default function ProductDetailPage() {
                 )}
 
                 {Boolean(product.certification && product.certification !== "NONE" && product.certification.trim() !== "") && (
-                  <span className="bg-ignition-red text-asphalt text-[11px] font-extrabold px-2.5 py-1 uppercase tracking-wider">
-                    {product.certification} Certified
+                  <span className="bg-ignition-red text-white text-[11px] font-extrabold px-2.5 py-1 uppercase tracking-wider shadow">
+                    {product.certification.replace(/_/g, " ")} Certified
                   </span>
                 )}
               </div>
@@ -413,6 +508,109 @@ export default function ProductDetailPage() {
                       </span>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Compatibility Status Banner */}
+              {isUniversal ? (
+                <div className="bg-asphalt-2 border border-steel/20 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-full bg-steel/20 text-steel-light shrink-0">
+                      <Shield className="w-4 h-4 text-steel" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-steel-light uppercase tracking-wider block">
+                        Universal Fit Gear
+                      </span>
+                      <span className="text-[11px] text-steel">
+                        Fits all riders — governed by sizing rather than motorcycle model.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : isIncompatible ? (
+                <div className="bg-ignition-red/10 border-2 border-ignition-red rounded-xl p-4 space-y-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-1 rounded-full bg-ignition-red text-white shrink-0 mt-0.5">
+                        <XCircle className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-extrabold text-ignition-red uppercase tracking-wider">
+                          Does Not Fit Your {selectedBike?.brand} {selectedBike?.model} {selectedBike?.variant || ""}
+                        </h3>
+                        <p className="text-[11px] text-steel mt-0.5 leading-snug">
+                          This model-specific part is engineered only for:{" "}
+                          <span className="text-off-white font-semibold">
+                            {product.compatibleBikes.length > 0 ? product.compatibleBikes.slice(0, 3).join(", ") : "specific models"}
+                          </span>
+                          {product.compatibleBikes.length > 3 && ` +${product.compatibleBikes.length - 3} more`}.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsBikeModalOpen(true)}
+                      className="text-xs font-bold text-plate-yellow hover:underline shrink-0"
+                    >
+                      Change Bike
+                    </button>
+                  </div>
+                  <div className="pt-2 border-t border-ignition-red/20 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                    <span className="text-steel font-mono">
+                      ⚠ Parts cannot be returned once packaging is opened.
+                    </span>
+                    <Link
+                      href={`/category/${product.categorySlug || "parts-mods"}`}
+                      className="text-plate-yellow font-bold hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>Find parts for your bike</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              ) : selectedBike && isBikeCompatible ? (
+                <div className="bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-full bg-emerald-500 text-white shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
+                        Guaranteed Fit For Your {selectedBike.brand} {selectedBike.model} {selectedBike.variant || ""}
+                      </span>
+                      <span className="text-[11px] text-steel">
+                        Verified by Bikers Demand technical compatibility matrix.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsBikeModalOpen(true)}
+                    className="text-xs font-semibold text-steel hover:text-off-white shrink-0"
+                  >
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-asphalt-2 border border-plate-yellow/30 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-full bg-plate-yellow/20 text-plate-yellow shrink-0">
+                      <Bike className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-off-white uppercase tracking-wider block">
+                        Model Specific Part
+                      </span>
+                      <span className="text-[11px] text-steel">
+                        Check if this fits your motorcycle before ordering.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsBikeModalOpen(true)}
+                    className="px-3 py-1 bg-plate-yellow text-asphalt font-bold text-xs rounded hover:bg-yellow-500 transition-colors shrink-0"
+                  >
+                    Select Your Bike
+                  </button>
                 </div>
               )}
 
@@ -702,6 +900,39 @@ export default function ProductDetailPage() {
       </main>
 
       <Footer />
+
+      <BikeSelectorModal
+        isOpen={isBikeModalOpen}
+        onClose={() => setIsBikeModalOpen(false)}
+        onSelectBike={(b) => {
+          setSelectedBike(b);
+          try {
+            localStorage.setItem("bd_selected_bike", JSON.stringify(b));
+            window.dispatchEvent(new CustomEvent("bike-selected", { detail: b }));
+            window.dispatchEvent(new Event("storage"));
+          } catch {}
+        }}
+        currentBike={selectedBike}
+      />
+
+      <ConfirmModal
+        isOpen={showIncompatConfirm !== null}
+        title="Compatibility Alert"
+        message={`This item is confirmed to NOT fit your saved bike (${selectedBike?.brand} ${selectedBike?.model}). In accordance with store policy, motorcycle parts cannot be returned once packaging is opened. Are you sure you are purchasing this for a different motorcycle?`}
+        confirmText={showIncompatConfirm === "buy" ? "Buy Anyway" : "Add to Cart Anyway"}
+        cancelText="Cancel"
+        onConfirm={() => {
+          const action = showIncompatConfirm;
+          setShowIncompatConfirm(null);
+          if (action === "buy") {
+            proceedAddToCart();
+            router.push("/checkout");
+          } else {
+            proceedAddToCart();
+          }
+        }}
+        onCancel={() => setShowIncompatConfirm(null)}
+      />
     </div>
   );
 }
