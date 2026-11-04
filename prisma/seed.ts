@@ -169,7 +169,7 @@ async function main() {
   // Product 1: Exhaust (Parts & Mods)
   const exhaustProduct = await prisma.product.upsert({
     where: { sku: "PARTS-EXH-001" },
-    update: {},
+    update: { categoryId: partsModsCat.id, isActive: true },
     create: {
       sku: "PARTS-EXH-001",
       name: "Performance Slip-On Racing Exhaust (Black Coated)",
@@ -193,7 +193,7 @@ async function main() {
   // Product 2: Chain Kit (Parts & Mods)
   const chainProduct = await prisma.product.upsert({
     where: { sku: "PARTS-CHN-002" },
-    update: {},
+    update: { categoryId: partsModsCat.id, isActive: true },
     create: {
       sku: "PARTS-CHN-002",
       name: "O-Ring Heavy Duty Chain & Sprocket Set (428H - 132L)",
@@ -216,7 +216,7 @@ async function main() {
   // Product 3: CNC Levers (Parts & Mods)
   const leverProduct = await prisma.product.upsert({
     where: { sku: "PARTS-LVR-003" },
-    update: {},
+    update: { categoryId: partsModsCat.id, isActive: true },
     create: {
       sku: "PARTS-LVR-003",
       name: "Adjustable 6-Stage CNC Billet Aluminum Brake & Clutch Levers",
@@ -240,7 +240,7 @@ async function main() {
   // Product 4: Fog Lights (Electronics)
   const fogLightProduct = await prisma.product.upsert({
     where: { sku: "ELEC-FOG-004" },
-    update: {},
+    update: { categoryId: electronicsCat.id, isActive: true },
     create: {
       sku: "ELEC-FOG-004",
       name: "Dual Lens High Power LED Fog Lights with Bracket & Relay Wire",
@@ -262,7 +262,7 @@ async function main() {
   // Product 5: Helmet (Riding Gear)
   const helmetProduct = await prisma.product.upsert({
     where: { sku: "GEAR-HLM-005" },
-    update: {},
+    update: { categoryId: helmetsCat.id, isActive: true },
     create: {
       sku: "GEAR-HLM-005",
       name: "MT Thunder 4 SV Full Face Helmet (Matt Black)",

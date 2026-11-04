@@ -6,6 +6,10 @@
 # Next.js build output
 /.next/
 /out/
+tsconfig.tsbuildinfo
+
+# Uploads & local media
+/public/uploads/
 
 # Production
 /build

@@ -81,7 +81,10 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/customer/logout", { method: "POST" });
+    } catch { /* non-fatal */ }
     try {
       localStorage.removeItem("bikers_demand_user");
       window.dispatchEvent(new Event("storage"));

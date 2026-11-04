@@ -16,72 +16,64 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      try {
-        const input = phoneOrEmail.trim().toLowerCase();
+    try {
+      const res = await fetch("/api/auth/customer/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phoneOrEmail: phoneOrEmail.trim(),
+          password,
+        }),
+      });
 
-        // Look up registered user profile in registry
-        let registeredUser: any = null;
-        try {
-          const rawReg = localStorage.getItem("bd_registered_users");
-          const regList: any[] = rawReg ? JSON.parse(rawReg) : [];
-          if (Array.isArray(regList)) {
-            registeredUser = regList.find(
-              (acc) =>
-                (acc.phone && acc.phone.toLowerCase() === input) ||
-                (acc.email && acc.email.toLowerCase() === input) ||
-                (acc.phoneOrEmail && acc.phoneOrEmail.toLowerCase() === input) ||
-                (acc.name && acc.name.toLowerCase() === input)
-            );
-          }
-        } catch (e) {
-          console.error("Error reading registered users registry:", e);
-        }
-
-        let userToSave;
-        if (registeredUser) {
-          userToSave = {
-            ...registeredUser,
-            loggedInAt: new Date().toISOString(),
-          };
-        } else {
-          const derivedName = phoneOrEmail.includes("@")
-            ? phoneOrEmail.split("@")[0]
-            : phoneOrEmail;
-          userToSave = {
-            name: derivedName,
-            phoneOrEmail: phoneOrEmail,
-            phone: phoneOrEmail.includes("@") ? "" : phoneOrEmail,
-            email: phoneOrEmail.includes("@") ? phoneOrEmail : "",
-            loggedInAt: new Date().toISOString(),
-          };
-
-          // Save to registry so future profile edits persist for this user
-          try {
-            const rawReg = localStorage.getItem("bd_registered_users");
-            let regList: any[] = rawReg ? JSON.parse(rawReg) : [];
-            if (!Array.isArray(regList)) regList = [];
-            regList.push(userToSave);
-            localStorage.setItem("bd_registered_users", JSON.stringify(regList));
-          } catch (e) {
-            console.error(e);
-          }
-        }
-
-        localStorage.setItem("bikers_demand_user", JSON.stringify(userToSave));
-        window.dispatchEvent(new Event("storage"));
-      } catch (e) {
-        console.error(e);
+      const json = await res.json();
+      if (!json.success) {
+        setErrorMsg(json.error || "Login failed. Please check your credentials.");
+        setIsLoading(false);
+        return;
       }
-      // Redirect to garage account area
+
+      const userToSave = {
+        id: json.data.id,
+        name: json.data.name,
+        phone: json.data.phone,
+        email: json.data.email,
+        phoneOrEmail: json.data.phone || json.data.email,
+        loggedInAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem("bikers_demand_user", JSON.stringify(userToSave));
+      window.dispatchEvent(new Event("storage"));
+
+      // Also sync user's garage if available
+      try {
+        const garageRes = await fetch("/api/user/garage");
+        const garageJson = await garageRes.json();
+        if (garageJson.success && Array.isArray(garageJson.data) && garageJson.data.length > 0) {
+          const primary = garageJson.data.find((b: any) => b.isPrimary) || garageJson.data[0];
+          if (primary?.bikeModel) {
+            localStorage.setItem("bd_selected_bike", JSON.stringify({
+              brand: primary.bikeModel.brand,
+              model: primary.bikeModel.model,
+              variant: primary.bikeModel.variant,
+            }));
+            window.dispatchEvent(new Event("storage"));
+          }
+        }
+      } catch { /* non-fatal */ }
+
       router.push("/account/garage");
-    }, 1000);
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setErrorMsg("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -76,93 +76,33 @@ function CheckoutContent() {
     setCouponError(null);
     const code = couponInput.trim().toUpperCase();
 
-    let availableCoupons: DBCoupon[] = [];
     try {
-      const res = await fetch("/api/coupons");
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          subtotal,
+          cartItems,
+        }),
+      });
       const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        availableCoupons = json.data;
+
+      if (!json.success || !json.valid) {
+        const errorMsg = json.error || `Invalid or expired coupon code '${code}'.`;
+        setCouponError(<span>{errorMsg}</span>);
+        return;
       }
+
+      setAppliedCoupon({
+        code: json.data.code,
+        discountAmount: json.data.discountAmount,
+      });
+      setCouponInput("");
     } catch (err) {
-      console.error("API error fetching coupons:", err);
+      console.error("API error validating coupon:", err);
+      setCouponError(<span>Failed to validate coupon. Please try again.</span>);
     }
-
-    const targetCoupon = availableCoupons.find((c) => c.code.toUpperCase() === code);
-
-    if (!targetCoupon || !targetCoupon.isActive) {
-      setCouponError(`Invalid or expired coupon code '${code}'.`);
-      return;
-    }
-
-    const hasCategoryTarget = targetCoupon.categoryTarget !== "ALL";
-    const categoryMeta = hasCategoryTarget ? CATEGORY_MAP[targetCoupon.categoryTarget] : null;
-
-    let eligibleItems: any[] = [];
-    if (hasCategoryTarget) {
-      eligibleItems = cartItems.filter((item: any) => item.category === targetCoupon.categoryTarget);
-    } else {
-      eligibleItems = cartItems;
-    }
-    const eligibleSubtotal = eligibleItems.reduce((sum: number, i: any) => sum + i.price * i.quantity, 0);
-
-    // Case 1: Category targeted, but cart has NO items from that category
-    if (hasCategoryTarget && eligibleItems.length === 0) {
-      const catLink = categoryMeta ? (
-        <Link href={categoryMeta.href} className="underline text-plate-yellow font-bold hover:text-yellow-400">
-          {categoryMeta.label}
-        </Link>
-      ) : targetCoupon.categoryTarget;
-
-      if (targetCoupon.minOrder > 0) {
-        setCouponError(
-          <span>
-            Coupon <strong>&apos;{code}&apos;</strong> requires a minimum spend of ৳{targetCoupon.minOrder.toLocaleString("en-BD")} on {catLink} items.
-          </span>
-        );
-      } else {
-        setCouponError(
-          <span>
-            Coupon <strong>&apos;{code}&apos;</strong> is only valid for {catLink} products.
-          </span>
-        );
-      }
-      return;
-    }
-
-    // Case 2: Cart has category items (or ALL), but minimum order spend is not met
-    if (targetCoupon.minOrder > 0 && eligibleSubtotal < targetCoupon.minOrder) {
-      if (hasCategoryTarget) {
-        const catLink = categoryMeta ? (
-          <Link href={categoryMeta.href} className="underline text-plate-yellow font-bold hover:text-yellow-400">
-            {categoryMeta.label}
-          </Link>
-        ) : targetCoupon.categoryTarget;
-
-        setCouponError(
-          <span>
-            Coupon <strong>&apos;{code}&apos;</strong> requires a minimum spend of ৳{targetCoupon.minOrder.toLocaleString("en-BD")} on {catLink} items. (Current eligible subtotal: ৳{eligibleSubtotal.toLocaleString("en-BD")}).
-          </span>
-        );
-      } else {
-        setCouponError(
-          <span>
-            Coupon <strong>&apos;{code}&apos;</strong> requires a minimum order subtotal of ৳{targetCoupon.minOrder.toLocaleString("en-BD")}. (Current subtotal: ৳{subtotal.toLocaleString("en-BD")}).
-          </span>
-        );
-      }
-      return;
-    }
-
-    // Calculate Discount
-    let discount = 0;
-    if (targetCoupon.discountType === "FLAT") {
-      discount = targetCoupon.discountValue;
-    } else {
-      discount = Math.round(eligibleSubtotal * (targetCoupon.discountValue / 100));
-    }
-
-    setAppliedCoupon({ code: targetCoupon.code, discountAmount: discount });
-    setCouponInput("");
   };
 
   const updateQuantity = (id: string, delta: number) => {

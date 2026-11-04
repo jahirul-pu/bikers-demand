@@ -48,57 +48,59 @@ export default function RegisterPage() {
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      try {
-        const newUser = {
+    try {
+      const selected = registeredBikes.find((b) => b.brand === bikeBrand && b.model === bikeModel);
+
+      const res = await fetch("/api/auth/customer/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name: name.trim(),
           phone: phone.trim(),
-          email: email.trim(),
-          phoneOrEmail: phone.trim() || email.trim(),
-          bikeBrand: bikeBrand,
-          bikeModel: bikeModel,
-          registeredAt: new Date().toISOString(),
-        };
+          email: email.trim() || undefined,
+          password,
+          bikeModelId: selected?.id,
+        }),
+      });
 
-        localStorage.setItem("bikers_demand_user", JSON.stringify(newUser));
-
-        // Save to persistent user registry
-        try {
-          const rawReg = localStorage.getItem("bd_registered_users");
-          let regList: any[] = rawReg ? JSON.parse(rawReg) : [];
-          if (!Array.isArray(regList)) regList = [];
-
-          // Remove duplicate if exists
-          regList = regList.filter(
-            (acc) =>
-              !(acc.phone && acc.phone === phone.trim()) &&
-              !(acc.email && email.trim() && acc.email === email.trim())
-          );
-          regList.push(newUser);
-          localStorage.setItem("bd_registered_users", JSON.stringify(regList));
-        } catch (e) {
-          console.error("Error saving registered user to registry:", e);
-        }
-
-        // Save selected bike as the user's primary bike preference
-        const selected = registeredBikes.find((b) => b.brand === bikeBrand && b.model === bikeModel);
-        if (selected) {
-          localStorage.setItem("bd_selected_bike", JSON.stringify({
-            brand: selected.brand,
-            model: selected.model,
-          }));
-        }
-      } catch (e) {
-        console.error(e);
+      const json = await res.json();
+      if (!json.success) {
+        setErrorMsg(json.error || "Registration failed. Please check your details.");
+        setIsLoading(false);
+        return;
       }
+
+      const userToSave = {
+        name: json.data.name,
+        phone: json.data.phone,
+        email: json.data.email,
+        phoneOrEmail: json.data.phone || json.data.email,
+        bikeBrand,
+        bikeModel,
+        registeredAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem("bikers_demand_user", JSON.stringify(userToSave));
+      if (selected) {
+        localStorage.setItem("bd_selected_bike", JSON.stringify({
+          brand: selected.brand,
+          model: selected.model,
+          variant: selected.variant,
+        }));
+      }
+      window.dispatchEvent(new Event("storage"));
       router.push("/account/garage");
-    }, 1000);
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      setErrorMsg("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

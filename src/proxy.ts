@@ -8,10 +8,10 @@ import {
 const ADMIN_LOGIN_PATH = "/admin/login";
 
 // APIs that are admin-only for every method.
-const ADMIN_ONLY_API = ["/api/admin", "/api/upload"];
+const ADMIN_ONLY_API = ["/api/admin", "/api/upload", "/api/coupons"];
 
 // Public-read APIs that must be admin-only for write methods.
-const ADMIN_WRITE_API = ["/api/bikes", "/api/coupons", "/api/products"];
+const ADMIN_WRITE_API = ["/api/bikes", "/api/products"];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -22,6 +22,9 @@ export async function proxy(req: NextRequest) {
 
   // The login page itself must stay reachable.
   if (pathname === ADMIN_LOGIN_PATH) return NextResponse.next();
+
+  // Public coupon validation endpoint used during checkout
+  if (pathname === "/api/coupons/validate") return NextResponse.next();
 
   const isAdminPage =
     pathname === "/admin" || pathname.startsWith("/admin/");

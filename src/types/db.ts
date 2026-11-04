@@ -31,6 +31,7 @@ export interface DBBike {
   id: string;
   brand: string;
   model: string;
+  variant?: string | null;
   yearStart?: number;
   yearEnd?: number;
   displacementCc?: number;
@@ -50,22 +51,19 @@ export interface DBOrder {
   couponCode?: string;
   discountAmount?: number;
   totalAmount: number;
+  paymentMethod?: string;
+  paymentStatus?: "UNPAID" | "PAID";
   itemsCount: number;
   createdAt: string;
-  items: Array<{
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
+  items?: any[];
 }
 
 export interface DBCoupon {
   id: string;
   code: string;
-  discountType: "FLAT" | "PERCENTAGE";
+  discountType: "FLAT" | "PERCENT" | "PERCENTAGE";
   discountValue: number;
   minOrder: number;
-  categoryTarget: "ALL" | "helmets" | "parts-mods" | "electronics" | "additives" | "riding-gear";
+  categoryTarget: string;
   isActive: boolean;
-  createdAt: string;
 }

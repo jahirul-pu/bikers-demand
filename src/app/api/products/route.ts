@@ -9,29 +9,41 @@ export async function GET(request: NextRequest) {
     const brand = searchParams.get("brand");
     const search = searchParams.get("search");
 
-    const where: any = { isActive: true };
+    const andConditions: any[] = [{ isActive: true }];
+
     if (categorySlug) {
       const categorySlugs = categorySlug.split(",").map((s) => s.trim()).filter(Boolean);
       if (categorySlugs.includes("riding-gear") && !categorySlugs.includes("helmets")) {
         categorySlugs.push("helmets");
       }
 
-      where.OR = [
-        { category: { slug: { in: categorySlugs } } },
-        { category: { parent: { slug: { in: categorySlugs } } } },
-        { subCategory: { in: categorySlugs, mode: "insensitive" } },
-      ];
+      andConditions.push({
+        OR: [
+          { category: { slug: { in: categorySlugs } } },
+          { category: { parent: { slug: { in: categorySlugs } } } },
+          { subCategory: { in: categorySlugs, mode: "insensitive" } },
+        ],
+      });
     }
+
     if (subCategory && subCategory !== "all") {
-      where.subCategory = { equals: subCategory, mode: "insensitive" };
+      andConditions.push({ subCategory: { equals: subCategory, mode: "insensitive" } });
     }
-    if (brand && brand !== "all") where.brand = { equals: brand, mode: "insensitive" };
+
+    if (brand && brand !== "all") {
+      andConditions.push({ brand: { equals: brand, mode: "insensitive" } });
+    }
+
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { brand: { contains: search, mode: "insensitive" } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { brand: { contains: search, mode: "insensitive" } },
+        ],
+      });
     }
+
+    const where: any = { AND: andConditions };
 
     const fieldsMode = searchParams.get("fields");
 
