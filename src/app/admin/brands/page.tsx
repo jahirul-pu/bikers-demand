@@ -229,38 +229,43 @@ export default function AdminBrandsPage() {
   return (
     <div className="space-y-6">
       {/* Top Header Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-asphalt-2 p-6 border border-asphalt-2">
+      <div className="surface rounded-2xl p-5 sm:p-6 shadow-xs border border-asphalt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="display-font text-2xl font-extrabold text-off-white uppercase tracking-wider flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
+            <span className="text-xs font-mono font-bold text-plate-yellow uppercase tracking-wider">
+              Brand Directory
+            </span>
+          </div>
+          <h1 className="display-font text-2xl sm:text-3xl font-extrabold text-off-white flex items-center gap-2.5">
             <Award className="w-6 h-6 text-plate-yellow" />
-            Official Brands & Manufacturers Directory
+            <span>Brands &amp; Manufacturers</span>
           </h1>
-          <p className="text-xs text-steel font-mono mt-1">
-            Manage official partner brands, logos, countries of origin, and product associations.
+          <p className="text-xs text-steel mt-0.5 font-mono">
+            Manage official partner brands, manufacturer logos, countries of origin, and catalog links.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={handleOpenAddModal}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 flex items-center gap-2 transform cursor-pointer shadow-md transition-colors"
+          className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer self-start sm:self-auto"
         >
-          <div className="transform flex items-center gap-1.5">
-            <Plus className="w-4 h-4" />
-            <span>Add Partner Brand</span>
-          </div>
+          <Plus className="w-4 h-4" />
+          <span>Add Partner Brand</span>
         </button>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-asphalt-2 p-4 border border-asphalt-2 flex items-center justify-between gap-4">
+      <div className="surface rounded-2xl p-4 border border-asphalt-2 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-steel absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-steel absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search brands by name, country, or slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-asphalt border border-steel/30 pl-9 pr-3 py-2 text-xs text-off-white font-mono placeholder-steel/60 focus:border-plate-yellow transition-colors"
+            className="w-full bg-asphalt border border-steel/20 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-off-white placeholder-steel/50 focus:border-plate-yellow focus:outline-none transition-colors"
           />
         </div>
         <div className="text-xs font-mono text-steel">
@@ -270,48 +275,48 @@ export default function AdminBrandsPage() {
 
       {/* Brand List Grid */}
       {isLoading ? (
-        <div className="p-8 text-center text-steel font-mono text-xs bg-asphalt-2 border border-asphalt-2">
+        <div className="p-12 text-center text-steel font-mono text-xs">
           Loading brands directory...
         </div>
       ) : filteredBrands.length === 0 ? (
-        <div className="p-8 text-center text-steel font-mono text-xs bg-asphalt-2 border border-asphalt-2">
+        <div className="surface rounded-2xl p-12 text-center text-steel font-mono text-xs border border-asphalt-2">
           No brands found matching your search. Click &quot;Add Partner Brand&quot; to create one.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 font-mono text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
           {filteredBrands.map((b, idx) => (
-            <div key={b.id} className="bg-asphalt-2 border border-steel/30 p-4 space-y-3 relative group hover:border-plate-yellow/60 transition-colors shadow-md">
+            <div key={b.id} className="surface rounded-2xl border border-asphalt-2 p-5 space-y-3.5 relative group hover:border-steel/40 transition-all shadow-xs">
               {/* Header: Logo, Name, Country */}
-              <div className="flex items-start justify-between gap-3 border-b border-steel/20 pb-3">
+              <div className="flex items-start justify-between gap-3 border-b border-asphalt-2 pb-3">
                 <div className="flex items-center gap-3">
                   {b.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={b.logoUrl}
                       alt={b.name}
-                      className="w-12 h-12 object-cover bg-asphalt border border-steel/30 p-1 shrink-0"
+                      className="w-12 h-12 object-contain rounded-xl bg-asphalt border border-asphalt-2 p-1.5 shrink-0"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-asphalt border border-steel/30 flex items-center justify-center text-steel font-bold text-lg shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-asphalt border border-asphalt-2 flex items-center justify-center text-steel font-bold text-lg shrink-0">
                       {b.name.charAt(0)}
                     </div>
                   )}
 
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm text-off-white uppercase tracking-wider">{b.name}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-sm text-off-white">{b.name}</h3>
                       {b.isFeatured && (
-                        <span className="bg-plate-yellow/20 text-plate-yellow border border-plate-yellow/40 px-1.5 py-0.2 text-[9px] font-bold uppercase flex items-center gap-0.5">
+                        <span className="rounded-full bg-plate-yellow/15 text-plate-yellow border border-plate-yellow/30 px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1">
                           <Star className="w-2.5 h-2.5 fill-plate-yellow" />
                           <span>Featured</span>
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-[11px] text-steel mt-0.5">
+                    <div className="flex items-center gap-1.5 text-xs text-steel mt-0.5">
                       {b.flag && <span>{b.flag}</span>}
-                      <span>{b.country || "Global Brand"}</span>
+                      <span>{b.country || "Global"}</span>
                       <span>•</span>
-                      <span className="text-plate-yellow font-bold">{b.productCount || 0} products</span>
+                      <span className="text-plate-yellow font-mono font-medium">{b.productCount || 0} items</span>
                     </div>
                   </div>
                 </div>
@@ -321,7 +326,7 @@ export default function AdminBrandsPage() {
                   <button
                     disabled={idx === 0}
                     onClick={() => handleMoveBrand(idx, "up")}
-                    className="text-steel hover:text-off-white disabled:opacity-20 p-1 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-steel hover:text-off-white disabled:opacity-20 transition-colors cursor-pointer"
                     title="Move Up"
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
@@ -329,21 +334,21 @@ export default function AdminBrandsPage() {
                   <button
                     disabled={idx === brands.length - 1}
                     onClick={() => handleMoveBrand(idx, "down")}
-                    className="text-steel hover:text-off-white disabled:opacity-20 p-1 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-steel hover:text-off-white disabled:opacity-20 transition-colors cursor-pointer"
                     title="Move Down"
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleOpenEditModal(b)}
-                    className="text-steel hover:text-plate-yellow p-1 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-steel hover:text-plate-yellow transition-colors cursor-pointer"
                     title="Edit Brand"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setDeleteTarget({ id: b.id, name: b.name })}
-                    className="text-red-400 hover:text-red-300 p-1 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-steel hover:text-red-400 transition-colors cursor-pointer"
                     title="Delete Brand"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -352,21 +357,21 @@ export default function AdminBrandsPage() {
               </div>
 
               {/* Description */}
-              <p className="text-[11px] text-steel leading-relaxed line-clamp-2">
+              <p className="text-xs text-steel leading-relaxed line-clamp-2">
                 {b.description || "No description provided."}
               </p>
 
               {/* Footer: Slug & Website */}
-              <div className="flex items-center justify-between text-[10px] text-steel/80 pt-1">
-                <span className="font-mono bg-asphalt border border-steel/20 px-2 py-0.5 text-plate-yellow">
-                  slug: /{b.slug}
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-asphalt-2">
+                <span className="font-mono rounded-full bg-asphalt border border-steel/20 px-2.5 py-0.5 text-[11px] text-plate-yellow">
+                  /{b.slug}
                 </span>
                 {b.website && (
                   <a
                     href={b.website}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-plate-yellow hover:underline flex items-center gap-1"
+                    className="text-plate-yellow hover:text-amber-300 font-semibold flex items-center gap-1 transition-colors"
                   >
                     <span>Website</span>
                     <ExternalLink className="w-3 h-3" />
@@ -380,16 +385,16 @@ export default function AdminBrandsPage() {
 
       {/* Add / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 font-mono text-xs animate-fade-in">
-          <div className="bg-asphalt-2 border border-plate-yellow/60 max-w-xl w-full p-6 space-y-4 shadow-2xl relative">
-            <div className="flex items-center justify-between border-b border-steel/20 pb-3">
-              <h2 className="text-base font-extrabold text-off-white uppercase tracking-wider flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 text-xs animate-fade-in">
+          <div className="surface border border-asphalt-2 max-w-xl w-full p-6 sm:p-7 space-y-5 shadow-2xl rounded-3xl relative">
+            <div className="flex items-center justify-between border-b border-asphalt-2 pb-3.5">
+              <h2 className="display-font text-xl font-bold text-off-white flex items-center gap-2">
                 <Award className="w-5 h-5 text-plate-yellow" />
                 <span>{editingBrand ? "Edit Brand Details" : "Add Partner Brand"}</span>
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-steel hover:text-off-white font-bold text-sm"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -398,7 +403,7 @@ export default function AdminBrandsPage() {
             <form onSubmit={handleSaveBrand} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-steel block font-bold mb-1">Brand Name *</label>
+                  <label className="text-steel block font-semibold mb-1">Brand Name *</label>
                   <input
                     type="text"
                     required
@@ -415,50 +420,50 @@ export default function AdminBrandsPage() {
                         );
                       }
                     }}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                    className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="text-steel block font-bold mb-1">URL Slug</label>
+                  <label className="text-steel block font-semibold mb-1">URL Slug</label>
                   <input
                     type="text"
                     placeholder="e.g. alpinestars"
                     value={formSlug}
                     onChange={(e) => setFormSlug(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                    className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white font-mono focus:border-plate-yellow focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-steel block font-bold mb-1">Country of Origin</label>
+                  <label className="text-steel block font-semibold mb-1">Country of Origin</label>
                   <input
                     type="text"
                     placeholder="e.g. Italy"
                     value={formCountry}
                     onChange={(e) => setFormCountry(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                    className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="text-steel block font-bold mb-1">Country Flag Emoji</label>
+                  <label className="text-steel block font-semibold mb-1">Country Flag Emoji</label>
                   <input
                     type="text"
                     placeholder="e.g. 🇮🇹"
                     value={formFlag}
                     onChange={(e) => setFormFlag(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                    className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               {/* Quick Country & Flag Selector */}
               <div>
-                <label className="text-steel block text-[11px] font-bold mb-1">Quick Select Country & Flag:</label>
-                <div className="flex flex-wrap gap-1">
+                <label className="text-steel block text-xs font-semibold mb-1.5">Quick Select Country &amp; Flag:</label>
+                <div className="flex flex-wrap gap-1.5">
                   {FLAG_PRESETS.map((fp) => (
                     <button
                       key={fp.country}
@@ -467,39 +472,39 @@ export default function AdminBrandsPage() {
                         setFormCountry(fp.country);
                         setFormFlag(fp.flag);
                       }}
-                      className="bg-asphalt border border-steel/30 hover:border-plate-yellow px-2 py-1 text-xs text-off-white flex items-center gap-1 cursor-pointer transition-colors"
+                      className="bg-asphalt border border-steel/20 hover:border-plate-yellow rounded-lg px-2.5 py-1 text-xs text-off-white flex items-center gap-1.5 cursor-pointer transition-colors"
                       title={`Set ${fp.country} ${fp.flag}`}
                     >
                       <span>{fp.flag}</span>
-                      <span className="text-[10px] text-steel">{fp.country}</span>
+                      <span className="text-[11px] text-steel">{fp.country}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="text-steel block font-bold mb-1">Official Website URL</label>
+                <label className="text-steel block font-semibold mb-1">Official Website URL</label>
                 <input
                   type="url"
                   placeholder="https://www.alpinestars.com"
                   value={formWebsite}
                   onChange={(e) => setFormWebsite(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                  className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
                 />
               </div>
 
               {/* Logo URL & File Upload */}
               <div>
-                <label className="text-steel block font-bold mb-1">Brand Logo Image URL</label>
+                <label className="text-steel block font-semibold mb-1">Brand Logo Image URL</label>
                 <div className="flex gap-2 items-center">
                   <input
                     type="text"
-                    placeholder="https://images.unsplash.com/photo-..."
+                    placeholder="https://..."
                     value={formLogoUrl}
                     onChange={(e) => setFormLogoUrl(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                    className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
                   />
-                  <label className="bg-asphalt border border-steel/30 hover:border-plate-yellow px-3 py-2 text-plate-yellow cursor-pointer flex items-center gap-1 shrink-0 font-bold">
+                  <label className="bg-asphalt border border-steel/20 hover:border-plate-yellow rounded-xl px-3.5 py-2.5 text-plate-yellow cursor-pointer flex items-center gap-1.5 shrink-0 font-semibold transition-colors">
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload</span>
                     <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
@@ -508,13 +513,13 @@ export default function AdminBrandsPage() {
               </div>
 
               <div>
-                <label className="text-steel block font-bold mb-1">Brand Description</label>
+                <label className="text-steel block font-semibold mb-1">Brand Description</label>
                 <textarea
                   rows={3}
                   placeholder="Briefly describe the brand's history, specialties, and certifications..."
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-2 text-off-white focus:border-plate-yellow"
+                  className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors resize-none"
                 />
               </div>
 
@@ -524,26 +529,26 @@ export default function AdminBrandsPage() {
                   id="formIsFeatured"
                   checked={formIsFeatured}
                   onChange={(e) => setFormIsFeatured(e.target.checked)}
-                  className="w-4 h-4 accent-plate-yellow"
+                  className="w-4 h-4 accent-plate-yellow cursor-pointer"
                 />
-                <label htmlFor="formIsFeatured" className="text-off-white font-bold cursor-pointer">
+                <label htmlFor="formIsFeatured" className="text-off-white font-medium cursor-pointer">
                   Feature as Highlighted Partner Brand on Frontend
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-steel/20">
+              <div className="flex justify-end gap-3 pt-3 border-t border-asphalt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="bg-asphalt border border-steel/30 px-4 py-2 text-steel hover:text-off-white uppercase font-bold"
+                  className="surface hover:bg-asphalt border border-asphalt-2 px-4 py-2 text-steel hover:text-off-white rounded-xl font-semibold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-plate-yellow text-asphalt font-extrabold px-5 py-2 uppercase hover:bg-yellow-400 flex items-center gap-1.5"
+                  className="bg-ignition-red hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Check className="w-4 h-4 stroke-[3]" />
+                  <Check className="w-4 h-4" />
                   <span>{editingBrand ? "Update Brand" : "Create Brand"}</span>
                 </button>
               </div>

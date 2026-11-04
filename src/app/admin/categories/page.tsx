@@ -187,84 +187,89 @@ export default function AdminCategoriesPage() {
   return (
     <div className="space-y-6">
       {/* Top Header Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-asphalt-2 p-6 border border-asphalt-2">
+      <div className="surface rounded-2xl p-5 sm:p-6 shadow-xs border border-asphalt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="display-font text-2xl font-extrabold text-off-white uppercase tracking-wider flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
+            <span className="text-xs font-mono font-bold text-plate-yellow uppercase tracking-wider">
+              Category Structure
+            </span>
+          </div>
+          <h1 className="display-font text-2xl sm:text-3xl font-extrabold text-off-white flex items-center gap-2.5">
             <FolderTree className="w-6 h-6 text-plate-yellow" />
-            Category & Subcategory Hierarchy Manager
+            <span>Category &amp; Subcategory Manager</span>
           </h1>
-          <p className="text-xs text-steel font-mono mt-1">
-            Manage top-level navigation categories and nested subcategories across frontend & backend.
+          <p className="text-xs text-steel mt-0.5 font-mono">
+            Manage navigation categories and nested subcategories across store and catalog.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={() => handleOpenAddModal("")}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 flex items-center gap-2 transform cursor-pointer shadow-md transition-colors"
+          className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer self-start sm:self-auto"
         >
-          <div className="transform flex items-center gap-1.5">
-            <Plus className="w-4 h-4" />
-            <span>Add Main Category</span>
-          </div>
+          <Plus className="w-4 h-4" />
+          <span>Add Main Category</span>
         </button>
       </div>
 
       {/* Categories Tree List */}
       {isLoading ? (
-        <div className="p-8 text-center text-steel font-mono text-xs">
+        <div className="p-12 text-center text-steel font-mono text-xs">
           Loading category hierarchy...
         </div>
       ) : categories.length === 0 ? (
-        <div className="p-8 text-center text-steel font-mono text-xs bg-asphalt-2 border border-asphalt-2">
-          No categories found. Click &quot;Add Main Category&quot; to build your hierarchy.
+        <div className="surface rounded-2xl p-12 text-center text-steel font-mono text-xs border border-asphalt-2">
+          No categories found. Click &quot;Add Main Category&quot; to build your catalog taxonomy.
         </div>
       ) : (
-        <div className="space-y-4 font-mono text-xs">
+        <div className="space-y-4 text-xs">
           {categories.map((cat, catIdx) => (
-            <div key={cat.id} className="bg-asphalt-2 border border-steel/30 shadow-md">
+            <div key={cat.id} className="surface rounded-2xl border border-asphalt-2 overflow-hidden shadow-xs">
               {/* Parent Category Header Bar */}
-              <div className="bg-asphalt p-4 border-b border-steel/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-asphalt/60 p-4 sm:p-5 border-b border-asphalt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-plate-yellow/10 border border-plate-yellow/40 flex items-center justify-center text-plate-yellow font-bold text-sm">
+                  <div className="w-9 h-9 rounded-xl bg-plate-yellow/10 border border-plate-yellow/30 flex items-center justify-center text-plate-yellow shrink-0">
                     <Layers className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-off-white uppercase tracking-wide">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-sm font-bold text-off-white">
                         {cat.name}
                       </h2>
-                      <span className="bg-asphalt-2 border border-steel/30 px-2 py-0.5 text-[10px] text-plate-yellow font-bold">
-                        slug: /{cat.slug}
+                      <span className="rounded-full bg-asphalt border border-plate-yellow/30 px-2.5 py-0.5 text-[11px] text-plate-yellow font-mono font-medium">
+                        /{cat.slug}
                       </span>
                     </div>
                     {cat.description && (
-                      <p className="text-[11px] text-steel mt-0.5">{cat.description}</p>
+                      <p className="text-xs text-steel mt-0.5">{cat.description}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
                   {/* Reorder Category Up & Down */}
                   <button
                     disabled={catIdx === 0}
                     onClick={() => handleMoveCategory(catIdx, "up", null)}
-                    className="bg-asphalt-2 hover:bg-asphalt disabled:opacity-30 border border-steel/30 text-steel hover:text-off-white p-1.5 transition-colors cursor-pointer"
-                    title="Move Category Left/Up"
+                    className="p-1.5 rounded-lg border border-steel/20 text-steel hover:text-off-white hover:bg-asphalt disabled:opacity-30 transition-all cursor-pointer"
+                    title="Move Category Up"
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
                   </button>
                   <button
                     disabled={catIdx === categories.length - 1}
                     onClick={() => handleMoveCategory(catIdx, "down", null)}
-                    className="bg-asphalt-2 hover:bg-asphalt disabled:opacity-30 border border-steel/30 text-steel hover:text-off-white p-1.5 transition-colors cursor-pointer"
-                    title="Move Category Right/Down"
+                    className="p-1.5 rounded-lg border border-steel/20 text-steel hover:text-off-white hover:bg-asphalt disabled:opacity-30 transition-all cursor-pointer"
+                    title="Move Category Down"
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
                   </button>
 
                   <button
                     onClick={() => handleOpenAddModal(cat.id)}
-                    className="bg-asphalt-2 hover:bg-asphalt border border-plate-yellow/50 text-plate-yellow hover:text-off-white text-[11px] font-bold px-3 py-1.5 uppercase flex items-center gap-1 transition-colors cursor-pointer"
+                    className="bg-plate-yellow/15 border border-plate-yellow/40 text-plate-yellow hover:bg-plate-yellow hover:text-asphalt text-xs font-semibold px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Subcategory</span>
@@ -272,7 +277,7 @@ export default function AdminCategoriesPage() {
 
                   <button
                     onClick={() => handleOpenEditModal(cat)}
-                    className="bg-asphalt-2 hover:bg-asphalt border border-steel/30 text-steel hover:text-off-white p-1.5 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg border border-steel/20 text-steel hover:text-off-white hover:bg-asphalt transition-all cursor-pointer"
                     title="Edit Main Category"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
@@ -280,7 +285,7 @@ export default function AdminCategoriesPage() {
 
                   <button
                     onClick={() => setDeleteTarget({ id: cat.id, name: cat.name })}
-                    className="bg-asphalt-2 hover:bg-red-950/40 border border-red-500/30 text-red-400 p-1.5 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all cursor-pointer"
                     title="Delete Category"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -289,24 +294,24 @@ export default function AdminCategoriesPage() {
               </div>
 
               {/* Subcategories List */}
-              <div className="p-4 bg-asphalt-2/50">
+              <div className="p-4 bg-asphalt/20">
                 {cat.children && cat.children.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {cat.children.map((sub, subIdx) => (
                       <div
                         key={sub.id}
-                        className="bg-asphalt p-3 border border-steel/20 flex items-center justify-between gap-2 hover:border-plate-yellow/40 transition-colors"
+                        className="rounded-xl bg-asphalt/60 p-3.5 border border-asphalt-2 flex items-center justify-between gap-2 hover:border-plate-yellow/40 transition-all shadow-2xs"
                       >
-                        <div className="space-y-1 overflow-hidden">
+                        <div className="space-y-0.5 overflow-hidden">
                           <div className="flex items-center gap-1.5">
                             <ChevronRight className="w-3.5 h-3.5 text-ignition-red shrink-0" />
-                            <span className="font-bold text-off-white truncate">{sub.name}</span>
+                            <span className="font-semibold text-off-white truncate">{sub.name}</span>
                           </div>
-                          <div className="text-[10px] text-steel font-mono truncate">
+                          <div className="text-[11px] text-steel font-mono truncate pl-5">
                             /{sub.slug}
                           </div>
                           {sub.description && (
-                            <div className="text-[10px] text-steel/80 truncate">
+                            <div className="text-[11px] text-steel/80 truncate pl-5">
                               {sub.description}
                             </div>
                           )}
@@ -317,7 +322,7 @@ export default function AdminCategoriesPage() {
                           <button
                             disabled={subIdx === 0}
                             onClick={() => handleMoveCategory(subIdx, "up", cat.id)}
-                            className="text-steel hover:text-off-white disabled:opacity-20 p-1 transition-colors cursor-pointer"
+                            className="text-steel hover:text-off-white disabled:opacity-20 p-1 rounded-md transition-colors cursor-pointer"
                             title="Move Subcategory Up"
                           >
                             <ArrowUp className="w-3 h-3" />
@@ -325,7 +330,7 @@ export default function AdminCategoriesPage() {
                           <button
                             disabled={subIdx === cat.children.length - 1}
                             onClick={() => handleMoveCategory(subIdx, "down", cat.id)}
-                            className="text-steel hover:text-off-white disabled:opacity-20 p-1 transition-colors cursor-pointer"
+                            className="text-steel hover:text-off-white disabled:opacity-20 p-1 rounded-md transition-colors cursor-pointer"
                             title="Move Subcategory Down"
                           >
                             <ArrowDown className="w-3 h-3" />
@@ -333,24 +338,24 @@ export default function AdminCategoriesPage() {
 
                           <button
                             onClick={() => handleOpenEditModal(sub)}
-                            className="text-steel hover:text-plate-yellow p-1 transition-colors cursor-pointer"
+                            className="text-steel hover:text-plate-yellow p-1 rounded-md transition-colors cursor-pointer"
                             title="Edit Subcategory"
                           >
-                            <Edit2 className="w-3 h-3" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeleteTarget({ id: sub.id, name: sub.name })}
-                            className="text-red-400 hover:text-red-300 p-1 transition-colors cursor-pointer"
+                            className="text-steel hover:text-red-400 p-1 rounded-md transition-colors cursor-pointer"
                             title="Delete Subcategory"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-[11px] text-steel italic p-2 border border-dashed border-steel/20 text-center">
+                  <div className="text-xs text-steel italic p-3 border border-dashed border-asphalt-2 rounded-xl text-center">
                     No subcategories added yet under &quot;{cat.name}&quot;. Click &quot;+ Subcategory&quot; to create one.
                   </div>
                 )}
@@ -362,10 +367,10 @@ export default function AdminCategoriesPage() {
 
       {/* Add / Edit Category Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-asphalt-2 border border-steel/40 max-w-lg w-full p-6 space-y-4 shadow-2xl rounded-xs font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-steel/20 pb-3">
-              <h2 className="display-font text-xl font-bold text-off-white uppercase tracking-wider">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="surface border border-asphalt-2 max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl rounded-3xl text-xs">
+            <div className="flex items-center justify-between border-b border-asphalt-2 pb-3.5">
+              <h2 className="display-font text-xl font-bold text-off-white">
                 {editingItem
                   ? "Edit Category / Subcategory"
                   : formParentId
@@ -375,7 +380,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="text-steel hover:text-off-white text-base"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -383,12 +388,12 @@ export default function AdminCategoriesPage() {
 
             <form onSubmit={handleSaveCategory} className="space-y-4">
               {/* Parent Category Selection */}
-              <div className="space-y-1">
-                <label className="text-steel block font-bold">Category Level / Hierarchy</label>
+              <div className="space-y-1.5">
+                <label className="text-steel block font-semibold">Hierarchy Level</label>
                 <select
                   value={formParentId}
                   onChange={(e) => setFormParentId(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-2.5 text-off-white"
+                  className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors cursor-pointer"
                 >
                   <option value="">Top-Level Main Category</option>
                   {categories.map((c) => (
@@ -400,8 +405,8 @@ export default function AdminCategoriesPage() {
               </div>
 
               {/* Title */}
-              <div className="space-y-1">
-                <label className="text-steel block font-bold">Category Name *</label>
+              <div className="space-y-1.5">
+                <label className="text-steel block font-semibold">Category Name *</label>
                 <input
                   type="text"
                   required
@@ -413,46 +418,46 @@ export default function AdminCategoriesPage() {
                       setFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-"));
                     }
                   }}
-                  className="w-full bg-asphalt border border-steel/30 p-2.5 text-off-white"
+                  className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
                 />
               </div>
 
               {/* URL Slug */}
-              <div className="space-y-1">
-                <label className="text-steel block font-bold">URL Slug</label>
+              <div className="space-y-1.5">
+                <label className="text-steel block font-semibold">URL Slug</label>
                 <input
                   type="text"
                   placeholder="e.g. modular-helmets"
                   value={formSlug}
                   onChange={(e) => setFormSlug(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-2.5 text-off-white placeholder-steel/50"
+                  className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white font-mono placeholder-steel/50 focus:border-plate-yellow focus:outline-none transition-colors"
                 />
               </div>
 
               {/* Description */}
-              <div className="space-y-1">
-                <label className="text-steel block font-bold">Description (Optional)</label>
+              <div className="space-y-1.5">
+                <label className="text-steel block font-semibold">Description (Optional)</label>
                 <textarea
                   rows={2}
                   placeholder="Brief overview displayed on store header & category pages..."
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full bg-asphalt border border-steel/30 p-2.5 text-off-white placeholder-steel/50 resize-none"
+                  className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-off-white placeholder-steel/50 focus:border-plate-yellow focus:outline-none transition-colors resize-none"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-3 border-t border-steel/20">
+              <div className="flex justify-end gap-3 pt-3 border-t border-asphalt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="bg-asphalt hover:bg-asphalt-2 border border-steel/30 text-steel hover:text-off-white px-4 py-2 font-bold uppercase transition-colors cursor-pointer"
+                  className="surface hover:bg-asphalt border border-asphalt-2 text-steel hover:text-off-white px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold px-5 py-2 uppercase transition-colors cursor-pointer shadow-md"
+                  className="bg-ignition-red hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-xl transition-all shadow-md cursor-pointer"
                 >
                   {editingItem ? "Save Changes" : "Create Category"}
                 </button>

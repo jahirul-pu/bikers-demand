@@ -10,11 +10,11 @@ import {
   Bike,
   ShoppingBag,
   Tag,
-  BarChart2,
-  Lock,
   FolderTree,
   Award,
   LogOut,
+  ShieldCheck,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -47,47 +47,70 @@ export default function AdminLayout({
     { label: "Brand Directory", href: "/admin/brands", icon: Award },
     { label: "Bike Registry Matrix", href: "/admin/bikes", icon: Bike },
     { label: "Orders & Pipeline", href: "/admin/orders", icon: ShoppingBag },
-
     { label: "Coupons & Discounts", href: "/admin/coupons", icon: Tag },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-asphalt text-off-white">
+    <div className="min-h-screen flex flex-col bg-asphalt text-off-white selection:bg-ignition-red/20 selection:text-off-white">
       <div className="no-print">
         <Header isAdmin={true} />
       </div>
 
       {/* Admin Top Bar */}
-      <div className="bg-asphalt-2 border-b border-asphalt-2 py-2.5 px-3 font-mono text-xs text-steel no-print">
-        <div className="max-w-[1700px] mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-ignition-red" />
-            <span className="text-off-white font-bold uppercase">Bikers Demand Admin Control Panel</span>
+      <div className="bg-asphalt-2/90 backdrop-blur-md border-b border-asphalt-2 py-2.5 px-4 text-xs no-print sticky top-0 z-40">
+        <div className="max-w-[1700px] mx-auto flex flex-wrap justify-between items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-ignition-red/10 border border-ignition-red/25 flex items-center justify-center">
+              <ShieldCheck className="w-3.5 h-3.5 text-ignition-red" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-off-white font-bold tracking-tight text-sm">
+                Bikers Demand
+              </span>
+              <span className="text-steel text-xs hidden sm:inline">•</span>
+              <span className="text-steel text-xs hidden sm:inline">Admin Workspace</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-plate-yellow">Role: ADMIN</span>
+
+          <div className="flex items-center gap-2.5 sm:gap-4">
+            <Link
+              href="/"
+              className="text-steel hover:text-off-white transition-colors text-xs font-medium flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-asphalt/60"
+            >
+              <span>Storefront</span>
+              <ExternalLink className="w-3 h-3 text-steel" />
+            </Link>
+
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-plate-yellow/10 border border-plate-yellow/30 text-plate-yellow">
+              <span className="w-1.5 h-1.5 rounded-full bg-plate-yellow animate-pulse" />
+              ADMIN
+            </span>
+
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center gap-1.5 text-steel hover:text-ignition-red font-semibold uppercase transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-steel hover:text-ignition-red text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-ignition-red/10 transition-all cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              Sign out
+              <span>Sign out</span>
             </button>
           </div>
         </div>
       </div>
 
-      <main className="flex-grow max-w-[1700px] mx-auto px-2 sm:px-3 lg:px-4 py-4 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
+      <main className="flex-grow max-w-[1700px] mx-auto px-3 sm:px-4 lg:px-6 py-5 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* Admin Sidebar Navigation */}
           <aside className="lg:col-span-3 space-y-3 no-print">
-            <div className="bg-asphalt-2 p-4 border border-asphalt-2">
-              <h3 className="font-mono text-sm text-plate-yellow font-bold uppercase border-b border-asphalt pb-2.5 mb-3 tracking-wider">
-                MANAGEMENT MENU
-              </h3>
+            <div className="surface rounded-2xl p-3 sm:p-4 shadow-sm sticky top-16">
+              <div className="px-3 py-2 mb-2 border-b border-asphalt-2 flex items-center justify-between">
+                <span className="text-[11px] font-mono font-bold text-steel tracking-wider uppercase">
+                  Management
+                </span>
+                <span className="text-[10px] text-steel font-mono">v0.2</span>
+              </div>
 
-              <nav className="space-y-1.5 font-mono text-sm">
+              <nav className="space-y-1">
                 {adminNav.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -95,10 +118,10 @@ export default function AdminLayout({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 py-3 px-3.5 border-l-3 transition-all ${
+                      className={`flex items-center gap-3 py-2.5 px-3.5 rounded-xl transition-all text-xs font-medium ${
                         isActive
-                          ? "bg-asphalt border-ignition-red text-off-white font-extrabold"
-                          : "border-transparent text-steel hover:text-off-white hover:bg-asphalt/50 font-semibold"
+                          ? "bg-ignition-red/10 text-ignition-red font-semibold border border-ignition-red/25 shadow-xs"
+                          : "text-steel hover:text-off-white hover:bg-asphalt/50 border border-transparent"
                       }`}
                     >
                       <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-ignition-red" : "text-steel"}`} />
@@ -111,7 +134,7 @@ export default function AdminLayout({
           </aside>
 
           {/* Admin Content View */}
-          <div className="lg:col-span-9 bg-asphalt-2 p-3 sm:p-5 border border-asphalt-2">
+          <div className="lg:col-span-9 surface rounded-2xl p-4 sm:p-6 shadow-sm min-h-[600px]">
             {children}
           </div>
         </div>
@@ -119,4 +142,3 @@ export default function AdminLayout({
     </div>
   );
 }
-

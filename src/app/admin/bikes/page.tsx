@@ -163,40 +163,46 @@ export default function AdminBikesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-asphalt-2 p-6 border border-asphalt-2">
+      <div className="surface rounded-2xl p-5 sm:p-6 shadow-xs border border-asphalt-2 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <span className="text-plate-yellow uppercase tracking-wider block font-bold font-mono text-xs mb-1">
-            MOTORCYCLE REGISTRY
-          </span>
-          <h1 className="display-font text-3xl font-extrabold uppercase text-off-white">
-            Bike Registry & Compatibility Matrix
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
+            <span className="text-xs font-mono font-bold text-plate-yellow uppercase tracking-wider">
+              Motorcycle Registry
+            </span>
+          </div>
+          <h1 className="display-font text-2xl sm:text-3xl font-extrabold text-off-white flex items-center gap-2.5">
+            <Bike className="w-6 h-6 text-plate-yellow" />
+            <span>Bike Registry &amp; Compatibility Matrix</span>
           </h1>
-          <p className="text-steel text-xs font-mono mt-1">
-            Manage bike models independently of products so new models can be added without a dev release.
+          <p className="text-xs text-steel font-mono mt-0.5">
+            Manage motorcycle models independently so new models can be linked to parts without code updates.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold uppercase text-xs px-6 py-3 flex items-center gap-2 transition-colors transform self-start sm:self-auto cursor-pointer shadow-md"
+          className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer self-start sm:self-auto"
         >
-          <div className="transform flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            <span>Add Bike Model</span>
-          </div>
+          <Plus className="w-4 h-4" />
+          <span>Add Bike Model</span>
         </button>
       </div>
 
       {showAddForm && (
-        <form onSubmit={handleAddBike} className="bg-asphalt-2 p-6 border border-plate-yellow/40 space-y-5">
-          <h3 className="font-bold text-plate-yellow uppercase text-sm font-mono">
-            Add New Motorcycle Model
-          </h3>
+        <form onSubmit={handleAddBike} className="surface rounded-2xl p-5 sm:p-6 border border-plate-yellow/30 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 border-b border-asphalt-2 pb-2.5">
+            <Plus className="w-4 h-4 text-plate-yellow" />
+            <h3 className="font-bold text-off-white text-sm">
+              Add New Motorcycle Model
+            </h3>
+          </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-steel block text-xs font-mono mb-1.5 font-bold uppercase">
-                Brand
+              <label className="text-steel block text-xs font-semibold mb-1">
+                Motorcycle Brand
               </label>
               {!isCustomBrand ? (
                 <select
@@ -209,7 +215,7 @@ export default function AdminBikesPage() {
                       setBrand(e.target.value);
                     }
                   }}
-                  className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none cursor-pointer"
+                  className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-xs text-off-white focus:border-plate-yellow focus:outline-none transition-colors cursor-pointer"
                 >
                   {allBrands.map((b) => (
                     <option key={b} value={b}>
@@ -228,7 +234,7 @@ export default function AdminBikesPage() {
                     placeholder="Enter Brand (e.g. Royal Enfield)"
                     value={customBrandInput}
                     onChange={(e) => setCustomBrandInput(e.target.value)}
-                    className="w-full bg-asphalt border border-plate-yellow p-3 text-sm text-off-white focus:outline-none"
+                    className="w-full bg-asphalt border border-plate-yellow rounded-xl p-2.5 text-xs text-off-white focus:outline-none"
                     autoFocus
                   />
                   <button
@@ -237,8 +243,7 @@ export default function AdminBikesPage() {
                       setIsCustomBrand(false);
                       setCustomBrandInput("");
                     }}
-                    className="px-3 py-3 text-steel hover:text-off-white text-xs bg-asphalt border border-steel/30 shrink-0 cursor-pointer font-mono"
-                    title="Back to dropdown"
+                    className="px-3 py-2.5 text-steel hover:text-off-white text-xs bg-asphalt border border-steel/20 rounded-xl shrink-0 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -247,8 +252,8 @@ export default function AdminBikesPage() {
             </div>
 
             <div>
-              <label className="text-steel block text-xs font-mono mb-1.5 font-bold uppercase">
-                Model Name
+              <label className="text-steel block text-xs font-semibold mb-1">
+                Model &amp; Variant Name
               </label>
               <input
                 type="text"
@@ -256,80 +261,98 @@ export default function AdminBikesPage() {
                 placeholder="e.g. Hunter 350 / R15 v4 / FZS v3"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none"
+                className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-xs text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
               />
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="bg-plate-yellow hover:bg-yellow-500 text-asphalt font-extrabold uppercase text-xs px-8 py-3 cursor-pointer transition-colors font-mono tracking-wider"
-          >
-            Save Bike to Registry
-          </button>
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              className="bg-plate-yellow hover:bg-yellow-400 text-asphalt font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer transition-all shadow-xs"
+            >
+              Save Bike to Registry
+            </button>
+          </div>
         </form>
       )}
 
       {/* Registry Table */}
-      <div className="bg-asphalt-2 border border-asphalt-2 overflow-x-auto">
-        <table className="w-full text-left text-xs font-mono">
-          <thead>
-            <tr className="bg-asphalt text-plate-yellow uppercase text-[11px] border-b border-asphalt-2">
-              <th className="p-3.5">Brand</th>
-              <th className="p-3.5">Model</th>
-              <th className="p-3.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-asphalt-2">
-            {bikes.map((b) => (
-              <tr key={b.id} className="hover:bg-asphalt/50 transition-colors">
-                <td className="p-3.5 font-bold text-plate-yellow text-sm">{b.brand}</td>
-                <td className="p-3.5 font-bold text-off-white text-sm">{b.model}</td>
-                <td className="p-3.5 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => handleStartEdit(b)}
-                      className="text-steel hover:text-plate-yellow p-1.5 transition-colors cursor-pointer"
-                      title="Edit Bike"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget({ id: b.id, name: `${b.brand} ${b.model}` })}
-                      className="text-steel hover:text-ignition-red p-1.5 transition-colors cursor-pointer"
-                      title="Delete Bike"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
+      <div className="surface rounded-2xl border border-asphalt-2 overflow-hidden shadow-xs">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-asphalt/70 text-steel font-mono uppercase text-[11px] tracking-wider border-b border-asphalt-2">
+              <tr>
+                <th className="py-3.5 px-4">Brand</th>
+                <th className="py-3.5 px-4">Model &amp; Variant</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-asphalt-2 font-mono">
+              {bikes.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-12 text-center text-steel font-mono">
+                    No motorcycle models registered. Click &quot;Add Bike Model&quot; to begin.
+                  </td>
+                </tr>
+              ) : (
+                bikes.map((b) => (
+                  <tr key={b.id} className="hover:bg-asphalt/40 transition-colors">
+                    <td className="py-3 px-4">
+                      <span className="rounded-lg bg-plate-yellow/15 border border-plate-yellow/30 px-2.5 py-1 text-xs text-plate-yellow font-bold inline-block">
+                        {b.brand}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-bold text-off-white text-sm">
+                      {b.model}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleStartEdit(b)}
+                          className="p-1.5 rounded-lg text-steel hover:text-plate-yellow hover:bg-asphalt transition-all cursor-pointer"
+                          title="Edit Bike"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget({ id: b.id, name: `${b.brand} ${b.model}` })}
+                          className="p-1.5 rounded-lg text-steel hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
+                          title="Delete Bike"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Edit Bike Modal */}
       {editingBike && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-asphalt-2 border border-plate-yellow/60 max-w-lg w-full p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-asphalt pb-3">
-              <h3 className="font-bold text-plate-yellow uppercase text-sm font-mono flex items-center gap-2">
-                <Edit className="w-4 h-4" />
-                Edit Motorcycle Model
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 text-xs">
+          <div className="surface border border-asphalt-2 max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl rounded-3xl">
+            <div className="flex items-center justify-between border-b border-asphalt-2 pb-3.5">
+              <h3 className="display-font text-xl font-bold text-off-white flex items-center gap-2">
+                <Edit className="w-5 h-5 text-plate-yellow" />
+                <span>Edit Motorcycle Model</span>
               </h3>
               <button
                 onClick={() => setEditingBike(null)}
-                className="text-steel hover:text-off-white text-xs font-mono cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer"
               >
-                ✕ Close
+                ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-5">
-              <div className="space-y-4">
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="text-steel block text-xs font-mono mb-1.5 font-bold uppercase">
+                  <label className="text-steel block text-xs font-semibold mb-1">
                     Brand
                   </label>
                   {!editIsCustomBrand ? (
@@ -343,7 +366,7 @@ export default function AdminBikesPage() {
                           setEditBrand(e.target.value);
                         }
                       }}
-                      className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none cursor-pointer font-mono"
+                      className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-xs text-off-white focus:border-plate-yellow focus:outline-none transition-colors cursor-pointer"
                     >
                       {allBrands.map((b) => (
                         <option key={b} value={b}>
@@ -362,7 +385,7 @@ export default function AdminBikesPage() {
                         placeholder="Enter Brand (e.g. Royal Enfield)"
                         value={editCustomBrandInput}
                         onChange={(e) => setEditCustomBrandInput(e.target.value)}
-                        className="w-full bg-asphalt border border-plate-yellow p-3 text-sm text-off-white focus:outline-none font-mono"
+                        className="w-full bg-asphalt border border-plate-yellow rounded-xl p-2.5 text-xs text-off-white focus:outline-none"
                         autoFocus
                       />
                       <button
@@ -371,7 +394,7 @@ export default function AdminBikesPage() {
                           setEditIsCustomBrand(false);
                           setEditCustomBrandInput("");
                         }}
-                        className="px-3 py-3 text-steel hover:text-off-white text-xs bg-asphalt border border-steel/30 shrink-0 cursor-pointer font-mono"
+                        className="px-3 py-2.5 text-steel hover:text-off-white text-xs bg-asphalt border border-steel/20 rounded-xl shrink-0 cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -380,30 +403,30 @@ export default function AdminBikesPage() {
                 </div>
 
                 <div>
-                  <label className="text-steel block text-xs font-mono mb-1.5 font-bold uppercase">
-                    Model Name
+                  <label className="text-steel block text-xs font-semibold mb-1">
+                    Model &amp; Variant Name
                   </label>
                   <input
                     type="text"
                     required
                     value={editModel}
                     onChange={(e) => setEditModel(e.target.value)}
-                    className="w-full bg-asphalt border border-steel/30 p-3 text-sm text-off-white focus:border-plate-yellow focus:outline-none font-mono"
+                    className="w-full bg-asphalt border border-steel/20 rounded-xl p-2.5 text-xs text-off-white focus:border-plate-yellow focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-3 border-t border-asphalt-2">
                 <button
                   type="button"
                   onClick={() => setEditingBike(null)}
-                  className="px-5 py-2.5 text-xs font-mono text-steel hover:text-off-white bg-asphalt border border-steel/30 cursor-pointer"
+                  className="surface hover:bg-asphalt border border-asphalt-2 px-4 py-2 text-steel hover:text-off-white rounded-xl font-semibold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 text-xs font-mono bg-plate-yellow hover:bg-yellow-500 text-asphalt font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                  className="bg-plate-yellow hover:bg-yellow-400 text-asphalt font-bold text-xs px-5 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
                 >
                   Update Bike
                 </button>

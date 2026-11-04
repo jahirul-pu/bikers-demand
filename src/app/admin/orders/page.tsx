@@ -124,34 +124,37 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="font-mono text-xs">
+    <div className="space-y-5">
       {/* Background Admin Order Fulfillment Board */}
       <div className="no-print space-y-4">
         {/* Top Header & Search Bar */}
-        <div className="bg-asphalt p-3.5 border border-asphalt-2 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="surface rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 border border-asphalt-2">
           <div>
-            <span className="text-plate-yellow uppercase tracking-wider font-bold text-[10px] block">
-              ORDER FULFILLMENT BOARD
-            </span>
-            <h1 className="display-font text-xl font-extrabold uppercase text-off-white">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
+              <span className="text-xs font-mono font-bold text-plate-yellow uppercase tracking-wider">
+                Order Fulfillment Board
+              </span>
+            </div>
+            <h1 className="display-font text-2xl font-extrabold text-off-white">
               Kanban Status Pipeline
             </h1>
           </div>
 
           {/* Order Search Bar */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-steel absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-steel absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search order #, phone, customer name, address..."
-              className="w-full bg-asphalt-2 border border-steel/30 pl-9 pr-8 py-2 text-off-white text-xs font-mono focus:border-plate-yellow focus:outline-none transition-colors"
+              placeholder="Search order #, phone, customer, address..."
+              className="w-full bg-asphalt border border-steel/20 rounded-xl pl-9 pr-8 py-2.5 text-off-white text-xs placeholder-steel/50 focus:border-plate-yellow focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-steel hover:text-off-white text-xs p-0.5 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-steel hover:text-off-white text-xs p-0.5 cursor-pointer"
                 title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -159,99 +162,103 @@ export default function AdminOrdersPage() {
             )}
           </div>
 
-          <div className="text-steel text-[11px] shrink-0 font-mono">
-            Showing: <strong className="text-off-white">{filteredOrders.length}</strong> / {orders.length} Orders
+          <div className="text-steel text-xs shrink-0 font-mono">
+            Showing <strong className="text-off-white font-semibold">{filteredOrders.length}</strong> of {orders.length} orders
           </div>
         </div>
 
         {/* 4-Column Pipeline Board */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
           {columns.map((col) => {
             const colOrders = filteredOrders.filter((o) => o.status === col.key);
             return (
               <div
                 key={col.key}
-                className={`bg-asphalt-2 border border-asphalt-2 border-t-4 ${col.topBorder} p-3 space-y-3 min-h-[500px] flex flex-col`}
+                className="surface rounded-2xl border border-asphalt-2 p-3.5 space-y-3 min-h-[520px] flex flex-col shadow-xs"
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between border-b border-asphalt pb-2">
+                <div className="flex items-center justify-between border-b border-asphalt-2 pb-2.5 px-1">
                   <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${
+                      col.key === "PLACED" ? "bg-plate-yellow" :
+                      col.key === "CONFIRMED" ? "bg-blue-400" :
+                      col.key === "SHIPPED" ? "bg-purple-400" : "bg-emerald-400"
+                    }`} />
                     <h3 className="font-bold text-xs uppercase tracking-wider text-off-white">
                       {col.title}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border font-mono ${col.badgeClass}`}>
-                      {colOrders.length}
-                    </span>
                   </div>
-                  <span className="text-[9px] text-steel uppercase font-mono">{col.key}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold border ${col.badgeClass}`}>
+                    {colOrders.length}
+                  </span>
                 </div>
 
                 {/* Column Orders List */}
-                <div className="space-y-2.5 flex-grow">
+                <div className="space-y-3 flex-grow">
                   {colOrders.length === 0 ? (
-                    <div className="border border-dashed border-asphalt p-4 text-center text-steel/60 text-[10px] italic mt-4">
+                    <div className="border border-dashed border-asphalt-2 rounded-xl p-6 text-center text-steel/60 text-xs italic mt-3">
                       No orders in {col.title} stage
                     </div>
                   ) : (
                     colOrders.map((o) => (
                       <div
                         key={o.id}
-                        className="bg-asphalt p-3 border border-asphalt-2 hover:border-steel/40 transition-all space-y-2 relative group"
+                        className="rounded-xl bg-asphalt/60 hover:bg-asphalt border border-asphalt-2 hover:border-steel/40 p-3.5 transition-all shadow-xs space-y-2.5 relative group"
                       >
                         {/* Order Number & Price */}
-                        <div className="flex justify-between items-start border-b border-asphalt-2 pb-1.5">
+                        <div className="flex justify-between items-start border-b border-asphalt-2 pb-2">
                           <div>
                             <span className="font-bold text-plate-yellow text-xs font-mono">
                               {o.orderNumber || `BD-${String(o.id).slice(-6)}`}
                             </span>
-                            <div className="text-[10px] text-steel">{o.date}</div>
+                            <div className="text-[10px] text-steel font-mono">{o.date}</div>
                           </div>
 
                           <div className="text-right">
-                            <div className="font-extrabold text-off-white text-xs">
+                            <div className="font-extrabold text-off-white text-xs font-mono">
                               ৳{Number(o.total || 0).toLocaleString("en-BD")}
                             </div>
-                            <div className="text-[9px] text-steel font-mono">
+                            <div className="text-[10px] text-steel font-mono">
                               {o.itemsCount || 1} {o.itemsCount === 1 ? "Item" : "Items"}
                             </div>
                           </div>
                         </div>
 
                         {/* Customer Info & Address */}
-                        <div className="space-y-1 text-[10px]">
+                        <div className="space-y-1 text-xs">
                           <div className="text-off-white font-semibold truncate">{o.customer || "Rider Customer"}</div>
-                          <div className="text-steel truncate flex items-center gap-1">
+                          <div className="text-steel truncate flex items-center gap-1.5 text-[11px]">
                             <Phone className="w-3 h-3 text-steel/70 shrink-0" />
                             <span>{o.phone || "N/A"}</span>
                           </div>
-                          <div className="text-steel-light leading-snug flex items-start gap-1">
+                          <div className="text-steel leading-snug flex items-start gap-1.5 text-[11px]">
                             <MapPin className="w-3 h-3 text-plate-yellow shrink-0 mt-0.5" />
-                            <span className="break-words font-mono text-[10px]">{o.address || "House 12, Road 5, Mirpur, Dhaka"}</span>
+                            <span className="break-words font-mono">{o.address || "Dhaka, Bangladesh"}</span>
                           </div>
                         </div>
 
                         {/* Badges & Invoice Button */}
-                        <div className="flex items-center justify-between gap-1 pt-1 border-t border-asphalt-2/50">
-                          <span className="bg-asphalt-2 border border-steel/30 text-[9px] text-steel px-1.5 py-0.5 font-mono">
+                        <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-asphalt-2">
+                          <span className="rounded-full px-2 py-0.5 text-[10px] font-mono font-medium bg-asphalt border border-steel/20 text-steel">
                             {o.paymentMethod} ({o.paymentStatus})
                           </span>
 
                           <button
                             onClick={() => setViewingOrder(o)}
-                            className="text-plate-yellow hover:text-yellow-400 hover:underline flex items-center gap-1 font-bold text-[10px] cursor-pointer"
+                            className="text-plate-yellow hover:text-amber-300 px-2 py-0.5 rounded-lg hover:bg-plate-yellow/10 transition-colors flex items-center gap-1 font-semibold text-xs cursor-pointer"
                             title="View order details and print invoice"
                           >
-                            <FileText className="w-3 h-3 text-plate-yellow" />
+                            <FileText className="w-3.5 h-3.5" />
                             <span>Invoice</span>
                           </button>
                         </div>
 
                         {/* Controls Footer */}
-                        <div className="pt-2 border-t border-asphalt-2/70 flex flex-wrap items-center justify-between gap-1 text-[10px]">
+                        <div className="pt-2 border-t border-asphalt-2 flex items-center justify-between gap-1.5 text-xs">
                           <select
                             value={o.status}
                             onChange={(e) => handleSetStatus(o.id, e.target.value)}
-                            className="bg-asphalt-2 border border-steel/30 py-1 px-1.5 text-off-white font-bold text-[10px] cursor-pointer focus:outline-none w-auto min-w-[105px] flex-1 tracking-wider"
+                            className="bg-asphalt-2 border border-steel/25 rounded-lg py-1 px-2 text-off-white font-semibold text-xs cursor-pointer focus:border-plate-yellow focus:outline-none flex-1 tracking-wider"
                           >
                             <option value="PLACED">PLACED</option>
                             <option value="CONFIRMED">CONFIRMED</option>
@@ -262,13 +269,11 @@ export default function AdminOrdersPage() {
                           {col.key !== "DELIVERED" && (
                             <button
                               onClick={() => handleAdvanceStatus(o.id)}
-                              className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-[10px] uppercase px-2 py-1 flex items-center gap-1 transform cursor-pointer shrink-0"
-                              title="Move to next stage"
+                              className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs rounded-lg px-2.5 py-1 flex items-center gap-1 transition-all shadow-xs cursor-pointer shrink-0"
+                              title="Advance to next pipeline stage"
                             >
-                              <div className="transform flex items-center gap-0.5">
-                                <span>Next</span>
-                                <ArrowRight className="w-3 h-3" />
-                              </div>
+                              <span>Next</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -284,76 +289,83 @@ export default function AdminOrdersPage() {
 
       {/* Printable Invoice Modal */}
       {viewingOrder && (
-        <div id="printable-invoice-modal" className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div id="printable-invoice" className="bg-asphalt-2 border border-plate-yellow/60 max-w-2xl w-full p-6 space-y-5 shadow-2xl text-xs font-mono max-h-[90vh] overflow-y-auto">
+        <div id="printable-invoice-modal" className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div id="printable-invoice" className="surface border border-asphalt-2 max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl rounded-3xl text-xs max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-asphalt pb-3">
+            <div className="flex items-center justify-between border-b border-asphalt-2 pb-4">
               <div>
-                <span className="text-[10px] text-plate-yellow uppercase tracking-widest block font-bold">
-                  BIKERS DEMAND — OFFICIAL INVOICE
-                </span>
-                <h2 className="display-font text-2xl font-extrabold text-off-white uppercase">
-                  ORDER #{viewingOrder.orderNumber || viewingOrder.id}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
+                  <span className="text-[11px] font-mono font-bold text-plate-yellow uppercase tracking-wider">
+                    Official Tax Invoice
+                  </span>
+                </div>
+                <h2 className="display-font text-2xl font-extrabold text-off-white">
+                  Order #{viewingOrder.orderNumber || viewingOrder.id}
                 </h2>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="bg-ignition-red hover:bg-red-600 text-asphalt font-extrabold text-xs uppercase px-4 py-2 flex items-center gap-1.5 transform cursor-pointer"
+                  className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                 >
-                  <div className="transform flex items-center gap-1.5">
-                    <Printer className="w-4 h-4" />
-                    <span>Print Invoice</span>
-                  </div>
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Invoice</span>
                 </button>
 
                 <button
                   onClick={() => setViewingOrder(null)}
-                  className="text-steel hover:text-off-white p-1 text-sm font-mono cursor-pointer"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer"
                 >
-                  ✕ Close
+                  ✕
                 </button>
               </div>
             </div>
 
             {/* Customer & Order Metadata Grid */}
-            <div className="grid grid-cols-2 gap-4 bg-asphalt p-4 border border-asphalt-2">
-              <div className="space-y-1">
-                <span className="text-steel block text-[10px] uppercase font-bold">CUSTOMER & SHIPPING</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-2xl bg-asphalt/40 p-4 sm:p-5 border border-asphalt-2">
+              <div className="space-y-1.5">
+                <span className="text-plate-yellow block text-xs font-mono font-bold uppercase">
+                  Customer &amp; Shipping
+                </span>
                 <div className="text-off-white font-bold text-sm">{viewingOrder.customer}</div>
-                <div className="text-steel">Phone: {viewingOrder.phone}</div>
-                <div className="text-steel-light leading-relaxed mt-1">
-                  Address: {viewingOrder.address}
+                <div className="text-steel">Phone: <strong className="text-off-white font-mono">{viewingOrder.phone}</strong></div>
+                <div className="text-steel leading-relaxed mt-1">
+                  Address: <span className="font-mono text-off-white">{viewingOrder.address}</span>
                 </div>
               </div>
 
-              <div className="space-y-1 text-right">
-                <span className="text-steel block text-[10px] uppercase font-bold">ORDER LOGISTICS</span>
-                <div>Date Placed: <strong className="text-off-white">{viewingOrder.date}</strong></div>
-                <div>Status: <strong className="text-plate-yellow uppercase">{viewingOrder.status}</strong></div>
-                <div>Payment: <strong className="text-off-white">{viewingOrder.paymentMethod} ({viewingOrder.paymentStatus})</strong></div>
+              <div className="space-y-1.5 sm:text-right">
+                <span className="text-plate-yellow block text-xs font-mono font-bold uppercase">
+                  Order Logistics
+                </span>
+                <div className="text-steel">Date: <strong className="text-off-white font-mono">{viewingOrder.date}</strong></div>
+                <div className="text-steel">Status: <strong className="text-plate-yellow font-mono uppercase">{viewingOrder.status}</strong></div>
+                <div className="text-steel">Payment: <strong className="text-off-white font-mono">{viewingOrder.paymentMethod} ({viewingOrder.paymentStatus})</strong></div>
               </div>
             </div>
 
             {/* Item Breakdown */}
             <div className="space-y-2">
-              <span className="text-steel font-bold uppercase text-[10px]">ORDERED ITEMS BREAKDOWN</span>
-              <div className="border border-asphalt-2 overflow-x-auto">
+              <span className="text-steel font-bold uppercase text-[11px] font-mono tracking-wider">
+                Ordered Items Breakdown
+              </span>
+              <div className="rounded-2xl border border-asphalt-2 overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-asphalt text-steel font-mono uppercase border-b border-asphalt-2">
+                  <thead className="bg-asphalt/70 text-steel font-mono uppercase text-[11px] tracking-wider border-b border-asphalt-2">
                     <tr>
-                      <th className="p-2.5">Item Name</th>
-                      <th className="p-2.5 text-center">Qty</th>
-                      <th className="p-2.5 text-right">Unit Price</th>
-                      <th className="p-2.5 text-right">Total</th>
+                      <th className="py-3 px-3.5">Item Name</th>
+                      <th className="py-3 px-3.5 text-center">Qty</th>
+                      <th className="py-3 px-3.5 text-right">Unit Price</th>
+                      <th className="py-3 px-3.5 text-right">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-asphalt-2 font-mono">
                     {viewingOrder.items && viewingOrder.items.length > 0 ? (
                       viewingOrder.items.map((item: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-asphalt/50">
-                          <td className="p-2.5 font-bold text-off-white">
+                        <tr key={idx} className="hover:bg-asphalt/30 transition-colors">
+                          <td className="py-3 px-3.5 font-medium text-off-white">
                             {item.brand && (
                               <span className="text-[10px] text-plate-yellow font-bold uppercase block tracking-wider mb-0.5">
                                 {item.brand}
@@ -362,7 +374,7 @@ export default function AdminOrdersPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span>{item.name}</span>
                               {item.size && (
-                                <span className="bg-asphalt-2 border border-plate-yellow/40 text-plate-yellow text-[10px] px-1.5 py-0.5 font-mono uppercase inline-block">
+                                <span className="rounded-md bg-asphalt border border-plate-yellow/30 text-plate-yellow text-[10px] px-1.5 py-0.5 font-mono uppercase inline-block">
                                   Size: {item.size}
                                 </span>
                               )}
@@ -373,21 +385,21 @@ export default function AdminOrdersPage() {
                               </div>
                             )}
                           </td>
-                          <td className="p-2.5 text-center font-bold">{item.quantity || 1}</td>
-                          <td className="p-2.5 text-right text-steel">৳{(item.price || 0).toLocaleString("en-BD")}</td>
-                          <td className="p-2.5 text-right font-bold text-off-white">
+                          <td className="py-3 px-3.5 text-center font-bold text-off-white">{item.quantity || 1}</td>
+                          <td className="py-3 px-3.5 text-right text-steel">৳{(item.price || 0).toLocaleString("en-BD")}</td>
+                          <td className="py-3 px-3.5 text-right font-bold text-off-white">
                             ৳{((item.price || 0) * (item.quantity || 1)).toLocaleString("en-BD")}
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td className="p-2.5 font-bold text-off-white">Motorcycle Accessories & Parts</td>
-                        <td className="p-2.5 text-center font-bold">{viewingOrder.itemsCount || 1}</td>
-                        <td className="p-2.5 text-right text-steel">
+                        <td className="py-3 px-3.5 font-medium text-off-white">Motorcycle Accessories &amp; Parts</td>
+                        <td className="py-3 px-3.5 text-center font-bold">{viewingOrder.itemsCount || 1}</td>
+                        <td className="py-3 px-3.5 text-right text-steel">
                           ৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}
                         </td>
-                        <td className="p-2.5 text-right font-bold text-off-white">
+                        <td className="py-3 px-3.5 text-right font-bold text-off-white">
                           ৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}
                         </td>
                       </tr>
@@ -398,16 +410,16 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* Total Calculation Footer */}
-            <div className="bg-asphalt p-4 border border-asphalt-2 text-xs space-y-2">
-              <div className="space-y-1 font-mono text-steel text-[11px] border-b border-asphalt-2 pb-2.5">
+            <div className="rounded-2xl bg-asphalt/40 p-4 sm:p-5 border border-asphalt-2 text-xs space-y-2">
+              <div className="space-y-1.5 font-mono text-steel text-xs border-b border-asphalt-2 pb-3">
                 <div className="flex justify-between items-center">
                   <span>Subtotal (Items):</span>
-                  <strong className="text-off-white">৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}</strong>
+                  <strong className="text-off-white font-semibold">৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}</strong>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span>Delivery Charge ({viewingOrder.address?.includes("Outside") ? "Outside Dhaka" : "Inside Dhaka"}):</span>
-                  <strong className="text-off-white">+ ৳{Number(viewingOrder.deliveryCharge || (viewingOrder.address?.includes("Outside") ? 130 : 60)).toLocaleString("en-BD")}</strong>
+                  <strong className="text-off-white font-semibold">+ ৳{Number(viewingOrder.deliveryCharge || (viewingOrder.address?.includes("Outside") ? 130 : 60)).toLocaleString("en-BD")}</strong>
                 </div>
 
                 {viewingOrder.discountAmount > 0 && (
@@ -419,8 +431,8 @@ export default function AdminOrdersPage() {
               </div>
 
               <div className="flex justify-between items-center pt-1 font-mono">
-                <span className="text-steel font-bold text-xs uppercase">FINAL AMOUNT DUE:</span>
-                <span className="text-lg font-extrabold text-plate-yellow">
+                <span className="text-steel font-bold text-xs uppercase">Final Amount Due:</span>
+                <span className="display-font text-2xl font-extrabold text-plate-yellow">
                   ৳{Number(viewingOrder.total || 0).toLocaleString("en-BD")}
                 </span>
               </div>
