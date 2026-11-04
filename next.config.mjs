@@ -18,6 +18,38 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.amazonaws.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.ls2helmets.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.ls2helmets.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.motulindia.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'motulindia.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.tradeinn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.tradeinn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.alpinestars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.alpinestars.com',
+      },
     ],
   },
 };
