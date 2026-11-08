@@ -73,19 +73,86 @@ export default function Navigation({
     return () => window.removeEventListener("category-updated", loadCategories);
   }, [loadCategories]);
 
+  // Canonical top-level categories defined by PRD §3.1 and design.md
+  const CANONICAL_KEYS = [
+    "riding-gear",
+    "parts-mods",
+    "electronics",
+    "oils-additives",
+    "merchandise",
+  ];
+
   // Build dynamic subcategory lookup strictly from DB categories
   const dynamicSubMap: Record<string, { title: string; href: string }[]> = {};
   dbCategories.forEach((cat) => {
+    const targetKey = cat.slug === "helmets" ? "riding-gear" : cat.slug;
     if (cat.children && cat.children.length > 0) {
-      dynamicSubMap[cat.slug] = cat.children.map((sub: any) => ({
+      const existing = dynamicSubMap[targetKey] || [];
+      const newItems = cat.children.map((sub: any) => ({
         title: sub.name,
         href: `/category/${cat.slug}?sub=${sub.slug}`,
       }));
+      dynamicSubMap[targetKey] = [...existing, ...newItems];
     }
   });
 
   const navItems = React.useMemo(() => {
-    const dynamicMain = dbCategories.map((cat) => ({
+    // Normalization map to eliminate duplicates like "Additives & Oils" vs "Oils & Additives" or "Parts" vs "Parts & Mods"
+    const normalizeSlug = (slug: string): string => {
+      const s = slug.toLowerCase();
+      if (s.includes("oil") || s.includes("additive") || s.includes("fluid")) return "oils-additives";
+      if (s.includes("part") || s.includes("mod")) return "parts-mods";
+      if (s.includes("gear") || s.includes("wear") || s.includes("apparel") || s.includes("jacket")) return "riding-gear";
+      if (s.includes("electronic") || s.includes("light") || s.includes("gadget")) return "electronics";
+      if (s.includes("merchandise") || s.includes("merch")) return "merchandise";
+      return s;
+    };
+
+    // Default canonical categories from PRD §3.1 so nav is never empty or delayed
+    const canonicalMeta: Record<string, { name: string; slug: string }> = {
+      "riding-gear": { name: "Riding Gear", slug: "riding-gear" },
+      "parts-mods": { name: "Parts & Mods", slug: "parts-mods" },
+      "electronics": { name: "Electronics", slug: "electronics" },
+      "oils-additives": { name: "Oils & Additives", slug: "oils-additives" },
+      "merchandise": { name: "Merchandise", slug: "merchandise" },
+    };
+
+    // Deduplicate and filter out subcategories (e.g. "Helmets" which belongs under "Riding Gear")
+    const seenSlugs = new Set<string>();
+    const filteredCategories: { name: string; slug: string }[] = [];
+
+    // Prioritize DB categories first
+    dbCategories.forEach((cat) => {
+      if (cat.slug === "helmets" || cat.slug === "accessories") {
+        // Helmets is a subcategory of Riding Gear per PRD §3.1, not a top-level navbar item
+        return;
+      }
+      const norm = normalizeSlug(cat.slug);
+      if (!seenSlugs.has(norm) && canonicalMeta[norm]) {
+        seenSlugs.add(norm);
+        filteredCategories.push({
+          name: canonicalMeta[norm].name,
+          slug: canonicalMeta[norm].slug,
+        });
+      }
+    });
+
+    // Fill in any missing canonical categories so nav is always complete
+    CANONICAL_KEYS.forEach((key) => {
+      if (!seenSlugs.has(key)) {
+        seenSlugs.add(key);
+        filteredCategories.push(canonicalMeta[key]);
+      }
+    });
+
+    // Sort in strict canonical PRD §3.1 order
+    filteredCategories.sort((a, b) => {
+      const idxA = CANONICAL_KEYS.indexOf(a.slug);
+      const idxB = CANONICAL_KEYS.indexOf(b.slug);
+      return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+    });
+
+    const dynamicMain = filteredCategories.map((cat) => ({
       name: cat.name,
       icon: getCategoryIcon(cat.slug),
       id: cat.slug,

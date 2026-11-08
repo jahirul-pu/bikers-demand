@@ -280,12 +280,12 @@ export default function ProductCard({
               </span>
             </div>
             {product.originalPrice && product.originalPrice > product.price ? (
-              <div className="flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
+              <div className="flex items-center gap-1.5 mt-0.5 whitespace-nowrap select-none">
                 <span className="text-xs text-steel line-through font-mono">
                   Tk {product.originalPrice.toLocaleString("en-BD")}
                 </span>
-                <span className="whitespace-nowrap inline-flex items-center text-[10px] font-bold bg-ignition-red text-white px-1.5 py-0.5 rounded-full leading-none shrink-0">
-                  -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                <span className="whitespace-nowrap inline-flex items-center justify-center text-[10px] font-bold bg-ignition-red text-white px-1.5 py-0.5 rounded-full leading-none shrink-0 font-mono">
+                  {"−"}{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                 </span>
               </div>
             ) : (

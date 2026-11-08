@@ -307,25 +307,25 @@ export default function AdminOrdersPage() {
         <div id="printable-invoice-portal">
           <div id="printable-invoice-modal" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-4 overflow-y-auto">
             {/* Action Bar (Screen Only) */}
-            <div className="w-full max-w-[105mm] mb-2.5 flex items-center justify-between no-print bg-asphalt-2/90 border border-steel/20 rounded-xl px-3 py-2 backdrop-blur shadow-lg">
-              <span className="text-[11px] font-mono font-semibold text-steel flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
-                A6 Invoice Preview (105 × 148 mm)
+            <div className="w-full max-w-[148mm] mb-3 flex items-center justify-between no-print bg-asphalt-2/95 border border-steel/20 rounded-xl px-4 py-2.5 backdrop-blur shadow-xl">
+              <span className="text-xs font-mono font-semibold text-steel flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-plate-yellow animate-pulse" />
+                A5 Invoice Preview (148 × 210 mm)
               </span>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => window.print()}
-                  className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-                  title="Print single-page A6 invoice"
+                  className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  title="Print single-page A5 invoice"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print Invoice</span>
+                  <Printer className="w-4 h-4" />
+                  <span>Print A5 Invoice</span>
                 </button>
 
                 <button
                   onClick={() => setViewingOrder(null)}
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer text-sm"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer text-sm"
                   title="Close Preview"
                 >
                   ✕
@@ -333,119 +333,124 @@ export default function AdminOrdersPage() {
               </div>
             </div>
 
-            {/* A6 Printable Invoice Card */}
+            {/* A5 Printable Invoice Card */}
             <div
               id="printable-invoice"
-              className="bg-white text-slate-900 w-full max-w-[105mm] p-3.5 shadow-2xl rounded-xl font-mono text-[8px] leading-tight space-y-2 border border-slate-200"
+              className="bg-white text-slate-900 w-full max-w-[148mm] p-6 shadow-2xl rounded-2xl font-mono text-[10px] leading-relaxed space-y-4 border border-slate-200"
             >
               {/* Header: Brand Logo, Address, Contact & Tax Invoice Title */}
-              <div className="flex items-start justify-between border-b-2 border-slate-900 pb-2">
-                <div className="flex items-start gap-2">
-                  <div className="w-7 h-7 bg-[#E23434] text-white flex items-center justify-center rounded-lg shrink-0">
-                    <Bike className="w-4 h-4 stroke-[2.5]" />
+              <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3.5">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-[#E23434] text-white flex items-center justify-center rounded-xl shrink-0 print:bg-[#E23434]">
+                    <Bike className="w-5 h-5 stroke-[2.5]" />
                   </div>
                   <div>
-                    <div className="display-font text-base font-extrabold tracking-tight text-slate-900 leading-none">
+                    <div className="display-font text-xl font-extrabold tracking-tight text-slate-900 leading-none">
                       BIKERS<span className="text-[#E23434]">DEMAND</span>
                     </div>
-                    <div className="text-[7.5px] font-sans font-semibold tracking-wider text-slate-500 uppercase">
+                    <div className="text-[9.5px] font-sans font-semibold tracking-wider text-slate-500 uppercase mt-0.5">
                       Motorcycle Parts &amp; Riding Gear
                     </div>
-                    <div className="text-[7px] text-slate-600 mt-0.5 leading-tight">
+                    <div className="text-[9px] text-slate-600 mt-1 leading-normal">
                       Tejgaon I/A, Dhaka-1208, Bangladesh<br />
-                      Hotline: +880 9612-BIKERS • bikersdemand.com
+                      Hotline: <strong className="text-slate-900">+880 9612-BIKERS</strong> • support@bikersdemand.com • bikersdemand.com
                     </div>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <span className="inline-block bg-slate-900 text-white font-mono font-bold text-[7.5px] px-1.5 py-0.5 uppercase tracking-wider rounded-xs">
-                    TAX INVOICE
+                  <span className="inline-block bg-slate-900 text-white font-mono font-bold text-[9px] px-2.5 py-1 uppercase tracking-wider rounded-xs">
+                    OFFICIAL TAX INVOICE
                   </span>
-                  <div className="text-[8.5px] font-bold text-slate-900 mt-1">
+                  <div className="text-xs font-bold text-slate-900 mt-1.5 font-mono">
                     #{viewingOrder.orderNumber || (viewingOrder.id ? String(viewingOrder.id).slice(-8).toUpperCase() : "INV-001")}
                   </div>
-                  <div className="text-[7px] text-slate-500">
-                    Date: {viewingOrder.date}
+                  <div className="text-[9px] text-slate-500 mt-0.5">
+                    Date: <strong className="text-slate-700">{viewingOrder.date}</strong>
                   </div>
                 </div>
               </div>
 
               {/* Customer & Order Logistics Grid */}
-              <div className="grid grid-cols-2 gap-2 text-[7.5px] bg-slate-50 p-2 rounded border border-slate-200">
-                <div className="space-y-0.5">
-                  <span className="text-[6.5px] font-bold text-slate-500 uppercase tracking-wider block">
-                    BILL &amp; SHIP TO:
+              <div className="grid grid-cols-2 gap-3 text-[9.5px] bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div className="space-y-1">
+                  <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-200 pb-0.5">
+                    BILL &amp; SHIP TO
                   </span>
-                  <div className="font-bold text-slate-900 text-[8.5px] truncate">
+                  <div className="font-bold text-slate-900 text-[11px] pt-0.5">
                     {viewingOrder.customer}
                   </div>
                   <div className="text-slate-700">
                     Phone: <strong className="text-slate-900 font-bold">{viewingOrder.phone}</strong>
                   </div>
-                  <div className="text-slate-600 leading-tight line-clamp-2">
-                    {viewingOrder.address}
+                  <div className="text-slate-600 leading-snug">
+                    Address: <span className="text-slate-900 font-medium">{viewingOrder.address}</span>
                   </div>
                 </div>
 
-                <div className="space-y-0.5 text-right">
-                  <span className="text-[6.5px] font-bold text-slate-500 uppercase tracking-wider block">
-                    LOGISTICS &amp; STATUS:
+                <div className="space-y-1 text-right">
+                  <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-200 pb-0.5">
+                    ORDER &amp; LOGISTICS
                   </span>
-                  <div className="text-slate-700">
-                    Courier: <strong className="text-slate-900">Pathao Courier</strong>
+                  <div className="text-slate-700 pt-0.5">
+                    Logistics Partner: <strong className="text-slate-900">Pathao Courier (COD)</strong>
                   </div>
                   <div className="text-slate-700">
-                    Payment: <strong className="text-slate-900">{viewingOrder.paymentMethod} ({viewingOrder.paymentStatus})</strong>
+                    Payment Method: <strong className="text-slate-900">{viewingOrder.paymentMethod} ({viewingOrder.paymentStatus})</strong>
                   </div>
                   <div className="text-slate-700">
-                    Status: <strong className="text-[#E23434] uppercase font-bold">{viewingOrder.status}</strong>
+                    Order Status: <strong className="text-[#E23434] uppercase font-bold">{viewingOrder.status}</strong>
                   </div>
                 </div>
               </div>
 
               {/* Ordered Items Table */}
-              <div className="border border-slate-200 rounded overflow-hidden">
-                <table className="w-full text-left text-[7.5px]">
-                  <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase text-[6.5px]">
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <table className="w-full text-left text-[9.5px]">
+                  <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase text-[8.5px]">
                     <tr>
-                      <th className="py-1 px-1.5">Item Description</th>
-                      <th className="py-1 px-1 text-center w-6">Qty</th>
-                      <th className="py-1 px-1.5 text-right w-14">Rate</th>
-                      <th className="py-1 px-1.5 text-right w-14">Total</th>
+                      <th className="py-1.5 px-2.5">Item Description</th>
+                      <th className="py-1.5 px-2 text-center w-12">Qty</th>
+                      <th className="py-1.5 px-2.5 text-right w-20">Unit Rate</th>
+                      <th className="py-1.5 px-2.5 text-right w-24">Line Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 font-mono">
                     {viewingOrder.items && viewingOrder.items.length > 0 ? (
                       viewingOrder.items.map((item: any, idx: number) => (
                         <tr key={idx} className="text-slate-800">
-                          <td className="py-1 px-1.5 leading-tight">
-                            <div className="font-semibold text-slate-900">
+                          <td className="py-2 px-2.5 leading-snug">
+                            <div className="font-bold text-slate-900 text-[10px]">
                               {item.brand ? `${item.brand} - ` : ""}{item.name}
                             </div>
                             {item.size && (
-                              <span className="text-[6.5px] text-slate-500 block">
-                                Size/Variant: {item.size}
+                              <span className="text-[8.5px] text-slate-500 block">
+                                Size / Spec: {item.size}
+                              </span>
+                            )}
+                            {item.warranty && item.warranty !== "No Warranty" && (
+                              <span className="text-[8px] text-emerald-700 font-medium block">
+                                🛡 Warranty: {item.warranty}
                               </span>
                             )}
                           </td>
-                          <td className="py-1 px-1 text-center font-bold">{item.quantity || 1}</td>
-                          <td className="py-1 px-1.5 text-right text-slate-600">
+                          <td className="py-2 px-2 text-center font-bold text-slate-900">{item.quantity || 1}</td>
+                          <td className="py-2 px-2.5 text-right text-slate-600">
                             ৳{(item.price || 0).toLocaleString("en-BD")}
                           </td>
-                          <td className="py-1 px-1.5 text-right font-bold text-slate-900">
+                          <td className="py-2 px-2.5 text-right font-bold text-slate-900">
                             ৳{((item.price || 0) * (item.quantity || 1)).toLocaleString("en-BD")}
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr className="text-slate-800">
-                        <td className="py-1 px-1.5 font-medium">Motorcycle Accessories &amp; Parts</td>
-                        <td className="py-1 px-1 text-center font-bold">{viewingOrder.itemsCount || 1}</td>
-                        <td className="py-1 px-1.5 text-right text-slate-600">
+                        <td className="py-2 px-2.5 font-medium">Motorcycle Accessories &amp; Parts</td>
+                        <td className="py-2 px-2 text-center font-bold">{viewingOrder.itemsCount || 1}</td>
+                        <td className="py-2 px-2.5 text-right text-slate-600">
                           ৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}
                         </td>
-                        <td className="py-1 px-1.5 text-right font-bold text-slate-900">
+                        <td className="py-2 px-2.5 text-right font-bold text-slate-900">
                           ৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}
                         </td>
                       </tr>
@@ -454,15 +459,20 @@ export default function AdminOrdersPage() {
                 </table>
               </div>
 
-              {/* Totals & Notes Section */}
-              <div className="flex justify-between items-start gap-2 pt-0.5 text-[7.5px]">
-                <div className="flex-1 space-y-0.5 text-slate-500 text-[6.5px] leading-tight pr-2">
-                  <div>• Parts cannot be returned once packaging is opened.</div>
-                  <div>• For support or claims: support@bikersdemand.com</div>
-                  <div className="font-semibold text-slate-700">Thank you for riding with Bikers Demand!</div>
+              {/* Totals & Terms Section */}
+              <div className="flex justify-between items-start gap-4 pt-1 text-[9.5px]">
+                <div className="flex-1 space-y-1.5 text-slate-500 text-[8.5px] leading-relaxed pr-2">
+                  <div className="font-semibold text-slate-800 uppercase tracking-wider text-[8.5px]">
+                    Customer Notice &amp; Return Terms:
+                  </div>
+                  <div>• Parts &amp; Mods: Non-returnable once packaging or seal is torn or opened.</div>
+                  <div>• Claims for wrong or defective items must be reported within 48h with unboxing evidence.</div>
+                  <div className="font-semibold text-slate-700 pt-0.5">
+                    Thank you for riding with Bikers Demand!
+                  </div>
                 </div>
 
-                <div className="w-36 space-y-0.5">
+                <div className="w-52 space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200">
                   <div className="flex justify-between text-slate-600">
                     <span>Subtotal:</span>
                     <span className="font-semibold text-slate-900">
@@ -477,17 +487,17 @@ export default function AdminOrdersPage() {
                   </div>
                   {viewingOrder.discountAmount > 0 && (
                     <div className="flex justify-between text-emerald-700 font-bold">
-                      <span>Discount {viewingOrder.couponCode ? `(${viewingOrder.couponCode})` : ""}:</span>
+                      <span>Coupon Discount {viewingOrder.couponCode ? `(${viewingOrder.couponCode})` : ""}:</span>
                       <span>- ৳{Number(viewingOrder.discountAmount).toLocaleString("en-BD")}</span>
                     </div>
                   )}
 
                   {/* COD / Amount Due Highlight Box */}
-                  <div className="bg-slate-900 text-white p-1 rounded flex justify-between items-center print:bg-slate-900 print:text-white mt-0.5">
-                    <span className="font-bold text-[7px] uppercase tracking-wider">
+                  <div className="bg-slate-900 text-white p-2 rounded-md flex justify-between items-center print:bg-slate-900 print:text-white mt-1 shadow-xs">
+                    <span className="font-bold text-[8.5px] uppercase tracking-wider">
                       {viewingOrder.paymentStatus === "PAID" ? "TOTAL PAID:" : "TOTAL DUE (COD):"}
                     </span>
-                    <span className="display-font text-xs font-extrabold text-[#E8B93A]">
+                    <span className="display-font text-base font-extrabold text-[#E8B93A]">
                       ৳{Number(viewingOrder.total || 0).toLocaleString("en-BD")}
                     </span>
                   </div>
@@ -495,12 +505,12 @@ export default function AdminOrdersPage() {
               </div>
 
               {/* Bottom Sign-off Strip */}
-              <div className="pt-1.5 border-t border-dashed border-slate-300 flex justify-between items-end text-[6.5px] text-slate-400">
+              <div className="pt-3 border-t border-dashed border-slate-300 flex justify-between items-end text-[8px] text-slate-400">
                 <div>
-                  Authorized Dispatch: __________________
+                  Authorized Dispatch Verification: _______________________
                 </div>
                 <div className="text-right">
-                  Customer Received: __________________
+                  Customer Signature (Upon Receipt): _______________________
                 </div>
               </div>
             </div>
