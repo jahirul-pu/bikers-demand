@@ -73,132 +73,90 @@ export default function Navigation({
     return () => window.removeEventListener("category-updated", loadCategories);
   }, [loadCategories]);
 
-  // Canonical top-level categories defined by PRD §3.1 and design.md
-  const CANONICAL_KEYS = [
-    "riding-gear",
-    "parts-mods",
-    "electronics",
-    "oils-additives",
-    "merchandise",
-  ];
-
-    // Canonical subcategory defaults matching PRD §3.1 catalog structure
-  const DEFAULT_SUB_MAP: Record<string, { title: string; href: string }[]> = {
+  // Canonical subcategory defaults matching PRD §3.1 catalog structure (fallback when DB is empty)
+  const DEFAULT_SUB_MAP: Record<string, { title: string; href: string; count?: number }[]> = {
     "riding-gear": [
-      { title: "Helmets (Full Face, Modular, Visors)", href: "/category/riding-gear?sub=helmets" },
-      { title: "Riding Jackets (Armored)", href: "/category/riding-gear?sub=jackets" },
-      { title: "Gloves (Touchscreen, Leather)", href: "/category/riding-gear?sub=gloves" },
-      { title: "Riding Boots", href: "/category/riding-gear?sub=boots" },
-      { title: "Protection & Armor (Chest, Knee, Elbow)", href: "/category/riding-gear?sub=armor" },
+      { title: "Helmets", href: "/category/riding-gear?sub=helmets" },
+      { title: "Jackets", href: "/category/riding-gear?sub=jackets" },
+      { title: "Gloves", href: "/category/riding-gear?sub=gloves" },
+      { title: "Boots", href: "/category/riding-gear?sub=boots" },
+      { title: "Protection & Armor", href: "/category/riding-gear?sub=armor" },
     ],
     "parts-mods": [
-      { title: "Exhausts & Performance Headers", href: "/category/parts-mods?sub=exhausts" },
-      { title: "CNC Levers & Controls", href: "/category/parts-mods?sub=levers" },
-      { title: "Drive Chains & Sprockets", href: "/category/parts-mods?sub=chains" },
-      { title: "Brake Pads & Disc Rotors", href: "/category/parts-mods?sub=brakes" },
+      { title: "Exhausts", href: "/category/parts-mods?sub=exhausts" },
+      { title: "Levers & Controls", href: "/category/parts-mods?sub=levers" },
+      { title: "Chains & Sprockets", href: "/category/parts-mods?sub=chains" },
+      { title: "Brake Systems", href: "/category/parts-mods?sub=brakes" },
     ],
     "electronics": [
-      { title: "LED Auxiliary Fog Lights", href: "/category/electronics?sub=fog-lights" },
-      { title: "Phone Mounts & Fast Chargers", href: "/category/electronics?sub=phone-mounts" },
-      { title: "Dual Tone Horns", href: "/category/electronics?sub=horns" },
-      { title: "GPS Trackers & Anti-Theft", href: "/category/electronics?sub=gps" },
+      { title: "LED Fog Lights", href: "/category/electronics?sub=fog-lights" },
+      { title: "Phone Mounts & Chargers", href: "/category/electronics?sub=phone-mounts" },
+      { title: "Horns", href: "/category/electronics?sub=horns" },
+      { title: "GPS & Trackers", href: "/category/electronics?sub=gps" },
     ],
     "oils-additives": [
-      { title: "Fully Synthetic Engine Oil (4T)", href: "/category/oils-additives?sub=engine-oil" },
-      { title: "Radiator Coolants & Fluids", href: "/category/oils-additives?sub=radiator-fluid" },
-      { title: "DOT 4 Brake Fluid", href: "/category/oils-additives?sub=brake-fluid" },
-      { title: "Chain Lube & Fuel System Cleaner", href: "/category/oils-additives?sub=fuel-system-cleaner" },
+      { title: "Engine Oil", href: "/category/oils-additives?sub=engine-oil" },
+      { title: "Radiator Fluid", href: "/category/oils-additives?sub=radiator-fluid" },
+      { title: "Brake Fluid", href: "/category/oils-additives?sub=brake-fluid" },
+      { title: "Fuel Booster & Cleaners", href: "/category/oils-additives?sub=fuel-system-cleaner" },
     ],
     "merchandise": [
-      { title: "Rider Apparel & T-Shirts", href: "/category/merchandise?sub=apparel" },
-      { title: "Waterproof Riding Backpacks & Tank Bags", href: "/category/merchandise?sub=backpacks" },
-      { title: "Keychains, Stickers & Decals", href: "/category/merchandise?sub=keychains" },
+      { title: "Apparel & T-Shirts", href: "/category/merchandise?sub=apparel" },
+      { title: "Riding Backpacks & Bags", href: "/category/merchandise?sub=backpacks" },
+      { title: "Keychains & Stickers", href: "/category/merchandise?sub=keychains" },
     ],
   };
 
-  // Build dynamic subcategory lookup, seeded with default subcategories and augmented by DB
-  const dynamicSubMap: Record<string, { title: string; href: string }[]> = { ...DEFAULT_SUB_MAP };
-  dbCategories.forEach((cat) => {
-    const targetKey = cat.slug === "helmets" ? "riding-gear" : cat.slug;
-    if (cat.children && cat.children.length > 0) {
-      const existing = dynamicSubMap[targetKey] || [];
-      const newItems = cat.children.map((sub: any) => ({
-        title: sub.name,
-        href: `/category/${cat.slug}?sub=${sub.slug}`,
-      }));
-      // Merge unique by title
-      const titles = new Set(existing.map((e) => e.title.toLowerCase()));
-      const filtered = newItems.filter((n: any) => !titles.has(n.title.toLowerCase()));
-      dynamicSubMap[targetKey] = [...existing, ...filtered];
-    }
-  });
+  // Build dynamic subcategory lookup directly from Admin Category Manager DB categories
+  const dynamicSubMap = React.useMemo(() => {
+    const map: Record<string, { title: string; href: string; count?: number }[]> = { ...DEFAULT_SUB_MAP };
+
+    dbCategories.forEach((cat) => {
+      if (cat.children && Array.isArray(cat.children) && cat.children.length > 0) {
+        // Use live database subcategories managed in Admin
+        map[cat.slug] = cat.children.map((sub: any) => ({
+          title: sub.name,
+          href: `/category/${cat.slug}?sub=${sub.slug}`,
+          count: sub._count?.products,
+        }));
+      }
+    });
+
+    return map;
+  }, [dbCategories]);
 
   const navItems = React.useMemo(() => {
-    // Normalization map to eliminate duplicates like "Additives & Oils" vs "Oils & Additives" or "Parts" vs "Parts & Mods"
-    const normalizeSlug = (slug: string): string => {
-      const s = slug.toLowerCase();
-      if (s.includes("oil") || s.includes("additive") || s.includes("fluid")) return "oils-additives";
-      if (s.includes("part") || s.includes("mod")) return "parts-mods";
-      if (s.includes("gear") || s.includes("wear") || s.includes("apparel") || s.includes("jacket")) return "riding-gear";
-      if (s.includes("electronic") || s.includes("light") || s.includes("gadget")) return "electronics";
-      if (s.includes("merchandise") || s.includes("merch")) return "merchandise";
-      return s;
-    };
+    // If DB categories are loaded, use them directly respecting Admin sortOrder and custom names
+    if (dbCategories.length > 0) {
+      const dynamicMain = dbCategories
+        .filter((cat) => cat.slug !== "helmets" && cat.slug !== "accessories")
+        .map((cat) => ({
+          name: cat.name,
+          icon: getCategoryIcon(cat.slug),
+          id: cat.slug,
+          href: `/category/${cat.slug}`,
+        }));
 
-    // Default canonical categories from PRD §3.1 so nav is never empty or delayed
-    const canonicalMeta: Record<string, { name: string; slug: string }> = {
-      "riding-gear": { name: "Riding Gear", slug: "riding-gear" },
-      "parts-mods": { name: "Parts & Mods", slug: "parts-mods" },
-      "electronics": { name: "Electronics", slug: "electronics" },
-      "oils-additives": { name: "Oils & Additives", slug: "oils-additives" },
-      "merchandise": { name: "Merchandise", slug: "merchandise" },
-    };
+      return [
+        { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
+        ...dynamicMain,
+        { name: "Brands", icon: Award, id: "brands", href: "/brands" },
+        { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
+      ];
+    }
 
-    // Deduplicate and filter out subcategories (e.g. "Helmets" which belongs under "Riding Gear")
-    const seenSlugs = new Set<string>();
-    const filteredCategories: { name: string; slug: string }[] = [];
-
-    // Prioritize DB categories first
-    dbCategories.forEach((cat) => {
-      if (cat.slug === "helmets" || cat.slug === "accessories") {
-        // Helmets is a subcategory of Riding Gear per PRD §3.1, not a top-level navbar item
-        return;
-      }
-      const norm = normalizeSlug(cat.slug);
-      if (!seenSlugs.has(norm) && canonicalMeta[norm]) {
-        seenSlugs.add(norm);
-        filteredCategories.push({
-          name: canonicalMeta[norm].name,
-          slug: canonicalMeta[norm].slug,
-        });
-      }
-    });
-
-    // Fill in any missing canonical categories so nav is always complete
-    CANONICAL_KEYS.forEach((key) => {
-      if (!seenSlugs.has(key)) {
-        seenSlugs.add(key);
-        filteredCategories.push(canonicalMeta[key]);
-      }
-    });
-
-    // Sort in strict canonical PRD §3.1 order
-    filteredCategories.sort((a, b) => {
-      const idxA = CANONICAL_KEYS.indexOf(a.slug);
-      const idxB = CANONICAL_KEYS.indexOf(b.slug);
-      return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
-    });
-
-    const dynamicMain = filteredCategories.map((cat) => ({
-      name: cat.name,
-      icon: getCategoryIcon(cat.slug),
-      id: cat.slug,
-      href: `/category/${cat.slug}`,
-    }));
+    // Initial fallback while DB query loads
+    const fallbackMain = [
+      { name: "Riding Gear", icon: getCategoryIcon("riding-gear"), id: "riding-gear", href: "/category/riding-gear" },
+      { name: "Parts & Mods", icon: getCategoryIcon("parts-mods"), id: "parts-mods", href: "/category/parts-mods" },
+      { name: "Electronics", icon: getCategoryIcon("electronics"), id: "electronics", href: "/category/electronics" },
+      { name: "Oils & Additives", icon: getCategoryIcon("oils-additives"), id: "oils-additives", href: "/category/oils-additives" },
+      { name: "Merchandise", icon: getCategoryIcon("merchandise"), id: "merchandise", href: "/category/merchandise" },
+    ];
 
     return [
       { name: "Shop All", icon: LayoutGrid, id: "shop", href: "/shop" },
-      ...dynamicMain,
+      ...fallbackMain,
       { name: "Brands", icon: Award, id: "brands", href: "/brands" },
       { name: "Help", icon: HelpCircle, id: "help", href: "/faq" },
     ];
@@ -247,9 +205,14 @@ export default function Navigation({
                           <Link
                             key={idx}
                             href={sub.href}
-                            className="block text-xs font-medium text-steel-light hover:text-off-white hover:bg-asphalt rounded-xl p-2.5 transition-colors"
+                            className="flex items-center justify-between text-xs font-medium text-steel-light hover:text-off-white hover:bg-asphalt rounded-xl p-2.5 transition-colors group"
                           >
-                            {sub.title}
+                            <span>{sub.title}</span>
+                            {sub.count !== undefined && sub.count > 0 && (
+                              <span className="text-[10px] font-mono text-plate-yellow font-bold bg-asphalt px-1.5 py-0.5 rounded border border-steel/15 group-hover:border-plate-yellow/30">
+                                {sub.count}
+                              </span>
+                            )}
                           </Link>
                         ))}
                       </div>

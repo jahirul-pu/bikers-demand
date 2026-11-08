@@ -74,6 +74,7 @@ function ShopPageInner() {
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("all");
+  const [subCategory, setSubCategory] = useState("all");
   const [priceMin, setPriceMin] = useState(0);
   const [priceMax, setPriceMax] = useState(20000);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
@@ -89,7 +90,7 @@ function ShopPageInner() {
 
   const [dbCategories, setDbCategories] = useState<any[]>([]);
 
-  useEffect(() => {
+  const loadCategories = useCallback(() => {
     fetch("/api/categories")
       .then((r) => r.json())
       .then((j) => {
@@ -98,12 +99,34 @@ function ShopPageInner() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    loadCategories();
+    window.addEventListener("category-updated", loadCategories);
+    return () => window.removeEventListener("category-updated", loadCategories);
+  }, [loadCategories]);
+
+  // Sync category and subCategory from URL parameters
+  useEffect(() => {
+    const catParam = searchParams.get("category");
+    if (catParam) {
+      setCategory(catParam);
+    }
+    const subParam = searchParams.get("sub");
+    if (subParam) {
+      setSubCategory(subParam);
+    }
+  }, [searchParams]);
+
   const dynamicCategories = useMemo(() => {
     return [
       { id: "all", label: "All Categories" },
       ...dbCategories.map((c: any) => ({ id: c.slug, label: c.name })),
     ];
   }, [dbCategories]);
+
+  const activeCategoryObj = useMemo(() => {
+    return dbCategories.find((c: any) => c.slug === category);
+  }, [dbCategories, category]);
 
   // Load products from live DB API
   useEffect(() => {
@@ -118,6 +141,7 @@ function ShopPageInner() {
             brand: p.brand,
             slug: p.slug,
             category: (p.category?.slug as any) || "riding-gear",
+            subCategory: p.subCategory || p.category?.slug || "",
             price: p.price,
             originalPrice: p.comparePrice,
             imageUrl: p.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500&auto=format&fit=crop&q=60",
@@ -194,6 +218,16 @@ function ShopPageInner() {
       list = list.filter((p) => p.category === category);
     }
 
+    // Subcategory
+    if (category !== "all" && subCategory !== "all") {
+      const subLower = subCategory.toLowerCase();
+      list = list.filter((p: any) => {
+        const pSub = (p.subCategory || "").toLowerCase();
+        const pName = p.name.toLowerCase();
+        return pSub === subLower || pSub.includes(subLower) || pName.includes(subLower);
+      });
+    }
+
     // Price range
     list = list.filter((p) => p.price >= priceMin && p.price <= priceMax);
 
@@ -242,6 +276,7 @@ function ShopPageInner() {
     allProducts,
     searchQuery,
     category,
+    subCategory,
     priceMin,
     priceMax,
     selectedBrands,
@@ -261,6 +296,7 @@ function ShopPageInner() {
   const resetFilters = useCallback(() => {
     setSearchQuery("");
     setCategory("all");
+    setSubCategory("all");
     setPriceMin(priceBounds.min);
     setPriceMax(priceBounds.max);
     setSelectedBrands([]);
@@ -273,6 +309,7 @@ function ShopPageInner() {
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (category !== "all") count++;
+    if (subCategory !== "all") count++;
     if (priceMin > priceBounds.min || priceMax < priceBounds.max) count++;
     if (selectedBrands.length > 0) count++;
     if (stockFilter !== "all") count++;
@@ -280,7 +317,7 @@ function ShopPageInner() {
     if (universalOnly) count++;
     if (searchQuery.trim()) count++;
     return count;
-  }, [category, priceMin, priceMax, priceBounds, selectedBrands, stockFilter, bikeCompatOnly, universalOnly, searchQuery]);
+  }, [category, subCategory, priceMin, priceMax, priceBounds, selectedBrands, stockFilter, bikeCompatOnly, universalOnly, searchQuery]);
 
   const bikeDisplayName = selectedBike
     ? `${selectedBike.brand} ${selectedBike.model}${selectedBike.variant ? ` ${selectedBike.variant}` : ""}`
@@ -365,7 +402,10 @@ function ShopPageInner() {
           {dynamicCategories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setCategory(cat.id)}
+              onClick={() => {
+                setCategory(cat.id);
+                setSubCategory("all");
+              }}
               className={`w-full text-left text-xs px-2.5 py-2 font-mono transition-colors flex items-center justify-between group ${
                 category === cat.id
                   ? "bg-ignition-red/20 text-ignition-red border-l-2 border-ignition-red pl-2"
@@ -378,6 +418,44 @@ function ShopPageInner() {
           ))}
         </div>
       </FilterSection>
+
+      {/* Subcategory (shows dynamically when a category is selected and has subcategories) */}
+      {category !== "all" && activeCategoryObj?.children && activeCategoryObj.children.length > 0 && (
+        <FilterSection title="Subcategory">
+          <div className="space-y-1.5">
+            <button
+              onClick={() => setSubCategory("all")}
+              className={`w-full text-left text-xs px-2.5 py-1.5 font-mono transition-colors flex items-center justify-between group ${
+                subCategory === "all"
+                  ? "bg-plate-yellow/20 text-plate-yellow border-l-2 border-plate-yellow pl-2"
+                  : "text-steel-light hover:text-off-white hover:bg-asphalt/60"
+              }`}
+            >
+              <span>All {activeCategoryObj.name}</span>
+              {subCategory === "all" && <CheckCircle2 className="w-3 h-3 text-plate-yellow" />}
+            </button>
+            {activeCategoryObj.children.map((sub: any) => (
+              <button
+                key={sub.id}
+                onClick={() => setSubCategory(sub.slug)}
+                className={`w-full text-left text-xs px-2.5 py-1.5 font-mono transition-colors flex items-center justify-between group ${
+                  subCategory === sub.slug
+                    ? "bg-plate-yellow/20 text-plate-yellow border-l-2 border-plate-yellow pl-2"
+                    : "text-steel-light hover:text-off-white hover:bg-asphalt/60"
+                }`}
+              >
+                <span>{sub.name}</span>
+                <div className="flex items-center gap-1.5">
+                  {sub._count?.products !== undefined && (
+                    <span className="text-[10px] text-steel">({sub._count.products})</span>
+                  )}
+                  {subCategory === sub.slug && <CheckCircle2 className="w-3 h-3 text-plate-yellow" />}
+                </div>
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+      )}
 
       {/* Price Range */}
       <FilterSection title="Price Range">

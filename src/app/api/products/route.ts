@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
         OR: [
           { subCategory: { equals: subCategory, mode: "insensitive" } },
           { category: { slug: { equals: subCategory, mode: "insensitive" } } },
+          { category: { parent: { slug: { equals: subCategory, mode: "insensitive" } } } },
+          { category: { name: { equals: subCategory, mode: "insensitive" } } },
         ],
       });
     }

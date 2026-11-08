@@ -38,7 +38,7 @@ export default function CategoryPage() {
 
   const [dbCategories, setDbCategories] = useState<any[]>([]);
 
-  useEffect(() => {
+  const loadCategories = React.useCallback(() => {
     fetch("/api/categories")
       .then((r) => r.json())
       .then((j) => {
@@ -46,6 +46,12 @@ export default function CategoryPage() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    loadCategories();
+    window.addEventListener("category-updated", loadCategories);
+    return () => window.removeEventListener("category-updated", loadCategories);
+  }, [loadCategories]);
 
   const currentCatRecord = dbCategories.find((c) => c.slug === slug);
   const subCategories: any[] = currentCatRecord?.children || [];
