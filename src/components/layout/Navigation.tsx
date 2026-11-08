@@ -82,8 +82,42 @@ export default function Navigation({
     "merchandise",
   ];
 
-  // Build dynamic subcategory lookup strictly from DB categories
-  const dynamicSubMap: Record<string, { title: string; href: string }[]> = {};
+    // Canonical subcategory defaults matching PRD §3.1 catalog structure
+  const DEFAULT_SUB_MAP: Record<string, { title: string; href: string }[]> = {
+    "riding-gear": [
+      { title: "Helmets (Full Face, Modular, Visors)", href: "/category/riding-gear?sub=helmets" },
+      { title: "Riding Jackets (Armored)", href: "/category/riding-gear?sub=jackets" },
+      { title: "Gloves (Touchscreen, Leather)", href: "/category/riding-gear?sub=gloves" },
+      { title: "Riding Boots", href: "/category/riding-gear?sub=boots" },
+      { title: "Protection & Armor (Chest, Knee, Elbow)", href: "/category/riding-gear?sub=armor" },
+    ],
+    "parts-mods": [
+      { title: "Exhausts & Performance Headers", href: "/category/parts-mods?sub=exhausts" },
+      { title: "CNC Levers & Controls", href: "/category/parts-mods?sub=levers" },
+      { title: "Drive Chains & Sprockets", href: "/category/parts-mods?sub=chains" },
+      { title: "Brake Pads & Disc Rotors", href: "/category/parts-mods?sub=brakes" },
+    ],
+    "electronics": [
+      { title: "LED Auxiliary Fog Lights", href: "/category/electronics?sub=fog-lights" },
+      { title: "Phone Mounts & Fast Chargers", href: "/category/electronics?sub=phone-mounts" },
+      { title: "Dual Tone Horns", href: "/category/electronics?sub=horns" },
+      { title: "GPS Trackers & Anti-Theft", href: "/category/electronics?sub=gps" },
+    ],
+    "oils-additives": [
+      { title: "Fully Synthetic Engine Oil (4T)", href: "/category/oils-additives?sub=engine-oil" },
+      { title: "Radiator Coolants & Fluids", href: "/category/oils-additives?sub=radiator-fluid" },
+      { title: "DOT 4 Brake Fluid", href: "/category/oils-additives?sub=brake-fluid" },
+      { title: "Chain Lube & Fuel System Cleaner", href: "/category/oils-additives?sub=fuel-system-cleaner" },
+    ],
+    "merchandise": [
+      { title: "Rider Apparel & T-Shirts", href: "/category/merchandise?sub=apparel" },
+      { title: "Waterproof Riding Backpacks & Tank Bags", href: "/category/merchandise?sub=backpacks" },
+      { title: "Keychains, Stickers & Decals", href: "/category/merchandise?sub=keychains" },
+    ],
+  };
+
+  // Build dynamic subcategory lookup, seeded with default subcategories and augmented by DB
+  const dynamicSubMap: Record<string, { title: string; href: string }[]> = { ...DEFAULT_SUB_MAP };
   dbCategories.forEach((cat) => {
     const targetKey = cat.slug === "helmets" ? "riding-gear" : cat.slug;
     if (cat.children && cat.children.length > 0) {
@@ -92,7 +126,10 @@ export default function Navigation({
         title: sub.name,
         href: `/category/${cat.slug}?sub=${sub.slug}`,
       }));
-      dynamicSubMap[targetKey] = [...existing, ...newItems];
+      // Merge unique by title
+      const titles = new Set(existing.map((e) => e.title.toLowerCase()));
+      const filtered = newItems.filter((n: any) => !titles.has(n.title.toLowerCase()));
+      dynamicSubMap[targetKey] = [...existing, ...filtered];
     }
   });
 
@@ -168,10 +205,10 @@ export default function Navigation({
   }, [dbCategories]);
 
   return (
-    <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2 relative">
+    <nav className="hidden md:block bg-asphalt-2 border-b border-asphalt-2 relative z-30">
       {/* Row 1: Category links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center gap-1 lg:gap-2 py-2 overflow-x-auto no-scrollbar whitespace-nowrap">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 overflow-visible">
+        <div className="flex items-center justify-center gap-1 lg:gap-2 py-2 overflow-visible whitespace-nowrap">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
@@ -198,21 +235,24 @@ export default function Navigation({
                 </Link>
 
                 {/* Subcategories Hover Mega Dropdown */}
-                {subs && isHovered && (
-                  <div className="absolute top-full left-0 w-64 bg-asphalt-2 border border-steel/30 rounded-2xl shadow-xl p-3 mt-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <div className="text-[10px] font-semibold text-plate-yellow uppercase tracking-widest border-b border-steel/20 pb-1.5 mb-2">
-                      Subcategories
-                    </div>
-                    <div className="space-y-1">
-                      {subs.map((sub, idx) => (
-                        <Link
-                          key={idx}
-                          href={sub.href}
-                          className="block text-xs text-steel-light hover:text-off-white hover:bg-asphalt rounded-lg p-2 transition-colors"
-                        >
-                          {sub.title}
-                        </Link>
-                      ))}
+                {subs && subs.length > 0 && isHovered && (
+                  <div className="absolute top-full left-0 pt-1.5 w-64 z-[100] animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="bg-asphalt-2 border border-steel/30 rounded-2xl shadow-2xl p-3 backdrop-blur-md">
+                      <div className="text-[10px] font-semibold text-plate-yellow uppercase tracking-widest border-b border-steel/20 pb-1.5 mb-2 flex items-center justify-between">
+                        <span>{item.name} Subcategories</span>
+                        <span className="text-[9px] text-steel font-mono">({subs.length})</span>
+                      </div>
+                      <div className="space-y-1">
+                        {subs.map((sub, idx) => (
+                          <Link
+                            key={idx}
+                            href={sub.href}
+                            className="block text-xs font-medium text-steel-light hover:text-off-white hover:bg-asphalt rounded-xl p-2.5 transition-colors"
+                          >
+                            {sub.title}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -223,7 +263,7 @@ export default function Navigation({
       </div>
 
       {/* Row 2: Bike Selection Strip — inside nav bar */}
-      <div className={`border-t ${selectedBike ? "border-plate-yellow/20" : "border-asphalt/60"}`}>
+      <div className={`border-t ${selectedBike ? "border-plate-yellow/20" : "border-asphalt/60"} relative z-10`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-6 py-3">
             {selectedBike ? (
