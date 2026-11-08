@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowRight, ShoppingBag, Phone, MapPin, CheckCircle2, Clock, Search, X, FileText, Printer } from "lucide-react";
+import { createPortal } from "react-dom";
+import { ArrowRight, ShoppingBag, Phone, MapPin, CheckCircle2, Clock, Search, X, FileText, Printer, Bike } from "lucide-react";
 import { DBOrder } from "@/types/db";
 
 export default function AdminOrdersPage() {
@@ -9,6 +10,20 @@ export default function AdminOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingOrder, setViewingOrder] = useState<any | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (viewingOrder) {
+      document.body.classList.add("print-invoice-active");
+      return () => {
+        document.body.classList.remove("print-invoice-active");
+      };
+    }
+  }, [viewingOrder]);
 
   const loadOrders = async () => {
     try {
@@ -287,28 +302,22 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Printable Invoice Modal */}
-      {viewingOrder && (
-        <div id="printable-invoice-modal" className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-          <div id="printable-invoice" className="surface border border-asphalt-2 max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl rounded-3xl text-xs max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-asphalt-2 pb-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
-                  <span className="text-[11px] font-mono font-bold text-plate-yellow uppercase tracking-wider">
-                    Official Tax Invoice
-                  </span>
-                </div>
-                <h2 className="display-font text-2xl font-extrabold text-off-white">
-                  Order #{viewingOrder.orderNumber || viewingOrder.id}
-                </h2>
-              </div>
+      {/* Printable Invoice Modal (Portaled to document.body for A6 print isolation) */}
+      {viewingOrder && isClient && createPortal(
+        <div id="printable-invoice-portal">
+          <div id="printable-invoice-modal" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            {/* Action Bar (Screen Only) */}
+            <div className="w-full max-w-[105mm] mb-2.5 flex items-center justify-between no-print bg-asphalt-2/90 border border-steel/20 rounded-xl px-3 py-2 backdrop-blur shadow-lg">
+              <span className="text-[11px] font-mono font-semibold text-steel flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-plate-yellow animate-pulse" />
+                A6 Invoice Preview (105 × 148 mm)
+              </span>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  className="bg-ignition-red hover:bg-red-600 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  title="Print single-page A6 invoice"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print Invoice</span>
@@ -316,90 +325,127 @@ export default function AdminOrdersPage() {
 
                 <button
                   onClick={() => setViewingOrder(null)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-steel hover:text-off-white hover:bg-asphalt transition-colors cursor-pointer text-sm"
+                  title="Close Preview"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            {/* Customer & Order Metadata Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-2xl bg-asphalt/40 p-4 sm:p-5 border border-asphalt-2">
-              <div className="space-y-1.5">
-                <span className="text-plate-yellow block text-xs font-mono font-bold uppercase">
-                  Customer &amp; Shipping
-                </span>
-                <div className="text-off-white font-bold text-sm">{viewingOrder.customer}</div>
-                <div className="text-steel">Phone: <strong className="text-off-white font-mono">{viewingOrder.phone}</strong></div>
-                <div className="text-steel leading-relaxed mt-1">
-                  Address: <span className="font-mono text-off-white">{viewingOrder.address}</span>
+            {/* A6 Printable Invoice Card */}
+            <div
+              id="printable-invoice"
+              className="bg-white text-slate-900 w-full max-w-[105mm] p-3.5 shadow-2xl rounded-xl font-mono text-[8px] leading-tight space-y-2 border border-slate-200"
+            >
+              {/* Header: Brand Logo, Address, Contact & Tax Invoice Title */}
+              <div className="flex items-start justify-between border-b-2 border-slate-900 pb-2">
+                <div className="flex items-start gap-2">
+                  <div className="w-7 h-7 bg-[#E23434] text-white flex items-center justify-center rounded-lg shrink-0">
+                    <Bike className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <div className="display-font text-base font-extrabold tracking-tight text-slate-900 leading-none">
+                      BIKERS<span className="text-[#E23434]">DEMAND</span>
+                    </div>
+                    <div className="text-[7.5px] font-sans font-semibold tracking-wider text-slate-500 uppercase">
+                      Motorcycle Parts &amp; Riding Gear
+                    </div>
+                    <div className="text-[7px] text-slate-600 mt-0.5 leading-tight">
+                      Tejgaon I/A, Dhaka-1208, Bangladesh<br />
+                      Hotline: +880 9612-BIKERS • bikersdemand.com
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="inline-block bg-slate-900 text-white font-mono font-bold text-[7.5px] px-1.5 py-0.5 uppercase tracking-wider rounded-xs">
+                    TAX INVOICE
+                  </span>
+                  <div className="text-[8.5px] font-bold text-slate-900 mt-1">
+                    #{viewingOrder.orderNumber || (viewingOrder.id ? String(viewingOrder.id).slice(-8).toUpperCase() : "INV-001")}
+                  </div>
+                  <div className="text-[7px] text-slate-500">
+                    Date: {viewingOrder.date}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-1.5 sm:text-right">
-                <span className="text-plate-yellow block text-xs font-mono font-bold uppercase">
-                  Order Logistics
-                </span>
-                <div className="text-steel">Date: <strong className="text-off-white font-mono">{viewingOrder.date}</strong></div>
-                <div className="text-steel">Status: <strong className="text-plate-yellow font-mono uppercase">{viewingOrder.status}</strong></div>
-                <div className="text-steel">Payment: <strong className="text-off-white font-mono">{viewingOrder.paymentMethod} ({viewingOrder.paymentStatus})</strong></div>
-              </div>
-            </div>
+              {/* Customer & Order Logistics Grid */}
+              <div className="grid grid-cols-2 gap-2 text-[7.5px] bg-slate-50 p-2 rounded border border-slate-200">
+                <div className="space-y-0.5">
+                  <span className="text-[6.5px] font-bold text-slate-500 uppercase tracking-wider block">
+                    BILL &amp; SHIP TO:
+                  </span>
+                  <div className="font-bold text-slate-900 text-[8.5px] truncate">
+                    {viewingOrder.customer}
+                  </div>
+                  <div className="text-slate-700">
+                    Phone: <strong className="text-slate-900 font-bold">{viewingOrder.phone}</strong>
+                  </div>
+                  <div className="text-slate-600 leading-tight line-clamp-2">
+                    {viewingOrder.address}
+                  </div>
+                </div>
 
-            {/* Item Breakdown */}
-            <div className="space-y-2">
-              <span className="text-steel font-bold uppercase text-[11px] font-mono tracking-wider">
-                Ordered Items Breakdown
-              </span>
-              <div className="rounded-2xl border border-asphalt-2 overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-asphalt/70 text-steel font-mono uppercase text-[11px] tracking-wider border-b border-asphalt-2">
+                <div className="space-y-0.5 text-right">
+                  <span className="text-[6.5px] font-bold text-slate-500 uppercase tracking-wider block">
+                    LOGISTICS &amp; STATUS:
+                  </span>
+                  <div className="text-slate-700">
+                    Courier: <strong className="text-slate-900">Pathao Courier</strong>
+                  </div>
+                  <div className="text-slate-700">
+                    Payment: <strong className="text-slate-900">{viewingOrder.paymentMethod} ({viewingOrder.paymentStatus})</strong>
+                  </div>
+                  <div className="text-slate-700">
+                    Status: <strong className="text-[#E23434] uppercase font-bold">{viewingOrder.status}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ordered Items Table */}
+              <div className="border border-slate-200 rounded overflow-hidden">
+                <table className="w-full text-left text-[7.5px]">
+                  <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase text-[6.5px]">
                     <tr>
-                      <th className="py-3 px-3.5">Item Name</th>
-                      <th className="py-3 px-3.5 text-center">Qty</th>
-                      <th className="py-3 px-3.5 text-right">Unit Price</th>
-                      <th className="py-3 px-3.5 text-right">Total</th>
+                      <th className="py-1 px-1.5">Item Description</th>
+                      <th className="py-1 px-1 text-center w-6">Qty</th>
+                      <th className="py-1 px-1.5 text-right w-14">Rate</th>
+                      <th className="py-1 px-1.5 text-right w-14">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-asphalt-2 font-mono">
+                  <tbody className="divide-y divide-slate-100">
                     {viewingOrder.items && viewingOrder.items.length > 0 ? (
                       viewingOrder.items.map((item: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-asphalt/30 transition-colors">
-                          <td className="py-3 px-3.5 font-medium text-off-white">
-                            {item.brand && (
-                              <span className="text-[10px] text-plate-yellow font-bold uppercase block tracking-wider mb-0.5">
-                                {item.brand}
+                        <tr key={idx} className="text-slate-800">
+                          <td className="py-1 px-1.5 leading-tight">
+                            <div className="font-semibold text-slate-900">
+                              {item.brand ? `${item.brand} - ` : ""}{item.name}
+                            </div>
+                            {item.size && (
+                              <span className="text-[6.5px] text-slate-500 block">
+                                Size/Variant: {item.size}
                               </span>
                             )}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span>{item.name}</span>
-                              {item.size && (
-                                <span className="rounded-md bg-asphalt border border-plate-yellow/30 text-plate-yellow text-[10px] px-1.5 py-0.5 font-mono uppercase inline-block">
-                                  Size: {item.size}
-                                </span>
-                              )}
-                            </div>
-                            {item.warranty && item.warranty !== "No Warranty" && (
-                              <div className="text-[10px] text-emerald-400 font-mono mt-0.5 flex items-center gap-1 font-normal">
-                                <span>🛡 Warranty: {item.warranty}</span>
-                              </div>
-                            )}
                           </td>
-                          <td className="py-3 px-3.5 text-center font-bold text-off-white">{item.quantity || 1}</td>
-                          <td className="py-3 px-3.5 text-right text-steel">৳{(item.price || 0).toLocaleString("en-BD")}</td>
-                          <td className="py-3 px-3.5 text-right font-bold text-off-white">
+                          <td className="py-1 px-1 text-center font-bold">{item.quantity || 1}</td>
+                          <td className="py-1 px-1.5 text-right text-slate-600">
+                            ৳{(item.price || 0).toLocaleString("en-BD")}
+                          </td>
+                          <td className="py-1 px-1.5 text-right font-bold text-slate-900">
                             ৳{((item.price || 0) * (item.quantity || 1)).toLocaleString("en-BD")}
                           </td>
                         </tr>
                       ))
                     ) : (
-                      <tr>
-                        <td className="py-3 px-3.5 font-medium text-off-white">Motorcycle Accessories &amp; Parts</td>
-                        <td className="py-3 px-3.5 text-center font-bold">{viewingOrder.itemsCount || 1}</td>
-                        <td className="py-3 px-3.5 text-right text-steel">
+                      <tr className="text-slate-800">
+                        <td className="py-1 px-1.5 font-medium">Motorcycle Accessories &amp; Parts</td>
+                        <td className="py-1 px-1 text-center font-bold">{viewingOrder.itemsCount || 1}</td>
+                        <td className="py-1 px-1.5 text-right text-slate-600">
                           ৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}
                         </td>
-                        <td className="py-3 px-3.5 text-right font-bold text-off-white">
+                        <td className="py-1 px-1.5 text-right font-bold text-slate-900">
                           ৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}
                         </td>
                       </tr>
@@ -407,38 +453,60 @@ export default function AdminOrdersPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
 
-            {/* Total Calculation Footer */}
-            <div className="rounded-2xl bg-asphalt/40 p-4 sm:p-5 border border-asphalt-2 text-xs space-y-2">
-              <div className="space-y-1.5 font-mono text-steel text-xs border-b border-asphalt-2 pb-3">
-                <div className="flex justify-between items-center">
-                  <span>Subtotal (Items):</span>
-                  <strong className="text-off-white font-semibold">৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}</strong>
+              {/* Totals & Notes Section */}
+              <div className="flex justify-between items-start gap-2 pt-0.5 text-[7.5px]">
+                <div className="flex-1 space-y-0.5 text-slate-500 text-[6.5px] leading-tight pr-2">
+                  <div>• Parts cannot be returned once packaging is opened.</div>
+                  <div>• For support or claims: support@bikersdemand.com</div>
+                  <div className="font-semibold text-slate-700">Thank you for riding with Bikers Demand!</div>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span>Delivery Charge ({viewingOrder.address?.includes("Outside") ? "Outside Dhaka" : "Inside Dhaka"}):</span>
-                  <strong className="text-off-white font-semibold">+ ৳{Number(viewingOrder.deliveryCharge || (viewingOrder.address?.includes("Outside") ? 130 : 60)).toLocaleString("en-BD")}</strong>
-                </div>
-
-                {viewingOrder.discountAmount > 0 && (
-                  <div className="flex justify-between items-center text-emerald-400 font-bold">
-                    <span>Coupon Discount {viewingOrder.couponCode ? `(${viewingOrder.couponCode})` : ""}:</span>
-                    <span>- ৳{Number(viewingOrder.discountAmount).toLocaleString("en-BD")}</span>
+                <div className="w-36 space-y-0.5">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold text-slate-900">
+                      ৳{Number(viewingOrder.subtotal || viewingOrder.total || 0).toLocaleString("en-BD")}
+                    </span>
                   </div>
-                )}
+                  <div className="flex justify-between text-slate-600">
+                    <span>Delivery Fee:</span>
+                    <span className="font-semibold text-slate-900">
+                      + ৳{Number(viewingOrder.deliveryCharge || (viewingOrder.address?.includes("Outside") ? 130 : 60)).toLocaleString("en-BD")}
+                    </span>
+                  </div>
+                  {viewingOrder.discountAmount > 0 && (
+                    <div className="flex justify-between text-emerald-700 font-bold">
+                      <span>Discount {viewingOrder.couponCode ? `(${viewingOrder.couponCode})` : ""}:</span>
+                      <span>- ৳{Number(viewingOrder.discountAmount).toLocaleString("en-BD")}</span>
+                    </div>
+                  )}
+
+                  {/* COD / Amount Due Highlight Box */}
+                  <div className="bg-slate-900 text-white p-1 rounded flex justify-between items-center print:bg-slate-900 print:text-white mt-0.5">
+                    <span className="font-bold text-[7px] uppercase tracking-wider">
+                      {viewingOrder.paymentStatus === "PAID" ? "TOTAL PAID:" : "TOTAL DUE (COD):"}
+                    </span>
+                    <span className="display-font text-xs font-extrabold text-[#E8B93A]">
+                      ৳{Number(viewingOrder.total || 0).toLocaleString("en-BD")}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex justify-between items-center pt-1 font-mono">
-                <span className="text-steel font-bold text-xs uppercase">Final Amount Due:</span>
-                <span className="display-font text-2xl font-extrabold text-plate-yellow">
-                  ৳{Number(viewingOrder.total || 0).toLocaleString("en-BD")}
-                </span>
+              {/* Bottom Sign-off Strip */}
+              <div className="pt-1.5 border-t border-dashed border-slate-300 flex justify-between items-end text-[6.5px] text-slate-400">
+                <div>
+                  Authorized Dispatch: __________________
+                </div>
+                <div className="text-right">
+                  Customer Received: __________________
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

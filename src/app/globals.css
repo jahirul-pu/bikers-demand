@@ -306,3 +306,80 @@ img {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   A6 Printable Invoice Rules (105mm × 148mm)
+   ───────────────────────────────────────────────────────────── */
+@page {
+  size: A6 portrait;
+  margin: 5mm;
+}
+
+@media print {
+  /* Hide the rest of the application tree */
+  body.print-invoice-active > *:not(#printable-invoice-portal),
+  body:has(#printable-invoice-portal) > *:not(#printable-invoice-portal) {
+    display: none !important;
+  }
+
+  /* Reset html & body for single-page A6 print */
+  html, body {
+    width: 105mm !important;
+    max-width: 105mm !important;
+    height: 148mm !important;
+    max-height: 148mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #printable-invoice-portal {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  #printable-invoice-modal {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #printable-invoice {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 95mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    max-height: 138mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
